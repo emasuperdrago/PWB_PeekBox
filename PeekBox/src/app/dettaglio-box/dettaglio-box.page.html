@@ -1,0 +1,183 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar style="--background: #8CC63E;">
+    
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" style="color: white;"></ion-back-button>
+    </ion-buttons>
+    
+    <ion-title style="color: white;">
+      <div style="font-weight: 800; font-size: 1.2rem; line-height: 1.2;">
+        {{ boxCorrente?.nome || 'Dettaglio Box' }}
+      </div>
+      <div *ngIf="nomeArmadio" style="font-size: 0.8rem; font-weight: 500; opacity: 0.9; line-height: 1.2;">
+        <ion-icon name="cube-outline" style="vertical-align: middle; margin-right: 3px;"></ion-icon>
+        {{ nomeArmadio }}
+      </div>
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="setOpen(true)" style="color: white;">
+        <ion-icon slot="icon-only" name="add"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  
+  <div *ngIf="oggetti.length === 0" class="ion-text-center" style="margin-top: 100px;">
+    <ion-icon name="archive-outline" style="font-size: 80px; color: #ccc;"></ion-icon>
+    <h3 style="color: #666;">nessun oggetto trovato</h3> 
+    <p>Inizia aggiungendo un oggetto col tasto +</p>
+  </div>
+
+  <ion-grid *ngIf="oggetti.length > 0" class="ion-no-padding" style="margin-top: 15px;">
+    <ion-row>
+      <!-- MODIFICA QUI: size="4" per averne 3 per riga su mobile, size-md="3" per 4 per riga su tablet -->
+      <ion-col size="4" size-md="3" size-lg="2" *ngFor="let ogg of oggetti; let i = index">
+        
+        <ion-card class="card-oggetto" (click)="apriDettaglio(ogg)">
+          <div class="foto-container">
+            <img *ngIf="ogg.foto" [src]="ogg.foto" class="foto-img" />
+            
+            <div *ngIf="!ogg.foto" class="foto-vuota">
+              <ion-icon name="image-outline"></ion-icon>
+            </div>
+
+            <ion-badge color="primary" class="badge-qty">x{{ ogg.quantita }}</ion-badge>
+            <ion-badge *ngIf="ogg.fragile" color="danger" class="badge-fragile">FRAGILE</ion-badge>
+          </div>
+
+          <div class="info-container">
+            <div class="testi-oggetto">
+              <h2 class="nome-oggetto">{{ ogg.nome }}</h2>
+              <p class="tipo-oggetto">{{ ogg.tipo }}</p>
+            </div>
+            
+            <div class="action-buttons-oggetto">
+              <ion-button fill="clear" color="primary" class="btn-cestino" (click)="apriModifica(i, $event)">
+                <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+
+              <ion-button fill="clear" color="danger" class="btn-cestino" (click)="confermaEliminaOggetto(i, $event)">
+                <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </ion-card>
+
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-modal [isOpen]="isModalOpen">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ editIndex !== null ? 'Modifica Elemento' : 'Nuovo Elemento' }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="setOpen(false)">Annulla</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <ion-list>
+          <ion-item>
+            <ion-label position="stacked">Nome oggetto*</ion-label>
+            <ion-input [(ngModel)]="nuovoOggetto.nome" type="text" placeholder="Es. Servizio piatti"></ion-input>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Descrizione</ion-label>
+            <ion-textarea [(ngModel)]="nuovoOggetto.descrizione" placeholder="Altre info..."></ion-textarea>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Tipo di oggetto*</ion-label>
+            <ion-select [(ngModel)]="nuovoOggetto.tipo" placeholder="Seleziona">
+              <ion-select-option *ngFor="let tipo of tipiOggetto" [value]="tipo">{{ tipo }}</ion-select-option>
+            </ion-select>
+            <ion-button slot="end" fill="clear" (click)="aggiungiNuovoTipo()" style="margin-top: 15px;">
+              <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-item>
+
+          <ion-item>
+            <ion-label>Oggetto fragile?</ion-label>
+            <ion-toggle slot="end" [(ngModel)]="nuovoOggetto.fragile"></ion-toggle>
+          </ion-item>
+
+          <ion-item>
+            <ion-label position="stacked">Quantità*</ion-label>
+            <ion-input [(ngModel)]="nuovoOggetto.quantita" type="number"></ion-input>
+          </ion-item>
+
+          <div class="ion-padding-top">
+            <ion-button expand="block" fill="outline" (click)="scattaFoto()">
+              <ion-icon slot="start" name="camera"></ion-icon>
+              {{ nuovoOggetto.foto ? 'Foto Acquisita!' : 'Scatta o allega foto' }}
+            </ion-button>
+            
+            <div *ngIf="nuovoOggetto.foto" class="ion-text-center ion-margin-top">
+              <img [src]="nuovoOggetto.foto" style="max-height: 150px; border-radius: 8px;" />
+            </div>
+          </div>
+        </ion-list>
+
+        <div class="ion-padding">
+          <ion-button expand="block" class="btn-salva" (click)="salvaOggetto()">
+            SALVA ELEMENTO
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <ion-modal [isOpen]="isDettaglioOpen">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar style="--background: #8CC63E;">
+          <ion-title style="color: white; font-weight: 700;">Info Oggetto</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="chiudiDettaglio()" style="color: white; font-weight: bold;">Chiudi</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding" *ngIf="oggettoSelezionato">
+        
+        <div *ngIf="oggettoSelezionato.foto" style="text-align: center; margin-bottom: 20px;">
+          <img [src]="oggettoSelezionato.foto" style="max-height: 300px; width: 100%; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />
+        </div>
+        
+        <div *ngIf="!oggettoSelezionato.foto" style="text-align: center; margin-bottom: 20px; padding: 40px; background: #f4f5f8; border-radius: 12px;">
+          <ion-icon name="image-outline" style="font-size: 80px; color: #ccc;"></ion-icon>
+        </div>
+
+        <h1 style="color: #15425C; font-weight: 900; font-size: 2rem; margin-top: 0;">{{ oggettoSelezionato.nome }}</h1>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+          <ion-badge color="medium" style="font-size: 0.9rem; padding: 8px 12px;">{{ oggettoSelezionato.tipo }}</ion-badge>
+          <ion-badge *ngIf="oggettoSelezionato.fragile" color="danger" style="font-size: 0.9rem; padding: 8px 12px;">FRAGILE</ion-badge>
+        </div>
+
+        <ion-item lines="none" style="--background: #f4f5f8; border-radius: 10px; margin-bottom: 20px;">
+          <ion-icon name="cube-outline" slot="start" style="color: #8CC63E;"></ion-icon>
+          <ion-label style="font-weight: bold; color: #15425C;">Quantità</ion-label>
+          <ion-badge slot="end" color="primary" style="font-size: 1rem;">{{ oggettoSelezionato.quantita }}</ion-badge>
+        </ion-item>
+
+        <div *ngIf="oggettoSelezionato.descrizione">
+          <h3 style="color: #15425C; font-weight: bold; border-bottom: 2px solid #8CC63E; padding-bottom: 5px; display: inline-block;">Descrizione</h3>
+          <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">
+            {{ oggettoSelezionato.descrizione }}
+          </p>
+        </div>
+
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

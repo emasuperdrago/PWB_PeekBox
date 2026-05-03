@@ -1,0 +1,134 @@
+.btn-salva {
+  // Il colore verde PeekBox
+  --background: #8CC63E; 
+  --color: #ffffff;
+  
+  // Stile del testo per massima coerenza
+  font-weight: 700;
+  letter-spacing: 1px;
+  height: 50px; // Lo rende alto e facile da cliccare come l'altro
+  margin-top: 10px;
+  
+  // Rimuoviamo l'ombra se vuoi un look più flat, o lasciala per profondità
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+// Effetto al click
+.btn-salva:active {
+  --background: #7caf37; 
+}
+
+/* --- STILE GRIGLIA OGGETTI (Versione Mini) --- */
+.card-oggetto {
+  margin: 3px; /* Margine ridotto */
+  border-radius: 12px; /* Bordo leggermente meno arrotondato per recuperare spazio */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 1 / 1; /* Mantiene il quadrato perfetto */
+  background: white;
+  overflow: hidden; 
+}
+
+.foto-container {
+  width: 100%;
+  flex-grow: 1; 
+  position: relative;
+  background-color: #f4f5f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.foto-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; 
+}
+
+.foto-vuota {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  ion-icon {
+    font-size: 30px; /* Icona più piccola */
+    color: #c8c7cc;
+  }
+}
+
+/* Badge più piccoli */
+.badge-qty {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 0.7rem; /* Testo più piccolo */
+  padding: 2px 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.badge-fragile {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 0.5rem; /* Testo più piccolo */
+  padding: 2px 4px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Contenitore sotto la foto (più compatto) */
+.info-container {
+  padding: 4px; /* Padding ridotto */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 45px; /* Altezza ridotta per i testi e i pulsanti */
+  background: white;
+}
+
+.testi-oggetto {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; 
+  padding-right: 2px;
+}
+
+.nome-oggetto {
+  font-size: 0.8rem; /* Nome rimpicciolito */
+  font-weight: 800;
+  color: #15425C;
+  margin: 0 0 2px 0;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; 
+}
+
+.tipo-oggetto {
+  font-size: 0.6rem; /* Tipo rimpicciolito */
+  color: #888;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.action-buttons-oggetto {
+  display: flex;
+  gap: 0px; 
+}
+
+/* Pulsantini Modifica/Elimina più piccoli */
+.btn-cestino {
+  margin: 0;
+  --padding-start: 2px;
+  --padding-end: 2px;
+  height: 24px; /* Bottone più basso */
+}
+
+.btn-cestino ion-icon {
+  font-size: 1.1rem; /* Icone più piccole */
+}

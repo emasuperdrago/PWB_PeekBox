@@ -1,0 +1,87 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    
+    <ion-buttons slot="start">
+      <ion-button>
+        <ion-icon slot="icon-only" name="filter" style="color: #15425C;"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+    <ion-title class="ion-text-center" style="font-size: 2.3rem; font-weight: 900; letter-spacing: 1px;">
+      <span style="color: #15425C;">Peek</span><span style="color: #8CC63E;">Box</span>
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button routerLink="/crea-box">
+        <ion-icon slot="icon-only" name="add" style="font-size: 1.8rem; color: #15425C;"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  
+  <h2 class="fw-bold mt-2 mb-4 text-dark">Inventario</h2>
+
+  <!-- Messaggio se non ci sono box -->
+  <div *ngIf="leMieBox.length === 0" class="text-center text-muted" style="margin-top: 50px;">
+    <p>Non hai ancora catalogato nessuna box.</p>
+    <p>Clicca sul <strong style="color: #15425C;">+</strong> in alto per crearne una!</p>
+  </div>
+
+<!-- Griglia con le box a forma di quadratino -->
+<div *ngIf="leMieBox.length > 0" class="box-grid">
+    
+  <div *ngFor="let box of leMieBox" class="box-square" [routerLink]="['/dettaglio-box', box.id]">
+    
+    <!-- Contenitore Azioni (Cestino e Stella impilati a destra) -->
+    <div class="action-buttons">
+      
+      <!-- Pulsante Elimina -->
+      <ion-button (click)="confermaEliminazione(box.id, $event)" fill="clear" color="danger" class="icon-btn">
+        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+      </ion-button>
+
+      <!-- Pulsante Preferiti (pieno se true, vuoto se false) -->
+      <ion-button (click)="togglePreferito(box.id, $event)" fill="clear" class="icon-btn star-btn">
+        <ion-icon slot="icon-only" [name]="box.is_preferito ? 'star' : 'star-outline'"></ion-icon>
+      </ion-button>
+
+    </div>
+
+    <!-- La nostra bellissima scatolina 📦 -->
+    <div class="box-emoji">📦</div>
+    
+    <!-- Nome e Posizione -->
+    <div class="box-name">{{ box.nome }}</div>
+    <div class="box-location">{{ getNomeArmadio(box.rif_armadio) }}</div>
+
+  </div>
+
+</div>
+
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="d-flex justify-content-around align-items-center w-100 py-2">
+      
+      <div class="d-flex flex-column align-items-center" style="color: #15425C; cursor: pointer;">
+        <ion-icon name="home" style="font-size: 1.6rem;"></ion-icon>
+        <span style="font-size: 0.75rem; font-weight: bold;">Home</span>
+      </div>
+
+      <div class="d-flex flex-column align-items-center text-muted" style="cursor: pointer;">
+        <ion-icon name="search" style="font-size: 1.6rem;"></ion-icon>
+        <span style="font-size: 0.75rem; font-weight: 500;">Cerca</span>
+      </div>
+
+      <div class="d-flex flex-column align-items-center text-muted" style="cursor: pointer;">
+        <ion-icon name="person" style="font-size: 1.6rem;"></ion-icon>
+        <span style="font-size: 0.75rem; font-weight: 500;">Profilo</span>
+      </div>
+
+    </div>
+  </ion-toolbar>
+</ion-footer>

@@ -1,0 +1,56 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" style="color: #15425C;"></ion-back-button>
+    </ion-buttons>
+    <ion-title style="font-weight: 800;"><span style="color: #15425C;">Nuovo</span>&nbsp;<span style="color: #8CC63E;">Contenitore</span></ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  
+  <p class="text-muted mb-4">Inserisci i dettagli della box che vuoi creare</p>
+
+  <div class="mb-4">
+    <label class="form-label ms-1 fw-bold" style="color: #15425C;">Nome*</label>
+    <ion-input type="text" [(ngModel)]="nome_box" fill="outline" placeholder="Es. Cambio stagione" class="custom-focus"></ion-input>
+  </div>
+
+  <div class="mb-4">
+    
+    <div class="d-flex justify-content-between align-items-end mb-1 ms-1 pe-1">
+      <label class="form-label mb-0 fw-bold" style="color: #15425C;">Posizione*</label>
+      <a href="#" (click)="aggiungiArmadio($event)" class="text-decoration-none fw-bold" style="color: #8CC63E; font-size: 0.85rem;">
+        + Nuovo Armadio
+      </a>
+    </div>
+
+    <ion-item lines="none" class="border rounded" style="--background: transparent; border-color: #ccc !important;">
+      <ion-select [(ngModel)]="rif_armadio" placeholder="Seleziona un armadio" interface="popover" style="width: 100%;">
+        <ion-select-option *ngFor="let armadio of armadi_disponibili" [value]="armadio.id">
+          {{ armadio.nome }}
+        </ion-select-option>
+      </ion-select>
+    </ion-item>
+    
+  </div>
+
+  <!-- INIZIO NUOVO BLOCCO: Descrizione -->
+  <div class="mb-4">
+    <label class="form-label ms-1 fw-bold" style="color: #15425C;">Descrizione </label>
+    <ion-textarea [(ngModel)]="descrizione" fill="outline" placeholder="Inserisci una breve descrizione..." class="custom-focus"></ion-textarea>
+  </div>
+  <!-- FINE NUOVO BLOCCO -->
+
+  <div class="mb-5 d-flex justify-content-between align-items-center px-1">
+    <label class="form-label mb-0 fw-bold" style="color: #15425C;">Aggiungi ai Preferiti</label>
+    <ion-toggle [(ngModel)]="is_preferito" color="warning"></ion-toggle>
+  </div>
+
+
+  <ion-button expand="block" [disabled]="!nome_box || !rif_armadio" (click)="salvaNuovaBox()" style="--background: #8CC63E;">
+    Salva Box
+  </ion-button>
+
+
+</ion-content>

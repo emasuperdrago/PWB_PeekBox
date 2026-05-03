@@ -1,0 +1,114 @@
+/* Griglia che dispone i quadratini automaticamente */
+.box-grid {
+  display: grid;
+  /* Abbiamo aumentato la dimensione minima da 140px a 200px per renderli più grandi */
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px; /* Leggermente più distanziati */
+  padding: 10px 0;
+}
+
+/* Stile del singolo quadratino */
+.box-square {
+  background-color: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e0e0e0;
+  border-bottom: 5px solid #8CC63E; /* Striscia verde in basso */
+  aspect-ratio: 1 / 1; /* Rende l'elemento un quadrato perfetto */
+  
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  text-align: center;
+  padding: 15px; /* Più spazio all'interno */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  cursor: pointer;
+}
+
+/* La nostra emoji a forma di scatola 📦 */
+.box-square .box-emoji {
+  font-size: 4.5rem; /* Dimensione bella grande */
+  margin-bottom: 12px;
+  line-height: 1; /* Evita spazi strani sopra e sotto */
+  filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.1)); /* Un pizzico di ombra per renderla più carina */
+}
+
+/* Stile del testo (Nome della box) */
+.box-square .box-name {
+  font-size: 1.2rem; /* Testo leggermente più grande */
+  font-weight: 700;
+  color: #15425C;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Aggiunge i puntini se il nome è troppo lungo */
+}
+
+/* Stile del testo (Armadio di appartenenza) */
+.box-square .box-location {
+  font-size: 0.9rem; /* Sottotitolo leggermente più grande */
+  color: #8c8c8c;
+  margin-top: 4px;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pulsante elimina in alto a destra */
+.box-square .delete-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  margin: 0;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  z-index: 10; /* Assicura che sia cliccabile e non bloccato dal link della card */
+}
+
+.box-square .delete-btn ion-icon {
+  font-size: 1.5rem; /* Cestino leggermente più grande */
+}
+
+/* Stellina preferiti in alto a sinistra */
+.box-square .star-icon {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  color: #FFC107;
+  font-size: 1.5rem; /* Stellina leggermente più grande */
+}
+
+/* --- STILI PER I PULSANTI IN ALTO A DESTRA --- */
+
+/* Contenitore che impila cestino e stella */
+.box-square .action-buttons {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  flex-direction: column;
+  z-index: 10; /* Assicura che siano cliccabili sopra il link della card */
+}
+
+/* Stile base per entrambi i pulsantini per renderli compatti */
+.box-square .icon-btn {
+  margin: 0;
+  --padding-start: 8px;
+  --padding-end: 8px;
+  --padding-top: 4px;
+  --padding-bottom: 4px;
+  min-height: 0; /* Riduce l'altezza di default di Ionic */
+}
+
+.box-square .icon-btn ion-icon {
+  font-size: 1.5rem;
+}
+
+/* Colore specifico per la stella (il cestino prende già il color="danger" dall'HTML) */
+.box-square .star-btn ion-icon {
+  color: #FFC107;
+}
+
+/* Rimuovi o cancella le vecchie classi .delete-btn e .star-icon se ci sono ancora! */

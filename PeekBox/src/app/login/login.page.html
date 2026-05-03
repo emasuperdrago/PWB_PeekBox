@@ -1,0 +1,43 @@
+<ion-content class="ion-padding">
+  <div class="container d-flex flex-column justify-content-center" style="height: 100%;">
+    
+    <div class="row justify-content-center">
+      <div class="col-12 col-md-6 col-lg-4 text-center">
+        
+        <h1 class="display-4 mb-4 fw-bold">
+          <span style="color: #15425C;">Peek</span><span style="color: #8CC63E;">Box</span>
+        </h1>
+        <p class="text-muted mb-5">Accedi per gestire i tuoi contenitori virtuali</p>
+
+        <div class="mb-3 text-start">
+          <label class="form-label ms-1">Email</label>
+          <ion-input type="email" [(ngModel)]="email" fill="outline" placeholder="nome@esempio.it"></ion-input>
+        </div>
+
+        <div class="mb-4 text-start">
+          <label class="form-label ms-1">Password</label>
+          <ion-input type="password" [(ngModel)]="password" fill="outline" placeholder="Inserisci password">
+            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+          </ion-input>
+          
+          <div class="text-end mt-1">
+            <a href="#" (click)="recuperaPassword($event)" class="text-decoration-none text-muted" style="font-size: 0.85rem;">Password dimenticata?</a>
+          </div>
+        </div>
+        
+
+        <!-- Trova il bottone Accedi e modificalo così -->
+    <ion-button 
+      [disabled]="!email || !password" 
+      (click)="accedi()" 
+      expand="block" 
+      class="mb-3">
+      Accedi
+    </ion-button>
+        <p class="mt-4">Nuovo utente? <a routerLink="/registrazione" class="text-decoration-none fw-bold">Registrati qui</a></p>
+        
+      </div>
+    </div>
+
+  </div>
+</ion-content>
