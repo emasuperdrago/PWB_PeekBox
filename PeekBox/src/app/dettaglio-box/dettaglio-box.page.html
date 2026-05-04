@@ -26,15 +26,16 @@
 
 <ion-content [fullscreen]="true" class="ion-padding">
   
+  <!-- Messaggio se la box è vuota -->
   <div *ngIf="oggetti.length === 0" class="ion-text-center" style="margin-top: 100px;">
     <ion-icon name="archive-outline" style="font-size: 80px; color: #ccc;"></ion-icon>
     <h3 style="color: #666;">nessun oggetto trovato</h3> 
     <p>Inizia aggiungendo un oggetto col tasto +</p>
   </div>
 
+  <!-- Griglia degli oggetti -->
   <ion-grid *ngIf="oggetti.length > 0" class="ion-no-padding" style="margin-top: 15px;">
     <ion-row>
-      <!-- MODIFICA QUI: size="4" per averne 3 per riga su mobile, size-md="3" per 4 per riga su tablet -->
       <ion-col size="4" size-md="3" size-lg="2" *ngFor="let ogg of oggetti; let i = index">
         
         <ion-card class="card-oggetto" (click)="apriDettaglio(ogg)">
@@ -71,6 +72,7 @@
     </ion-row>
   </ion-grid>
 
+  <!-- MODAL AGGIUNGI/MODIFICA OGGETTO -->
   <ion-modal [isOpen]="isModalOpen">
     <ng-template>
       <ion-header>
@@ -96,8 +98,9 @@
 
           <ion-item>
             <ion-label position="stacked">Tipo di oggetto*</ion-label>
+            <!-- AGGIORNAMENTO: Ciclo su tipiOggetto (oggetti DB) -->
             <ion-select [(ngModel)]="nuovoOggetto.tipo" placeholder="Seleziona">
-              <ion-select-option *ngFor="let tipo of tipiOggetto" [value]="tipo">{{ tipo }}</ion-select-option>
+              <ion-select-option *ngFor="let tipo of tipiOggetto" [value]="tipo.nome">{{ tipo.nome }}</ion-select-option>
             </ion-select>
             <ion-button slot="end" fill="clear" (click)="aggiungiNuovoTipo()" style="margin-top: 15px;">
               <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
@@ -135,6 +138,7 @@
     </ng-template>
   </ion-modal>
 
+  <!-- MODAL DETTAGLIO INFO OGGETTO -->
   <ion-modal [isOpen]="isDettaglioOpen">
     <ng-template>
       <ion-header class="ion-no-border">

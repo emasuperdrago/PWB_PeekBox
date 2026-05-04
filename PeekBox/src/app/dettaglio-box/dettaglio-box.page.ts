@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, AlertController } from '@ionic/angular';
 import { ActivatedRoute } from '@angular/router';
 
-// Import icone e servizi
 import { addIcons } from 'ionicons';
 import { 
   add, camera, archiveOutline, addCircleOutline, 
@@ -34,7 +33,8 @@ export class DettaglioBoxPage implements OnInit {
   editIndex: number | null = null;
 
   oggetti: any[] = []; 
-  tipiOggetto: string[] = ['Cucina', 'Camera', 'Elettronica', 'Abbigliamento'];
+  // Modificato: Ora conterrà gli oggetti dal DB (con l'id e il nome)
+  tipiOggetto: any[] = []; 
 
   nuovoOggetto: any = {
     nome: '',
@@ -58,13 +58,24 @@ export class DettaglioBoxPage implements OnInit {
     this.boxId = this.route.snapshot.paramMap.get('id');
     this.utenteId = localStorage.getItem('utente_id');
     
-    if (this.boxId) {
+    if (this.boxId && this.utenteId) {
       this.caricaInfoBox(); 
       this.caricaOggettiDalServer();
+      this.caricaTipologieDalServer(); // Carica le categorie reali all'avvio
     }
   }
 
   // --- CARICAMENTO DATI ---
+
+  caricaTipologieDalServer() {
+    if (!this.utenteId) return;
+    this.dbService.getTipologie(this.utenteId).subscribe({
+      next: (res: any) => {
+        this.tipiOggetto = res.tipologie || [];
+      },
+      error: (err: any) => console.error("Errore caricamento tipologie:", err)
+    });
+  }
 
   caricaInfoBox() {
     if (!this.utenteId) return;
@@ -100,28 +111,25 @@ export class DettaglioBoxPage implements OnInit {
     });
   }
 
-  // --- GESTIONE OGGETTI (CREA/MODIFICA/ELIMINA) ---
+  // --- GESTIONE OGGETTI ---
 
   salvaOggetto() {
     if (this.nuovoOggetto.nome && this.nuovoOggetto.tipo && this.nuovoOggetto.quantita) {
       const datiOggetto = { ...this.nuovoOggetto, rif_box: Number(this.boxId) };
 
-      if (this.editIndex !== null) {
-        console.log("Modifica non ancora implementata sul server");
-      } else {
-        this.dbService.creaOggetto(datiOggetto).subscribe({
-          next: (res: any) => {
-            this.caricaOggettiDalServer();
-            this.setOpen(false);
-          },
-          error: (err: any) => console.error("Errore salvataggio oggetto:", err)
-        });
-      }
+      this.dbService.creaOggetto(datiOggetto).subscribe({
+        next: () => {
+          this.caricaOggettiDalServer();
+          this.setOpen(false);
+        },
+        error: (err: any) => console.error("Errore salvataggio oggetto:", err)
+      });
     } else {
       alert("Compila i campi obbligatori!");
     }
   }
 
+  // RE-INSERITA: Risolve l'errore "Property 'apriModifica' does not exist"
   apriModifica(index: number, event: Event) {
     event.stopPropagation();
     this.editIndex = index;
@@ -129,6 +137,7 @@ export class DettaglioBoxPage implements OnInit {
     this.isModalOpen = true; 
   }
 
+  // RE-INSERITA: Risolve l'errore "Property 'confermaEliminaOggetto' does not exist"
   async confermaEliminaOggetto(index: number, event: Event) {
     event.stopPropagation(); 
     const alert = await this.alertCtrl.create({
@@ -140,7 +149,6 @@ export class DettaglioBoxPage implements OnInit {
           text: 'Elimina',
           role: 'destructive',
           handler: () => {
-            // Qui andrà la chiamata DELETE al server
             this.oggetti.splice(index, 1);
           }
         }
@@ -149,18 +157,25 @@ export class DettaglioBoxPage implements OnInit {
     await alert.present();
   }
 
+  // MODIFICATA: Ora salva REALMENTE nel database
   async aggiungiNuovoTipo() {
     const alert = await this.alertCtrl.create({
-      header: 'Nuovo Tipo',
-      inputs: [{ name: 'nuovoTipo', type: 'text', placeholder: 'Es. Strumenti' }],
+      header: 'Nuova Categoria',
+      inputs: [{ name: 'nuovoTipo', type: 'text', placeholder: 'Es. Utensili' }],
       buttons: [
         { text: 'Annulla', role: 'cancel' },
         {
           text: 'Aggiungi',
           handler: (data) => {
-            if (data.nuovoTipo) {
-              this.tipiOggetto.push(data.nuovoTipo);
-              this.nuovoOggetto.tipo = data.nuovoTipo;
+            if (data.nuovoTipo && this.utenteId) {
+              // Salviamo nel DB!
+              this.dbService.creaTipologia(data.nuovoTipo, this.utenteId).subscribe({
+                next: () => {
+                  this.caricaTipologieDalServer(); // Ricarica la lista dal DB
+                  this.nuovoOggetto.tipo = data.nuovoTipo; // Seleziona la categoria appena creata
+                },
+                error: (err: any) => console.error("Errore creazione tipologia:", err)
+              });
             }
           }
         }
@@ -169,7 +184,7 @@ export class DettaglioBoxPage implements OnInit {
     await alert.present();
   }
 
-  // --- UTILITY E UI ---
+  // --- UI UTILITY ---
 
   setOpen(isOpen: boolean) {
     this.isModalOpen = isOpen;

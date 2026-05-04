@@ -1,134 +1,148 @@
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const db = require('./db'); // Assicurati che db.js contenga le tabelle aggiornate
+const db = require('./db'); 
 
 const app = express();
 const PORT = 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Rotta di test
 app.get('/', (req, res) => {
     res.send('🚀 Backend di PeekBox attivo e pronto!');
 });
 
-// --- 1. UTENTI: REGISTRAZIONE ---
+// --- UTENTI ---
 app.post('/api/registrazione', async (req, res) => {
     const { username, email, password } = req.body;
     try {
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         const sql = 'INSERT INTO utenti (username, email, password) VALUES (?, ?, ?)';
-        
         db.run(sql, [username, email, hashedPassword], function(err) {
-            if (err) {
-                return res.status(400).json({ error: "Email già registrata o dati non validi." });
-            }
-            res.status(201).json({ id: this.lastID, message: "Utente creato con successo!" });
+            if (err) return res.status(400).json({ error: "Email già registrata." });
+            res.status(201).json({ id: this.lastID, message: "Utente creato!" });
         });
-    } catch (error) {
-        res.status(500).json({ error: "Errore interno del server." });
-    }
+    } catch (error) { res.status(500).json({ error: "Errore server." }); }
 });
 
-// --- 2. UTENTI: LOGIN ---
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     const sql = 'SELECT * FROM utenti WHERE email = ?';
-    
     db.get(sql, [email], async (err, user) => {
-        if (err || !user) {
-            return res.status(401).json({ error: "Credenziali non valide." });
-        }
+        if (err || !user) return res.status(401).json({ error: "Credenziali non valide." });
         const match = await bcrypt.compare(password, user.password);
         if (match) {
-            res.json({ 
-                message: "Accesso eseguito!", 
-                user: { id: user.id, username: user.username, email: user.email } 
-            });
-        } else {
-            res.status(401).json({ error: "Credenziali non valide." });
-        }
+            res.json({ message: "Accesso eseguito!", user: { id: user.id, username: user.username, email: user.email } });
+        } else { res.status(401).json({ error: "Credenziali non valide." }); }
     });
 });
 
-// --- 3. ARMADI: CARICAMENTO (per utente) ---
+// --- ARMADI ---
 app.get('/api/armadi/:utenteId', (req, res) => {
-    const utenteId = req.params.utenteId;
     const sql = 'SELECT * FROM armadi WHERE rif_utente = ?';
-    db.all(sql, [utenteId], (err, rows) => {
+    db.all(sql, [req.params.utenteId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ armadi: rows });
     });
 });
 
-// --- 4. ARMADI: CREAZIONE ---
 app.post('/api/armadi', (req, res) => {
     const { nome, rif_utente } = req.body;
-    const sql = 'INSERT INTO armadi (nome, rif_utente) VALUES (?, ?)';
-    db.run(sql, [nome, rif_utente], function(err) {
+    db.run('INSERT INTO armadi (nome, rif_utente) VALUES (?, ?)', [nome, rif_utente], function(err) {
         if (err) return res.status(500).json({ error: err.message });
-        res.status(201).json({ id: this.lastID, message: "Armadio creato!" });
+        res.status(201).json({ id: this.lastID });
     });
 });
 
-// --- 5. BOX: CARICAMENTO (filtrato per utente tramite JOIN) ---
+app.delete('/api/armadi/:id', (req, res) => {
+    db.run('DELETE FROM armadi WHERE id = ?', [req.params.id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Armadio eliminato!" });
+    });
+});
+
+// --- BOX (CON LOGICA CATEGORIE CONTENUTE) ---
 app.get('/api/box/:utenteId', (req, res) => {
-    const utenteId = req.params.utenteId;
     const sql = `
-        SELECT box.* 
+        SELECT box.*, GROUP_CONCAT(DISTINCT oggetti.tipo) as categorie_presenti
         FROM box 
-        JOIN armadi ON box.rif_armadio = armadi.id 
+        JOIN armadi ON box.rif_armadio = armadi.id
+        LEFT JOIN oggetti ON oggetti.rif_box = box.id
         WHERE armadi.rif_utente = ?
+        GROUP BY box.id
     `;
-    db.all(sql, [utenteId], (err, rows) => {
+    db.all(sql, [req.params.utenteId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ box: rows }); 
     });
 });
 
-// --- 6. BOX: CREAZIONE ---
 app.post('/api/box', (req, res) => {
     const { nome, rif_armadio, is_preferito } = req.body;
-    const pref_db = is_preferito ? 1 : 0; 
-    const sql = 'INSERT INTO box (nome, rif_armadio, is_preferito) VALUES (?, ?, ?)';
-    db.run(sql, [nome, rif_armadio, pref_db], function(err) {
+    db.run('INSERT INTO box (nome, rif_armadio, is_preferito) VALUES (?, ?, ?)', [nome, rif_armadio, is_preferito ? 1 : 0], function(err) {
         if (err) return res.status(500).json({ error: err.message });
-        res.status(201).json({ id: this.lastID, message: "Box creata!" });
+        res.status(201).json({ id: this.lastID });
     });
 });
 
-// --- 7. OGGETTI: CARICAMENTO (per box specifica) ---
+app.put('/api/box/preferito/:id', (req, res) => {
+    const { is_preferito } = req.body;
+    const sql = 'UPDATE box SET is_preferito = ? WHERE id = ?';
+    db.run(sql, [is_preferito ? 1 : 0, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Stato preferito aggiornato!" });
+    });
+});
+
+app.delete('/api/box/:id', (req, res) => {
+    db.run('DELETE FROM box WHERE id = ?', [req.params.id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Box eliminata!" });
+    });
+});
+
+// --- OGGETTI ---
 app.get('/api/oggetti/:boxId', (req, res) => {
-    const boxId = req.params.boxId;
-    const sql = 'SELECT * FROM oggetti WHERE rif_box = ?';
-    db.all(sql, [boxId], (err, rows) => {
+    db.all('SELECT * FROM oggetti WHERE rif_box = ?', [req.params.boxId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ oggetti: rows });
     });
 });
 
-// --- 8. OGGETTI: CREAZIONE ---
 app.post('/api/oggetti', (req, res) => {
     const { nome, descrizione, tipo, fragile, quantita, foto, rif_box } = req.body;
-    const fragile_db = fragile ? 1 : 0; // Gestione boolean per SQLite
-
-    const sql = `INSERT INTO oggetti (nome, descrizione, tipo, fragile, quantita, foto, rif_box) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
-    
-    db.run(sql, [nome, descrizione, tipo, fragile_db, quantita || 1, foto, rif_box], function(err) {
-        if (err) {
-            console.error(err.message);
-            return res.status(500).json({ error: "Errore nel salvataggio dell'oggetto." });
-        }
-        res.status(201).json({ id: this.lastID, message: "Oggetto aggiunto alla box!" });
+    const sql = `INSERT INTO oggetti (nome, descrizione, tipo, fragile, quantita, foto, rif_box) VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    db.run(sql, [nome, descrizione, tipo, fragile ? 1 : 0, quantita || 1, foto, rif_box], function(err) {
+        if (err) return res.status(500).json({ error: "Errore salvataggio." });
+        res.status(201).json({ id: this.lastID });
     });
 });
 
-// Avvio Server
+// --- TIPOLOGIE ---
+app.get('/api/tipologie/:utenteId', (req, res) => {
+    db.all('SELECT * FROM tipologie WHERE rif_utente = ?', [req.params.utenteId], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ tipologie: rows });
+    });
+});
+
+app.post('/api/tipologie', (req, res) => {
+    const { nome, rif_utente } = req.body;
+    db.run('INSERT INTO tipologie (nome, rif_utente) VALUES (?, ?)', [nome, rif_utente], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.status(201).json({ id: this.lastID });
+    });
+});
+
+app.delete('/api/tipologie/:id', (req, res) => {
+    db.run('DELETE FROM tipologie WHERE id = ?', [req.params.id], (err) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Tipologia eliminata!" });
+    });
+});
+
 app.listen(PORT, () => {
-    console.log(`🚀 SERVER IN ESECUZIONE: http://localhost:${PORT}`);
+    console.log(`🚀 SERVER ATTIVO: http://localhost:${PORT}`);
 });

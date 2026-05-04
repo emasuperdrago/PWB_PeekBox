@@ -30,19 +30,12 @@ export class DatabaseService {
     });
   }
 
-  // --- NUOVE FUNZIONI FULL-STACK PER I DATI ---
+  // --- FUNZIONI PER ARMADI ---
 
-  // 1. Chiede al server tutti gli armadi di un utente specifico
   getArmadi(utenteId: string) {
     return this.http.get(`${this.apiUrl}/armadi/${utenteId}`);
   }
 
-  // 2. Chiede al server tutte le box (di tutti gli armadi) di un utente specifico
-  getBox(utenteId: string) {
-    return this.http.get(`${this.apiUrl}/box/${utenteId}`);
-  }
-
-  // Salva un nuovo armadio
   creaArmadio(nome: string, utenteId: string) {
     return this.http.post(`${this.apiUrl}/armadi`, {
       nome: nome,
@@ -50,13 +43,33 @@ export class DatabaseService {
     });
   }
 
-  // Salva una nuova box
+  eliminaArmadio(id: number) {
+    return this.http.delete(`${this.apiUrl}/armadi/${id}`);
+  }
+
+  // --- FUNZIONI PER LE BOX ---
+
+  getBox(utenteId: string) {
+    return this.http.get(`${this.apiUrl}/box/${utenteId}`);
+  }
+
   creaBox(nome: string, rif_armadio: string, is_preferito: boolean) {
     return this.http.post(`${this.apiUrl}/box`, {
       nome: nome,
       rif_armadio: rif_armadio,
       is_preferito: is_preferito
     });
+  }
+
+  // Aggiunto per gestire i "Mi Piace" e permettere il filtraggio corretto
+  updatePreferito(id: number, is_preferito: boolean) {
+    return this.http.put(`${this.apiUrl}/box/preferito/${id}`, {
+      is_preferito: is_preferito
+    });
+  }
+
+  eliminaBox(id: number) {
+    return this.http.delete(`${this.apiUrl}/box/${id}`);
   }
 
   // --- FUNZIONI PER GLI OGGETTI ---
@@ -67,5 +80,22 @@ export class DatabaseService {
 
   creaOggetto(dati: any) {
     return this.http.post(`${this.apiUrl}/oggetti`, dati);
+  }
+
+  // --- FUNZIONI PER LE TIPOLOGIE ---
+
+  getTipologie(utenteId: string) {
+    return this.http.get(`${this.apiUrl}/tipologie/${utenteId}`);
+  }
+
+  creaTipologia(nome: string, utenteId: string) {
+    return this.http.post(`${this.apiUrl}/tipologie`, {
+      nome: nome,
+      rif_utente: utenteId
+    });
+  }
+
+  eliminaTipologia(id: number) {
+    return this.http.delete(`${this.apiUrl}/tipologie/${id}`);
   }
 }

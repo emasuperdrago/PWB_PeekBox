@@ -1,19 +1,25 @@
-/* Griglia che dispone i quadratini automaticamente */
+/* --- GRIGLIA E LAYOUT --- */
+
+/* Griglia: impostiamo una dimensione FISSA per le colonne per evitare l'effetto rettangolare */
 .box-grid {
   display: grid;
-  /* Abbiamo aumentato la dimensione minima da 140px a 200px per renderli più grandi */
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 20px; /* Leggermente più distanziati */
+  /* 160px fissi: le box non si allargano più per riempire lo schermo */
+  grid-template-columns: repeat(auto-fill, 160px); 
+  gap: 15px; 
   padding: 10px 0;
+  justify-content: start; /* Mantiene le box allineate a sinistra come nel mockup */
 }
 
-/* Stile del singolo quadratino */
+/* Stile del quadratino perfetto */
 .box-square {
   background-color: #ffffff;
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid #e0e0e0;
-  border-bottom: 5px solid #8CC63E; /* Striscia verde in basso */
-  aspect-ratio: 1 / 1; /* Rende l'elemento un quadrato perfetto */
+  border-bottom: 4px solid #8CC63E; /* Striscia verde iconica */
+  
+  /* Forziamo dimensioni quadrate */
+  width: 160px;
+  height: 160px;
   
   display: flex;
   flex-direction: column;
@@ -21,94 +27,96 @@
   align-items: center;
   position: relative;
   text-align: center;
-  padding: 15px; /* Più spazio all'interno */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   cursor: pointer;
+  overflow: hidden;
 }
 
-/* La nostra emoji a forma di scatola 📦 */
+/* --- CONTENUTO DELLA BOX --- */
+
 .box-square .box-emoji {
-  font-size: 4.5rem; /* Dimensione bella grande */
-  margin-bottom: 12px;
-  line-height: 1; /* Evita spazi strani sopra e sotto */
-  filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.1)); /* Un pizzico di ombra per renderla più carina */
+  font-size: 3rem; 
+  margin-bottom: 5px;
+  display: block;
 }
 
-/* Stile del testo (Nome della box) */
 .box-square .box-name {
-  font-size: 1.2rem; /* Testo leggermente più grande */
+  font-size: 0.95rem;
   font-weight: 700;
   color: #15425C;
   width: 100%;
+  padding: 0 5px;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* Aggiunge i puntini se il nome è troppo lungo */
+  text-overflow: ellipsis;
 }
 
-/* Stile del testo (Armadio di appartenenza) */
 .box-square .box-location {
-  font-size: 0.9rem; /* Sottotitolo leggermente più grande */
+  font-size: 0.8rem;
   color: #8c8c8c;
-  margin-top: 4px;
+  margin-top: 2px;
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Pulsante elimina in alto a destra */
-.box-square .delete-btn {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  margin: 0;
-  --padding-start: 8px;
-  --padding-end: 8px;
-  z-index: 10; /* Assicura che sia cliccabile e non bloccato dal link della card */
-}
+/* --- PULSANTI AZIONE (CESTINO E STELLA) --- */
 
-.box-square .delete-btn ion-icon {
-  font-size: 1.5rem; /* Cestino leggermente più grande */
-}
-
-/* Stellina preferiti in alto a sinistra */
-.box-square .star-icon {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  color: #FFC107;
-  font-size: 1.5rem; /* Stellina leggermente più grande */
-}
-
-/* --- STILI PER I PULSANTI IN ALTO A DESTRA --- */
-
-/* Contenitore che impila cestino e stella */
 .box-square .action-buttons {
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: 2px;
+  right: 2px;
   display: flex;
   flex-direction: column;
-  z-index: 10; /* Assicura che siano cliccabili sopra il link della card */
+  z-index: 10;
 }
 
-/* Stile base per entrambi i pulsantini per renderli compatti */
 .box-square .icon-btn {
   margin: 0;
-  --padding-start: 8px;
-  --padding-end: 8px;
-  --padding-top: 4px;
-  --padding-bottom: 4px;
-  min-height: 0; /* Riduce l'altezza di default di Ionic */
+  --padding-start: 2px;
+  --padding-end: 2px;
+  height: 28px;
+  width: 28px;
+  min-height: 0;
 }
 
 .box-square .icon-btn ion-icon {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
 }
 
-/* Colore specifico per la stella (il cestino prende già il color="danger" dall'HTML) */
+/* CORREZIONE: Stelle gialle come nel mockup originale */
 .box-square .star-btn ion-icon {
-  color: #FFC107;
+  color: #FFC107 !important; 
 }
 
-/* Rimuovi o cancella le vecchie classi .delete-btn e .star-icon se ci sono ancora! */
+.box-square .star-btn {
+  --color: #FFC107 !important;
+}
+
+/* --- STILI PER IL MODAL FILTRI --- */
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #15425C;
+  margin: 20px 0 10px 0;
+}
+
+.divider {
+  border: 0;
+  border-top: 1px solid #eee;
+  margin: 15px 0;
+}
+
+.filter-option {
+  --padding-start: 0;
+  font-size: 1rem;
+  --inner-padding-end: 0;
+}
+
+.filter-item {
+  --padding-start: 0;
+  font-weight: 500;
+}
