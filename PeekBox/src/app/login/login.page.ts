@@ -30,7 +30,13 @@ export class LoginPage implements OnInit {
     this.dbService.loginUtente(this.email, this.password).subscribe({
       next: async (res: any) => {
         console.log('Login effettuato:', res);
-        // In futuro qui potresti salvare l'ID utente in un segnale o storage
+        
+        // 1. SALVIAMO I DATI NELLA MEMORIA DEL DISPOSITIVO
+        // Il nostro backend invia un oggetto 'user' con id, username ed email
+        localStorage.setItem('utente_id', res.user.id);
+        localStorage.setItem('utente_nome', res.user.username);
+        
+        // 2. CI SPOSTIAMO SULLA HOME
         this.router.navigate(['/home']); 
       },
       error: async (err) => {

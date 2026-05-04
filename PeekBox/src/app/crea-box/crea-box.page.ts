@@ -6,8 +6,8 @@ import {
   IonBackButton, IonInput, IonItem, IonSelect, IonSelectOption, 
   IonButton, IonToggle, AlertController 
 } from '@ionic/angular/standalone';
-
 import { Router } from '@angular/router';
+import { DatabaseService } from '../services/database';
 
 @Component({
   selector: 'app-crea-box',
@@ -21,43 +21,49 @@ import { Router } from '@angular/router';
   ]
 })
 export class CreaBoxPage implements OnInit {
-
   nome_box: string = '';
   rif_armadio: string = ''; 
-  descrizione: string = ''; 
+  descrizione: string = '';
   is_preferito: boolean = false;
+  armadi_disponibili: any[] = [];
+  utenteId: string = '';
 
-  armadi_disponibili = [
-    { id: '1', nome: 'Dispensa' },
-    { id: '2', nome: 'Scaffale' },
-    { id: '3', nome: ' Garage' }
-  ];
-
-  constructor(private alertController: AlertController, private router: Router) { }
+  constructor(
+    private alertController: AlertController, 
+    private router: Router,
+    private dbService: DatabaseService
+  ) { }
 
   ngOnInit() {
-    const armadiSalvati = localStorage.getItem('miei_armadi');
-    if (armadiSalvati) {
-      this.armadi_disponibili = JSON.parse(armadiSalvati);
-    } else {
-      localStorage.setItem('miei_armadi', JSON.stringify(this.armadi_disponibili));
+    this.utenteId = localStorage.getItem('utente_id') || '';
+    if (this.utenteId) {
+      this.caricaArmadi();
     }
+  }
+
+  caricaArmadi() {
+    this.dbService.getArmadi(this.utenteId).subscribe({
+      next: (res: any) => { this.armadi_disponibili = res.armadi || []; },
+      error: (err: any) => console.error(err)
+    });
   }
 
   async aggiungiArmadio(event: Event) {
     event.preventDefault(); 
     const alert = await this.alertController.create({
       header: 'Nuovo Armadio',
-      message: 'Inserisci il nome del nuovo contenitore o stanza.',
       inputs: [{ name: 'nome_armadio', type: 'text', placeholder: 'Es. Ripostiglio' }],
       buttons: [
         { text: 'Annulla', role: 'cancel' },
         { text: 'Aggiungi', handler: (dati) => {
-            if (dati.nome_armadio && dati.nome_armadio.trim() !== '') {
-              const nuovoId = Math.random().toString(36).substring(2, 9);
-              this.armadi_disponibili.push({ id: nuovoId, nome: dati.nome_armadio.trim() });
-              localStorage.setItem('miei_armadi', JSON.stringify(this.armadi_disponibili));
-              this.rif_armadio = nuovoId;
+            if (dati.nome_armadio?.trim()) {
+              this.dbService.creaArmadio(dati.nome_armadio.trim(), this.utenteId).subscribe({
+                next: (res: any) => {
+                  this.caricaArmadi();
+                  this.rif_armadio = res.id.toString();
+                },
+                error: (err: any) => console.error(err)
+              });
             }
           }
         }
@@ -66,27 +72,11 @@ export class CreaBoxPage implements OnInit {
     await alert.present();
   }
 
-
   salvaNuovaBox() {
-    // Creiamo l'oggetto box
-    const nuovaBox = {
-      id: Math.random().toString(36).substring(2, 9),
-      nome: this.nome_box,
-      rif_armadio: this.rif_armadio,
-      is_preferito: this.is_preferito
-    };
-
-    // Recuperiamo le box già salvate (se ci sono)
-    let boxSalvate = JSON.parse(localStorage.getItem('mie_box') || '[]');
-    
-    // Aggiungiamo la nuova
-    boxSalvate.push(nuovaBox);
-    
-    // Salviamo tutto in memoria
-    localStorage.setItem('mie_box', JSON.stringify(boxSalvate));
-
-    // Torniamo alla Home!
-    this.router.navigate(['/home']);
+    if (!this.nome_box || !this.rif_armadio) return;
+    this.dbService.creaBox(this.nome_box, this.rif_armadio, this.is_preferito).subscribe({
+      next: () => { this.router.navigate(['/home']); },
+      error: (err: any) => console.error(err)
+    });
   }
-
 }
