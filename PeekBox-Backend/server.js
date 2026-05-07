@@ -63,7 +63,7 @@ app.delete('/api/armadi/:id', (req, res) => {
     });
 });
 
-// --- BOX (CON LOGICA CATEGORIE CONTENUTE) ---
+// --- BOX ---
 app.get('/api/box/:utenteId', (req, res) => {
     const sql = `
         SELECT box.*, GROUP_CONCAT(DISTINCT oggetti.tipo) as categorie_presenti
@@ -117,6 +117,39 @@ app.post('/api/oggetti', (req, res) => {
     db.run(sql, [nome, descrizione, tipo, fragile ? 1 : 0, quantita || 1, foto, rif_box], function(err) {
         if (err) return res.status(500).json({ error: "Errore salvataggio." });
         res.status(201).json({ id: this.lastID });
+    });
+});
+
+app.put('/api/oggetti/:id', (req, res) => {
+    const { nome, descrizione, tipo, fragile, quantita, foto } = req.body;
+    const sql = `UPDATE oggetti SET nome = ?, descrizione = ?, tipo = ?, fragile = ?, quantita = ?, foto = ? WHERE id = ?`;
+    db.run(sql, [nome, descrizione, tipo, fragile ? 1 : 0, quantita || 1, foto, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: "Errore aggiornamento." });
+        res.json({ message: "Oggetto aggiornato!" });
+    });
+});
+
+app.delete('/api/oggetti/:id', (req, res) => {
+    db.run('DELETE FROM oggetti WHERE id = ?', [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Oggetto eliminato!" });
+    });
+});
+
+// --- RICERCA ---
+app.get('/api/cerca/:utenteId', (req, res) => {
+    const termine = `%${req.query.q}%`;
+    const sql = `
+        SELECT oggetti.*, box.nome as nome_box, armadi.nome as nome_armadio
+        FROM oggetti
+        JOIN box ON oggetti.rif_box = box.id
+        JOIN armadi ON box.rif_armadio = armadi.id
+        WHERE armadi.rif_utente = ?
+          AND (oggetti.nome LIKE ? OR oggetti.descrizione LIKE ? OR oggetti.tipo LIKE ?)
+    `;
+    db.all(sql, [req.params.utenteId, termine, termine, termine], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ risultati: rows });
     });
 });
 

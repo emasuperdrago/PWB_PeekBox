@@ -26,4 +26,8 @@ export const routes: Routes = [
     path: 'dettaglio-box/:id',
     loadComponent: () => import('./dettaglio-box/dettaglio-box.page').then( m => m.DettaglioBoxPage)
   },
+  {
+    path: 'search',
+    loadComponent: () => import('./search/search.page').then( m => m.SearchPage)
+  },
 ];

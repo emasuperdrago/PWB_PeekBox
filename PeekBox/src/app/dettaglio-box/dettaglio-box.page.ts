@@ -8,12 +8,11 @@ import { addIcons } from 'ionicons';
 import { 
   add, camera, archiveOutline, addCircleOutline, 
   trashOutline, imageOutline, cubeOutline, createOutline,
-  qrCodeOutline, downloadOutline // NUOVO: Aggiunte icone per il QR e il download
+  qrCodeOutline, downloadOutline
 } from 'ionicons/icons';
 import { PhotoService } from '../services/photo'; 
 import { DatabaseService } from '../services/database';
 
-// NUOVO: Importiamo il modulo per generare il QR Code
 import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
@@ -21,7 +20,6 @@ import { QRCodeComponent } from 'angularx-qrcode';
   templateUrl: './dettaglio-box.page.html',
   styleUrls: ['./dettaglio-box.page.scss'],
   standalone: true,
-  // NUOVO: Aggiunto QRCodeModule tra gli imports del componente
   imports: [IonicModule, CommonModule, FormsModule, QRCodeComponent]
 })
 export class DettaglioBoxPage implements OnInit {
@@ -40,7 +38,6 @@ export class DettaglioBoxPage implements OnInit {
   oggetti: any[] = []; 
   tipiOggetto: any[] = []; 
 
-  // NUOVO: Variabili per gestire il QR Code
   qrCodeData: string = ''; 
   mostraQR: boolean = false;
 
@@ -59,7 +56,6 @@ export class DettaglioBoxPage implements OnInit {
     public photoService: PhotoService,
     private dbService: DatabaseService
   ) {
-    // NUOVO: Registriamo le icone aggiunte
     addIcons({ add, camera, archiveOutline, addCircleOutline, trashOutline, imageOutline, cubeOutline, createOutline, qrCodeOutline, downloadOutline });
   }
 
@@ -71,8 +67,6 @@ export class DettaglioBoxPage implements OnInit {
       this.caricaInfoBox(); 
       this.caricaOggettiDalServer();
       this.caricaTipologieDalServer();
-      
-      // NUOVO: Prepariamo il dato univoco da inserire nel QR Code
       this.qrCodeData = `peekbox-box-${this.boxId}`;
     }
   }
@@ -126,9 +120,24 @@ export class DettaglioBoxPage implements OnInit {
   // --- GESTIONE OGGETTI ---
 
   salvaOggetto() {
-    if (this.nuovoOggetto.nome && this.nuovoOggetto.tipo && this.nuovoOggetto.quantita) {
-      const datiOggetto = { ...this.nuovoOggetto, rif_box: Number(this.boxId) };
+    if (!this.nuovoOggetto.nome || !this.nuovoOggetto.tipo || !this.nuovoOggetto.quantita) {
+      alert("Compila i campi obbligatori!");
+      return;
+    }
 
+    // MODIFICA: aggiorna oggetto esistente
+    if (this.editIndex !== null) {
+      const oggettoId = this.oggetti[this.editIndex].id;
+      this.dbService.aggiornaOggetto(oggettoId, this.nuovoOggetto).subscribe({
+        next: () => {
+          this.caricaOggettiDalServer();
+          this.setOpen(false);
+        },
+        error: (err: any) => console.error("Errore aggiornamento oggetto:", err)
+      });
+    } else {
+      // CREAZIONE: nuovo oggetto
+      const datiOggetto = { ...this.nuovoOggetto, rif_box: Number(this.boxId) };
       this.dbService.creaOggetto(datiOggetto).subscribe({
         next: () => {
           this.caricaOggettiDalServer();
@@ -136,8 +145,6 @@ export class DettaglioBoxPage implements OnInit {
         },
         error: (err: any) => console.error("Errore salvataggio oggetto:", err)
       });
-    } else {
-      alert("Compila i campi obbligatori!");
     }
   }
 
@@ -159,7 +166,11 @@ export class DettaglioBoxPage implements OnInit {
           text: 'Elimina',
           role: 'destructive',
           handler: () => {
-            this.oggetti.splice(index, 1);
+            const oggettoId = this.oggetti[index].id;
+            this.dbService.eliminaOggetto(oggettoId).subscribe({
+              next: () => this.caricaOggettiDalServer(),
+              error: (err: any) => console.error("Errore eliminazione oggetto:", err)
+            });
           }
         }
       ]
@@ -221,22 +232,18 @@ export class DettaglioBoxPage implements OnInit {
     setTimeout(() => { this.oggettoSelezionato = null; }, 300);
   }
 
-  // --- NUOVO: FUNZIONI PER IL QR CODE ---
+  // --- FUNZIONI PER IL QR CODE ---
   
   toggleQR() {
     this.mostraQR = !this.mostraQR;
   }
 
   scaricaQRCode() {
-    // Cerchiamo il canvas generato dalla libreria
     const canvas = document.querySelector('qrcode canvas') as HTMLCanvasElement;
-    
     if (canvas) {
-      // Trasformiamo il disegno in una vera immagine
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = dataUrl;
-      // Diamogli un nome intelligente basato sulla box
       const nomeScatola = this.boxCorrente ? this.boxCorrente.nome : 'Sconosciuta';
       link.download = `QR_Box_${nomeScatola}.png`; 
       link.click();

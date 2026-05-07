@@ -1,0 +1,103 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title style="font-size: 2.3rem; font-weight: 900; letter-spacing: 1px;" class="ion-text-center">
+      <span style="color: #15425C;">Peek</span><span style="color: #8CC63E;">Box</span>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <h2 class="fw-bold mt-2 mb-3" style="color: #15425C;">Cerca Oggetti</h2>
+
+  <!-- BARRA DI RICERCA -->
+  <ion-searchbar
+    [(ngModel)]="termineDiRicerca"
+    (ionInput)="cercaOggetti($event)"
+    (ionClear)="pulisciRicerca()"
+    placeholder="Cerca un oggetto..."
+    debounce="400"
+    animated="true"
+    style="--border-radius: 12px; --box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 0 0 16px 0;">
+  </ion-searchbar>
+
+  <!-- STATO: CARICAMENTO -->
+  <div *ngIf="cercando" class="ion-text-center" style="margin-top: 60px;">
+    <ion-spinner name="crescent" style="color: #8CC63E;"></ion-spinner>
+    <p style="color: #999; margin-top: 10px;">Ricerca in corso...</p>
+  </div>
+
+  <!-- STATO: SCHERMATA INIZIALE -->
+  <div *ngIf="!haCercato && !cercando" class="ion-text-center stato-iniziale">
+    <ion-icon name="search-outline" style="font-size: 80px; color: #ddd;"></ion-icon>
+    <p style="color: #aaa; font-size: 1rem; margin-top: 12px;">
+      Digita almeno 2 caratteri per cercare tra i tuoi oggetti
+    </p>
+  </div>
+
+  <!-- STATO: NESSUN RISULTATO -->
+  <div *ngIf="haCercato && !cercando && risultati.length === 0" class="ion-text-center stato-iniziale">
+    <ion-icon name="archive-outline" style="font-size: 80px; color: #ddd;"></ion-icon>
+    <p style="color: #aaa; font-size: 1rem; margin-top: 12px;">
+      Nessun oggetto trovato per <strong>"{{ termineDiRicerca }}"</strong>
+    </p>
+  </div>
+
+  <!-- RISULTATI -->
+  <ion-list *ngIf="!cercando && risultati.length > 0" lines="none">
+
+    <p style="color: #999; font-size: 0.85rem; margin-bottom: 8px;">
+      {{ risultati.length }} risultat{{ risultati.length === 1 ? 'o' : 'i' }} trovat{{ risultati.length === 1 ? 'o' : 'i' }}
+    </p>
+
+    <ion-item
+      *ngFor="let r of risultati"
+      [routerLink]="['/dettaglio-box', r.rif_box]"
+      class="risultato-item">
+
+      <!-- Foto o placeholder -->
+      <div slot="start" class="foto-risultato">
+        <img *ngIf="r.foto" [src]="r.foto" />
+        <ion-icon *ngIf="!r.foto" name="cube-outline"></ion-icon>
+      </div>
+
+      <ion-label>
+        <h2 style="font-weight: 700; color: #15425C;">{{ r.nome }}</h2>
+        <p style="color: #888; font-size: 0.85rem;">
+          <ion-icon name="archive-outline" style="vertical-align: middle; margin-right: 3px;"></ion-icon>
+          {{ r.nome_armadio }} &nbsp;›&nbsp; {{ r.nome_box }}
+        </p>
+        <p *ngIf="r.descrizione" style="color: #aaa; font-size: 0.8rem; margin-top: 2px;">
+          {{ r.descrizione }}
+        </p>
+      </ion-label>
+
+      <div slot="end" style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+        <ion-badge color="primary">x{{ r.quantita }}</ion-badge>
+        <ion-badge color="medium" style="font-size: 0.75rem;">{{ r.tipo }}</ion-badge>
+        <ion-badge *ngIf="r.fragile" color="danger" style="font-size: 0.75rem;">FRAGILE</ion-badge>
+      </div>
+
+    </ion-item>
+  </ion-list>
+
+</ion-content>
+
+<ion-footer>
+  <ion-toolbar>
+    <div class="d-flex justify-content-around align-items-center w-100 py-2">
+      <div class="d-flex flex-column align-items-center text-muted" routerLink="/home" style="cursor: pointer;">
+        <ion-icon name="home" style="font-size: 1.6rem;"></ion-icon>
+        <span style="font-size: 0.75rem; font-weight: 500;">Home</span>
+      </div>
+      <div class="d-flex flex-column align-items-center" style="color: #8CC63E; cursor: pointer;">
+        <ion-icon name="search" style="font-size: 1.6rem;"></ion-icon>
+        <span style="font-size: 0.75rem; font-weight: bold;">Cerca</span>
+      </div>
+      <div class="d-flex flex-column align-items-center text-muted" style="cursor: pointer;">
+        <ion-icon name="person" style="font-size: 1.6rem;"></ion-icon>
+        <span style="font-size: 0.75rem; font-weight: 500;">Profilo</span>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-footer>
