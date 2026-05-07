@@ -7,17 +7,22 @@ import { ActivatedRoute } from '@angular/router';
 import { addIcons } from 'ionicons';
 import { 
   add, camera, archiveOutline, addCircleOutline, 
-  trashOutline, imageOutline, cubeOutline, createOutline 
+  trashOutline, imageOutline, cubeOutline, createOutline,
+  qrCodeOutline, downloadOutline // NUOVO: Aggiunte icone per il QR e il download
 } from 'ionicons/icons';
 import { PhotoService } from '../services/photo'; 
 import { DatabaseService } from '../services/database';
+
+// NUOVO: Importiamo il modulo per generare il QR Code
+import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
   selector: 'app-dettaglio-box',
   templateUrl: './dettaglio-box.page.html',
   styleUrls: ['./dettaglio-box.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule]
+  // NUOVO: Aggiunto QRCodeModule tra gli imports del componente
+  imports: [IonicModule, CommonModule, FormsModule, QRCodeComponent]
 })
 export class DettaglioBoxPage implements OnInit {
   
@@ -33,8 +38,11 @@ export class DettaglioBoxPage implements OnInit {
   editIndex: number | null = null;
 
   oggetti: any[] = []; 
-  // Modificato: Ora conterrà gli oggetti dal DB (con l'id e il nome)
   tipiOggetto: any[] = []; 
+
+  // NUOVO: Variabili per gestire il QR Code
+  qrCodeData: string = ''; 
+  mostraQR: boolean = false;
 
   nuovoOggetto: any = {
     nome: '',
@@ -51,7 +59,8 @@ export class DettaglioBoxPage implements OnInit {
     public photoService: PhotoService,
     private dbService: DatabaseService
   ) {
-    addIcons({ add, camera, archiveOutline, addCircleOutline, trashOutline, imageOutline, cubeOutline, createOutline });
+    // NUOVO: Registriamo le icone aggiunte
+    addIcons({ add, camera, archiveOutline, addCircleOutline, trashOutline, imageOutline, cubeOutline, createOutline, qrCodeOutline, downloadOutline });
   }
 
   ngOnInit() {
@@ -61,7 +70,10 @@ export class DettaglioBoxPage implements OnInit {
     if (this.boxId && this.utenteId) {
       this.caricaInfoBox(); 
       this.caricaOggettiDalServer();
-      this.caricaTipologieDalServer(); // Carica le categorie reali all'avvio
+      this.caricaTipologieDalServer();
+      
+      // NUOVO: Prepariamo il dato univoco da inserire nel QR Code
+      this.qrCodeData = `peekbox-box-${this.boxId}`;
     }
   }
 
@@ -129,7 +141,6 @@ export class DettaglioBoxPage implements OnInit {
     }
   }
 
-  // RE-INSERITA: Risolve l'errore "Property 'apriModifica' does not exist"
   apriModifica(index: number, event: Event) {
     event.stopPropagation();
     this.editIndex = index;
@@ -137,7 +148,6 @@ export class DettaglioBoxPage implements OnInit {
     this.isModalOpen = true; 
   }
 
-  // RE-INSERITA: Risolve l'errore "Property 'confermaEliminaOggetto' does not exist"
   async confermaEliminaOggetto(index: number, event: Event) {
     event.stopPropagation(); 
     const alert = await this.alertCtrl.create({
@@ -157,7 +167,6 @@ export class DettaglioBoxPage implements OnInit {
     await alert.present();
   }
 
-  // MODIFICATA: Ora salva REALMENTE nel database
   async aggiungiNuovoTipo() {
     const alert = await this.alertCtrl.create({
       header: 'Nuova Categoria',
@@ -168,11 +177,10 @@ export class DettaglioBoxPage implements OnInit {
           text: 'Aggiungi',
           handler: (data) => {
             if (data.nuovoTipo && this.utenteId) {
-              // Salviamo nel DB!
               this.dbService.creaTipologia(data.nuovoTipo, this.utenteId).subscribe({
                 next: () => {
-                  this.caricaTipologieDalServer(); // Ricarica la lista dal DB
-                  this.nuovoOggetto.tipo = data.nuovoTipo; // Seleziona la categoria appena creata
+                  this.caricaTipologieDalServer(); 
+                  this.nuovoOggetto.tipo = data.nuovoTipo; 
                 },
                 error: (err: any) => console.error("Errore creazione tipologia:", err)
               });
@@ -211,5 +219,27 @@ export class DettaglioBoxPage implements OnInit {
   chiudiDettaglio() {
     this.isDettaglioOpen = false;
     setTimeout(() => { this.oggettoSelezionato = null; }, 300);
+  }
+
+  // --- NUOVO: FUNZIONI PER IL QR CODE ---
+  
+  toggleQR() {
+    this.mostraQR = !this.mostraQR;
+  }
+
+  scaricaQRCode() {
+    // Cerchiamo il canvas generato dalla libreria
+    const canvas = document.querySelector('qrcode canvas') as HTMLCanvasElement;
+    
+    if (canvas) {
+      // Trasformiamo il disegno in una vera immagine
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.href = dataUrl;
+      // Diamogli un nome intelligente basato sulla box
+      const nomeScatola = this.boxCorrente ? this.boxCorrente.nome : 'Sconosciuta';
+      link.download = `QR_Box_${nomeScatola}.png`; 
+      link.click();
+    }
   }
 }

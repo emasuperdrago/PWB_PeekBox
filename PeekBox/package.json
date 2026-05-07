@@ -31,6 +31,7 @@
     "@capacitor/status-bar": "8.0.2",
     "@ionic/angular": "^8.0.0",
     "@ionic/pwa-elements": "^3.4.0",
+    "angularx-qrcode": "^21.0.5",
     "bcrypt": "^6.0.0",
     "bootstrap": "^5.3.8",
     "ionicons": "^7.0.0",

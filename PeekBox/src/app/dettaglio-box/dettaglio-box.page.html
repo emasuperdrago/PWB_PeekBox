@@ -16,6 +16,12 @@
     </ion-title>
 
     <ion-buttons slot="end">
+      <!-- NUOVO: Bottone per mostrare/nascondere il QR Code -->
+      <ion-button (click)="toggleQR()" style="color: white;">
+        <ion-icon slot="icon-only" name="qr-code-outline"></ion-icon>
+      </ion-button>
+      
+      <!-- Bottone per aggiungere un oggetto -->
       <ion-button (click)="setOpen(true)" style="color: white;">
         <ion-icon slot="icon-only" name="add"></ion-icon>
       </ion-button>
@@ -25,6 +31,36 @@
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding">
+
+  <!-- NUOVO: Sezione del QR Code (Visibile solo se si clicca sull'icona in alto) -->
+  <div *ngIf="mostraQR" style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px; margin-top: 10px;">
+    <ion-card style="width: 100%; max-width: 350px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 12px; margin: 0;">
+      <ion-card-header>
+        <ion-card-title class="ion-text-center" style="color: #15425C; font-weight: 800; font-size: 1.2rem;">
+          Etichetta Scatola
+        </ion-card-title>
+      </ion-card-header>
+      
+      <ion-card-content class="ion-text-center">
+        <!-- Generatore QR: nasconde la stringa 'peekbox-box-ID' -->
+        <qrcode 
+          [qrdata]="qrCodeData" 
+          [width]="200" 
+          [errorCorrectionLevel]="'M'"
+          elementType="canvas"
+          style="display: inline-block; padding: 10px; background: white; border-radius: 8px; border: 1px solid #eee;">
+        </qrcode>
+        
+        <br>
+        
+        <!-- Bottone per scaricare -->
+        <ion-button expand="block" (click)="scaricaQRCode()" style="--background: #15425C; margin-top: 15px; font-weight: bold; border-radius: 8px;">
+          <ion-icon name="download-outline" slot="start"></ion-icon>
+          Scarica QR Code
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  </div>
   
   <!-- Messaggio se la box è vuota -->
   <div *ngIf="oggetti.length === 0" class="ion-text-center" style="margin-top: 100px;">
