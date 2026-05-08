@@ -1,305 +1,187 @@
 <ion-content [fullscreen]="true" class="welcome-content">
 
-  <!-- SFONDO -->
-  <div class="bg-wrap">
-    <div class="bg-gradient"></div>
-    <div class="bg-blob blob-1"></div>
-    <div class="bg-blob blob-2"></div>
-    <div class="dots-pattern"></div>
-  </div>
+  <!-- ===== HERO ===== -->
+  <section class="hero-section">
 
-  <!-- TOP BAR -->
-  <header class="topbar">
-    <div class="topbar-logo">
-      <img src="assets/icon/logoTitolo1.png" alt="PeekBox logo" class="topbar-logo-img" />
-      <span class="topbar-brand"><span class="brand-peek">Peek</span><span class="brand-box">Box</span></span>
+    <!-- Slideshow 5 foto reali -->
+    <div class="slideshow">
+      <div class="slide active">
+        <img src="https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=1400&q=80&auto=format&fit=crop" alt="" />
+      </div>
+      <div class="slide">
+        <img src="https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=1400&q=80&auto=format&fit=crop" alt="" />
+      </div>
+      <div class="slide">
+        <img src="https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1400&q=80&auto=format&fit=crop" alt="" />
+      </div>
+      <div class="slide">
+        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1400&q=80&auto=format&fit=crop" alt="" />
+      </div>
+      <div class="slide">
+        <img src="https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=1400&q=80&auto=format&fit=crop" alt="" />
+      </div>
     </div>
-    <button class="btn-accedi" routerLink="/login">
-      Accedi
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-      </svg>
-    </button>
-  </header>
+    <div class="hero-overlay"></div>
+    <div class="hero-fade-bottom"></div>
 
-  <!-- HERO -->
-  <section class="hero">
+    <!-- TOP BAR -->
+    <header class="topbar">
+      <div class="topbar-logo">
+        <img src="assets/icon/logoTitolo1.png" alt="PeekBox" class="topbar-logo-img" />
+        <span class="logo-txt">
+          <span class="pk">Peek</span><span class="bx">Box</span>
+        </span>
+      </div>
+      <button class="btn-nav" routerLink="/login">
+        Accedi
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </button>
+    </header>
 
-    <!-- ILLUSTRAZIONE FLAT STANZA -->
-    <div class="room-illustration" aria-hidden="true">
-      <svg viewBox="0 0 340 220" fill="none" xmlns="http://www.w3.org/2000/svg" class="room-svg">
-
-        <!-- PAVIMENTO -->
-        <rect x="0" y="170" width="340" height="50" rx="0" fill="#D6EEF7"/>
-        <!-- linee pavimento -->
-        <line x1="0" y1="185" x2="340" y2="185" stroke="#C0E2F0" stroke-width="1"/>
-        <line x1="0" y1="200" x2="340" y2="200" stroke="#C0E2F0" stroke-width="1"/>
-        <line x1="56" y1="170" x2="56" y2="220" stroke="#C0E2F0" stroke-width="1"/>
-        <line x1="112" y1="170" x2="112" y2="220" stroke="#C0E2F0" stroke-width="1"/>
-        <line x1="168" y1="170" x2="168" y2="220" stroke="#C0E2F0" stroke-width="1"/>
-        <line x1="224" y1="170" x2="224" y2="220" stroke="#C0E2F0" stroke-width="1"/>
-        <line x1="280" y1="170" x2="280" y2="220" stroke="#C0E2F0" stroke-width="1"/>
-
-        <!-- PARETE -->
-        <rect x="0" y="0" width="340" height="172" fill="#F0FAFF"/>
-        <!-- baseboard -->
-        <rect x="0" y="166" width="340" height="6" fill="#C8E8F5"/>
-
-        <!-- ===== ARMADIO GRANDE (sinistra) ===== -->
-        <rect x="12" y="38" width="72" height="132" rx="4" fill="#3AABDB" opacity="0.15"/>
-        <rect x="12" y="38" width="72" height="132" rx="4" stroke="#3AABDB" stroke-width="2"/>
-        <!-- ante armadio -->
-        <rect x="14" y="40" width="33" height="128" rx="3" fill="#EAF7FF" stroke="#3AABDB" stroke-width="1.2"/>
-        <rect x="49" y="40" width="33" height="128" rx="3" fill="#EAF7FF" stroke="#3AABDB" stroke-width="1.2"/>
-        <!-- maniglie -->
-        <rect x="44" y="100" width="4" height="16" rx="2" fill="#3AABDB"/>
-        <rect x="56" y="100" width="4" height="16" rx="2" fill="#3AABDB"/>
-        <!-- scaffale interno visibile in cima -->
-        <rect x="14" y="56" width="66" height="2" fill="#3AABDB" opacity="0.4"/>
-        <!-- oggettini sul top armadio -->
-        <rect x="18" y="28" width="14" height="10" rx="2" fill="#7DC740"/>
-        <rect x="36" y="30" width="10" height="8" rx="2" fill="#3AABDB" opacity="0.7"/>
-        <rect x="52" y="25" width="8" height="13" rx="2" fill="#1A7FA8" opacity="0.6"/>
-        <rect x="64" y="31" width="12" height="7" rx="2" fill="#7DC740" opacity="0.6"/>
-
-        <!-- ===== SCAFFALE MURO (centro-sinistra) ===== -->
-        <!-- ripiano 1 -->
-        <rect x="102" y="52" width="80" height="6" rx="2" fill="#3AABDB"/>
-        <rect x="102" y="52" width="3" height="30" rx="1" fill="#3AABDB" opacity="0.6"/>
-        <rect x="179" y="52" width="3" height="30" rx="1" fill="#3AABDB" opacity="0.6"/>
-        <!-- libri ripiano 1 -->
-        <rect x="106" y="34" width="8" height="18" rx="1" fill="#7DC740"/>
-        <rect x="115" y="36" width="7" height="16" rx="1" fill="#1A7FA8"/>
-        <rect x="123" y="33" width="9" height="19" rx="1" fill="#3AABDB" opacity="0.8"/>
-        <rect x="133" y="37" width="6" height="15" rx="1" fill="#5A9E2A"/>
-        <rect x="140" y="35" width="8" height="17" rx="1" fill="#1A7FA8" opacity="0.7"/>
-        <rect x="150" y="38" width="7" height="14" rx="1" fill="#7DC740" opacity="0.7"/>
-        <!-- piantina ripiano 1 -->
-        <rect x="162" y="44" width="10" height="8" rx="2" fill="#5A9E2A" opacity="0.6"/>
-        <ellipse cx="167" cy="42" rx="7" ry="9" fill="#7DC740" opacity="0.8"/>
-        <ellipse cx="163" cy="38" rx="4" ry="5" fill="#8CC63E"/>
-
-        <!-- ripiano 2 -->
-        <rect x="102" y="90" width="80" height="6" rx="2" fill="#3AABDB"/>
-        <rect x="102" y="90" width="3" height="30" rx="1" fill="#3AABDB" opacity="0.6"/>
-        <rect x="179" y="90" width="3" height="30" rx="1" fill="#3AABDB" opacity="0.6"/>
-        <!-- oggetti ripiano 2 -->
-        <rect x="106" y="74" width="18" height="16" rx="2" fill="#EAF7FF" stroke="#3AABDB" stroke-width="1.2"/>
-        <!-- scatolina con lente (logo mini) -->
-        <rect x="109" y="77" width="12" height="10" rx="1" fill="#C2EDFB"/>
-        <circle cx="115" cy="82" r="3.5" fill="white" stroke="#3AABDB" stroke-width="1"/>
-        <line cx="118" cy="85" x1="118" y1="85" x2="120" y2="87" stroke="#1A7FA8" stroke-width="1.5" stroke-linecap="round"/>
-
-        <rect x="129" y="76" width="12" height="14" rx="2" fill="#7DC740" opacity="0.7"/>
-        <rect x="145" y="78" width="16" height="12" rx="2" fill="#EAF7FF" stroke="#3AABDB" stroke-width="1"/>
-        <rect x="164" y="75" width="10" height="15" rx="2" fill="#1A7FA8" opacity="0.5"/>
-
-        <!-- ===== SCATOLE SUL PAVIMENTO (centro) ===== -->
-        <!-- scatola grande -->
-        <rect x="148" y="138" width="46" height="34" rx="3" fill="#FFF8EC" stroke="#3AABDB" stroke-width="1.8"/>
-        <rect x="148" y="138" width="46" height="10" rx="3" fill="#FFE9BF" stroke="#3AABDB" stroke-width="1.5"/>
-        <!-- nastro scatola -->
-        <line x1="171" y1="138" x2="171" y2="172" stroke="#3AABDB" stroke-width="1.5"/>
-        <line x1="148" y1="143" x2="194" y2="143" stroke="#3AABDB" stroke-width="1.5"/>
-        <!-- etichetta -->
-        <rect x="155" y="150" width="22" height="14" rx="2" fill="white" stroke="#7DC740" stroke-width="1"/>
-        <line x1="158" y1="155" x2="174" y2="155" stroke="#7DC740" stroke-width="1"/>
-        <line x1="158" y1="158" x2="170" y2="158" stroke="#7DC740" stroke-width="1"/>
-        <line x1="158" y1="161" x2="172" y2="161" stroke="#7DC740" stroke-width="1"/>
-
-        <!-- scatola piccola sopra -->
-        <rect x="156" y="118" width="30" height="22" rx="3" fill="#E8F9FF" stroke="#3AABDB" stroke-width="1.5"/>
-        <rect x="156" y="118" width="30" height="8" rx="3" fill="#C2EDFB" stroke="#3AABDB" stroke-width="1.3"/>
-        <line x1="171" y1="118" x2="171" y2="140" stroke="#3AABDB" stroke-width="1.2"/>
-
-        <!-- scatola laterale destra -->
-        <rect x="200" y="148" width="36" height="24" rx="3" fill="#F0FFE8" stroke="#7DC740" stroke-width="1.8"/>
-        <rect x="200" y="148" width="36" height="8" rx="3" fill="#C8F0A0" stroke="#7DC740" stroke-width="1.5"/>
-        <line x1="218" y1="148" x2="218" y2="172" stroke="#7DC740" stroke-width="1.2"/>
-
-        <!-- ===== COMODINO / TAVOLINO (destra) ===== -->
-        <rect x="256" y="128" width="68" height="44" rx="4" fill="#EAF7FF" stroke="#3AABDB" stroke-width="1.8"/>
-        <!-- cassetto -->
-        <rect x="260" y="142" width="60" height="20" rx="2" fill="#D6EFFC" stroke="#3AABDB" stroke-width="1.2"/>
-        <circle cx="290" cy="152" r="3" fill="#3AABDB"/>
-        <!-- gamba -->
-        <rect x="264" y="172" width="6" height="14" rx="2" fill="#3AABDB" opacity="0.5"/>
-        <rect x="310" y="172" width="6" height="14" rx="2" fill="#3AABDB" opacity="0.5"/>
-        <!-- oggetti sul tavolino -->
-        <!-- lampada -->
-        <rect x="266" y="110" width="6" height="18" rx="2" fill="#1A7FA8" opacity="0.6"/>
-        <ellipse cx="269" cy="108" rx="14" ry="6" fill="#FFE580" opacity="0.9" stroke="#E8C800" stroke-width="1"/>
-        <!-- glow lampada -->
-        <ellipse cx="269" cy="112" rx="12" ry="4" fill="#FFF4A0" opacity="0.4"/>
-        <!-- telefono -->
-        <rect x="282" y="115" width="20" height="13" rx="3" fill="#15425C"/>
-        <rect x="284" y="117" width="16" height="9" rx="2" fill="#3AABDB" opacity="0.7"/>
-        <rect x="289" y="128" width="6" height="2" rx="1" fill="#3AABDB" opacity="0.4"/>
-
-        <!-- ===== PIANTA GRANDE (destra pavimento) ===== -->
-        <rect x="308" y="152" width="22" height="20" rx="3" fill="#7DC740" opacity="0.4" stroke="#5A9E2A" stroke-width="1.5"/>
-        <rect x="308" y="148" width="22" height="6" rx="2" fill="#5A9E2A" opacity="0.5"/>
-        <rect x="316" y="120" width="4" height="32" rx="2" fill="#5A9E2A" opacity="0.7"/>
-        <!-- foglie -->
-        <ellipse cx="318" cy="116" rx="12" ry="16" fill="#7DC740" opacity="0.85"/>
-        <ellipse cx="310" cy="122" rx="8" ry="11" fill="#8CC63E" opacity="0.75"/>
-        <ellipse cx="326" cy="124" rx="7" ry="10" fill="#7DC740" opacity="0.7"/>
-        <ellipse cx="318" cy="108" rx="7" ry="9" fill="#A3D95A" opacity="0.7"/>
-
-        <!-- ===== FINESTRA (parete) ===== -->
-        <rect x="210" y="22" width="56" height="60" rx="4" fill="#D6F0FF" stroke="#3AABDB" stroke-width="2"/>
-        <!-- cornice interna -->
-        <rect x="213" y="25" width="50" height="54" rx="2" fill="#EAF8FF" stroke="#3AABDB" stroke-width="1"/>
-        <!-- croce finestra -->
-        <line x1="238" y1="25" x2="238" y2="79" stroke="#3AABDB" stroke-width="1.5"/>
-        <line x1="213" y1="52" x2="263" y2="52" stroke="#3AABDB" stroke-width="1.5"/>
-        <!-- riflesso luce -->
-        <rect x="215" y="27" width="10" height="22" rx="2" fill="white" opacity="0.45"/>
-        <!-- nuvola fuori finestra -->
-        <ellipse cx="226" cy="15" rx="10" ry="6" fill="white" opacity="0.7"/>
-        <ellipse cx="232" cy="13" rx="8" ry="5" fill="white" opacity="0.7"/>
-        <ellipse cx="220" cy="16" rx="6" ry="4" fill="white" opacity="0.6"/>
-
-        <!-- ===== QUADRO MURO ===== -->
-        <rect x="102" y="110" width="36" height="26" rx="3" fill="white" stroke="#7DC740" stroke-width="1.8"/>
-        <rect x="105" y="113" width="30" height="20" rx="2" fill="#F0FFF0"/>
-        <!-- montagne stilizzate nel quadro -->
-        <polygon points="110,130 120,116 130,130" fill="#7DC740" opacity="0.5"/>
-        <polygon points="120,130 133,118 145,130" fill="#3AABDB" opacity="0.4"/>
-        <ellipse cx="125" cy="130" rx="20" ry="3" fill="#C8F0A0" opacity="0.5"/>
-
-        <!-- LENTE DI RICERCA FLOTTANTE (elemento PeekBox) -->
-        <g class="floating-lens">
-          <circle cx="258" cy="62" r="22" fill="white" stroke="#3AABDB" stroke-width="2.5" opacity="0.95"
-            style="filter: drop-shadow(0 6px 16px rgba(58,171,219,0.3))"/>
-          <circle cx="258" cy="62" r="15" fill="#EAF7FF" stroke="#3AABDB" stroke-width="1.5"/>
-          <!-- check lista dentro la lente -->
-          <line x1="251" y1="57" x2="264" y2="57" stroke="#3AABDB" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="251" y1="62" x2="264" y2="62" stroke="#7DC740" stroke-width="1.8" stroke-linecap="round"/>
-          <line x1="251" y1="67" x2="260" y2="67" stroke="#3AABDB" stroke-width="1.8" stroke-linecap="round"/>
-          <!-- tick verde -->
-          <polyline points="247,57 249,59 253,54" stroke="#7DC740" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <polyline points="247,62 249,64 253,59" stroke="#7DC740" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- manubrio lente -->
-          <line x1="274" y1="78" x2="282" y2="86" stroke="#1A7FA8" stroke-width="3.5" stroke-linecap="round"/>
-        </g>
-
-      </svg>
-    </div>
-
-    <!-- TESTO HERO -->
-    <div class="hero-text-block">
-      <div class="hero-badge">
-        <span class="badge-dot"></span>
-        Inventario digitale per la tua casa
+    <!-- HERO CONTENT -->
+    <div class="hero-content">
+      <div class="hero-left">
+        <div class="badge">
+          <span class="badge-dot"></span>
+          Il tuo inventario domestico digitale
+        </div>
+        <h1 class="hero-title">
+          La tua casa,<br>
+          <span class="title-accent">finalmente organizzata.</span>
+        </h1>
+        <p class="hero-sub">
+          <strong>Non più scatole aperte a caso.</strong> PeekBox cataloga ogni oggetto
+          nei tuoi spazi domestici e te lo fa trovare in pochi secondi.
+        </p>
+        <div class="cta-row">
+          <button class="btn-primary" routerLink="/registrazione">
+            <span>Inizia gratuitamente</span>
+            <div class="shimmer"></div>
+          </button>
+          <button class="btn-secondary" routerLink="/login">Hai già un account →</button>
+        </div>
       </div>
 
-      <h1 class="hero-title">
-        L'ordine che hai sempre<br>
-        <span class="title-accent">voluto, finalmente.</span>
-      </h1>
-
-      <p class="hero-sub">
-        Ogni oggetto ha il suo posto. PeekBox lo ricorda per te —
-        cerca, trova e gestisci in un secondo.
-      </p>
-
-      <div class="cta-row">
-        <button class="btn-start" routerLink="/registrazione">
-          <span>Inizia gratuitamente</span>
-          <div class="btn-shimmer"></div>
-        </button>
-        <button class="btn-ghost" routerLink="/login">Accedi all'account</button>
+      <div class="hero-right">
+        <div class="stats-card">
+          <div class="stats-card-title">Cosa puoi fare</div>
+          <div class="stat-row">
+            <div class="stat-icon si-blue">📦</div>
+            <div class="stat-info">
+              <span class="stat-label">Box digitali</span>
+              <span class="stat-desc">Cataloga ogni scatola e armadio con nome, foto e categoria</span>
+            </div>
+          </div>
+          <div class="stat-sep"></div>
+          <div class="stat-row">
+            <div class="stat-icon si-green">🔍</div>
+            <div class="stat-info">
+              <span class="stat-label">Ricerca istantanea</span>
+              <span class="stat-desc">Trova qualsiasi oggetto cercando per nome o per stanza</span>
+            </div>
+          </div>
+          <div class="stat-sep"></div>
+          <div class="stat-row">
+            <div class="stat-icon si-teal">📲</div>
+            <div class="stat-info">
+              <span class="stat-label">QR Code integrato</span>
+              <span class="stat-desc">Scansiona la scatola fisica e vedi subito il contenuto</span>
+            </div>
+          </div>
+          <div class="stat-sep"></div>
+          <div class="stat-row">
+            <div class="stat-icon si-blue">⭐</div>
+            <div class="stat-info">
+              <span class="stat-label">Preferiti & filtri</span>
+              <span class="stat-desc">Segna i box più usati e filtra per armadio o categoria</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- STATS -->
-    <div class="stats-row">
-      <div class="stat-pill">
-        <span class="stat-icon">📦</span>
-        <div class="stat-txt">
-          <strong>Box digitali</strong>
-          <span>Ogni scatola catalogata</span>
-        </div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-pill">
-        <span class="stat-icon">🔍</span>
-        <div class="stat-txt">
-          <strong>Ricerca istantanea</strong>
-          <span>Trova in un secondo</span>
-        </div>
-      </div>
-      <div class="stat-divider"></div>
-      <div class="stat-pill">
-        <span class="stat-icon">📲</span>
-        <div class="stat-txt">
-          <strong>QR Code</strong>
-          <span>Scansiona e vai</span>
-        </div>
-      </div>
+    <!-- Slide dots -->
+    <div class="slide-indicators">
+      <button class="slide-dot active" *ngFor="let s of slides; let i = index"
+        [class.active]="i === currentSlide"
+        (click)="goToSlide(i)">
+      </button>
     </div>
 
   </section>
 
-  <!-- FEATURE SECTION -->
-  <section class="features">
-    <p class="section-label">Come funziona</p>
-    <h2 class="section-title">Tre passi, zero caos</h2>
-    <div class="cards-grid">
-
-      <div class="feat-card card-blue">
-        <div class="card-num">01</div>
-        <div class="card-icon-wrap blue-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-          </svg>
-        </div>
-        <h3>Crea i tuoi armadi</h3>
-        <p>Definisci gli spazi fisici e organizzali in box digitali con nome e foto.</p>
+  <!-- ===== TRE PASSI ===== -->
+  <section class="features-section">
+    <div class="feat-inner">
+      <div class="feat-header">
+        <span class="sec-label">Come funziona</span>
+        <h2 class="sec-title">Tre passi, zero caos</h2>
+        <p class="sec-sub">Dal disordine fisico all'inventario digitale in meno di un minuto. Semplice da usare, potente nei risultati.</p>
       </div>
-
-      <div class="feat-card card-green">
-        <div class="card-num">02</div>
-        <div class="card-icon-wrap green-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-            <circle cx="12" cy="13" r="4"/>
-          </svg>
+      <div class="steps-row">
+        <div class="step-card">
+          <div class="step-num">01</div>
+          <div class="step-icon ic-blue">
+            <svg fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" stroke-width="1.8">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            </svg>
+          </div>
+          <h3>Crea gli spazi</h3>
+          <p>Definisci i tuoi spazi fisici — armadi, scaffali, cantine, garage. Assegnagli un nome e una stanza: sono le fondamenta del tuo inventario.</p>
         </div>
-        <h3>Fotografa gli oggetti</h3>
-        <p>Scatta, descrivi e assegna ogni oggetto alla box corretta.</p>
-      </div>
-
-      <div class="feat-card card-teal">
-        <div class="card-num">03</div>
-        <div class="card-icon-wrap teal-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
+        <div class="step-card">
+          <div class="step-num">02</div>
+          <div class="step-icon ic-green">
+            <svg fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" stroke-width="1.8">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+              <circle cx="12" cy="13" r="4"/>
+            </svg>
+          </div>
+          <h3>Cataloga & fotografa</h3>
+          <p>Scatta una foto agli oggetti, aggiungi nome e categoria. Ogni box riceve un QR Code univoco da stampare e attaccare.</p>
         </div>
-        <h3>Trova tutto subito</h3>
-        <p>Cerca per nome o scansiona il QR — sai sempre dove guardare.</p>
+        <div class="step-card">
+          <div class="step-num">03</div>
+          <div class="step-icon ic-teal">
+            <svg fill="none" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" stroke-width="1.8">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
+          <h3>Cerca & trova</h3>
+          <p>Digita il nome di qualsiasi oggetto o scansiona un QR Code — PeekBox ti dice esattamente dove si trova. Zero domande, zero stress.</p>
+        </div>
       </div>
-
     </div>
   </section>
 
-  <!-- BANNER LOGO -->
+  <!-- ===== BANNER ===== -->
   <section class="banner-section">
-    <div class="banner-card">
-      <div class="banner-left">
-        <img src="assets/icon/logoApp.jpg" alt="PeekBox" class="banner-logo-img" />
-        <div class="banner-glow"></div>
+    <div class="banner-inner">
+      <div class="banner-text">
+        <p class="b-eyebrow">Il tuo inventario personale, semplificato.</p>
+        <h2 class="b-headline">
+          Non aprire ogni scatola.<br>
+          <span class="ag">Cerca. Trova. Fine.</span>
+        </h2>
+        <p class="b-body">
+          PeekBox trasforma il caos domestico in un archivio digitale consultabile in qualsiasi momento.
+          Sai sempre dove si trova tutto — prima ancora di alzarti dal divano.
+        </p>
+        <div class="b-cta">
+          <button class="btn-primary" routerLink="/registrazione">
+            <span>Provalo adesso — è gratis</span>
+            <div class="shimmer"></div>
+          </button>
+          <button class="btn-secondary btn-ghost-dark" routerLink="/login">Scopri le funzionalità →</button>
+        </div>
       </div>
-      <div class="banner-right">
-        <p class="banner-label">Il tuo inventario personale</p>
-        <h2 class="banner-title"><span class="brand-peek">Peek</span><span class="brand-box">Box</span></h2>
-        <p class="banner-desc">Smetti di aprire ogni scatola. Con PeekBox sai già prima di alzarti dove si trova tutto.</p>
-        <button class="btn-start btn-small" routerLink="/registrazione">
-          <span>Provalo subito</span>
-          <div class="btn-shimmer"></div>
-        </button>
+      <div class="banner-logo">
+        <div class="banner-glow"></div>
+        <img src="assets/icon/logoApp.jpg" alt="PeekBox" class="banner-logo-img" />
+        <div class="b-brand"><span class="pk">Peek</span><span class="bx">Box</span></div>
+        <div class="b-tagline">L'inventario della tua casa,<br>sempre con te.</div>
       </div>
     </div>
   </section>
