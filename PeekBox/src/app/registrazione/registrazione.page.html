@@ -1,50 +1,94 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/login" text="Indietro"></ion-back-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="login-content">
 
-<ion-content class="ion-padding">
-  <div class="container d-flex flex-column justify-content-center" style="height: 100%;">
-    
-    <div class="row justify-content-center">
-      <div class="col-12 col-md-6 col-lg-4 text-center">
-        
-        <h1 class="display-5 mb-2 fw-bold text-dark">
-          <span style="color: #15425C;">Nuovo</span>&nbsp;<span style="color: #8CC63E;">Utente</span>
-        </h1>
-        <p class="text-muted mb-5">Inizia a catalogare le tue box in pochi passi</p>
-
-        <div class="mb-3 text-start">
-          <label class="form-label ms-1">Nome Profilo</label>
-          <ion-input type="text" [(ngModel)]="nomeProfilo" fill="outline" placeholder="Es. MarcoRossi"></ion-input>
-        </div>
-
-        <div class="mb-3 text-start">
-          <label class="form-label ms-1">Email</label>
-          <ion-input type="email" [(ngModel)]="email" fill="outline" placeholder="nome@esempio.it"></ion-input>
-        </div>
-
-        <div class="mb-4 text-start">
-          <label class="form-label ms-1">Password</label>
-          <ion-input type="password" [(ngModel)]="password" fill="outline" placeholder="Scegli una password">
-            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-          </ion-input>
-        </div>
-
-        <!-- MODIFICA QUI: Rimosso routerLink e aggiunto (click) -->
-        <ion-button 
-          [disabled]="!nomeProfilo || !email || !email.includes('@') || email.lastIndexOf('.') <= email.indexOf('@') || !password" 
-          (click)="registrati()" 
-          expand="block" 
-          class="mb-3">
-          Registrati
-        </ion-button>
-       
-      </div>
+  <!-- Slideshow sfondo -->
+  <div class="slideshow">
+    <div *ngFor="let src of slideSrcs; let i = index"
+         class="slide"
+         [class.active]="i === currentSlide">
+      <img [src]="src" alt="" />
     </div>
-
   </div>
+  <div class="hero-overlay"></div>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-logo" routerLink="/benvenuto" style="cursor:pointer;">
+      <img src="assets/icon/logoTitolo1.png" alt="PeekBox" class="topbar-logo-img" />
+      <span class="logo-txt">
+        <span class="pk">Peek</span><span class="bx">Box</span>
+      </span>
+    </div>
+    <button class="btn-nav" routerLink="/login">
+      Accedi
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- CARD REGISTRAZIONE -->
+  <div class="login-wrapper">
+    <div class="login-card">
+
+      <!-- Badge -->
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Inizia gratuitamente
+      </div>
+
+      <h1 class="login-title">
+        Crea il tuo nuovo<br>
+        <span class="title-accent">account.</span>
+      </h1>
+      <p class="login-sub">Tieni finalmente ogni cosa sotto controllo assoluto.</p>
+
+      <!-- Form fields -->
+      <div class="field-group">
+        <label class="field-label">Nome Profilo</label>
+        <ion-input
+          type="text"
+          [(ngModel)]="nomeProfilo"
+          fill="outline"
+          placeholder="Es. MarcoRossi"
+          class="custom-input">
+        </ion-input>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Email</label>
+        <ion-input
+          type="email"
+          [(ngModel)]="email"
+          fill="outline"
+          placeholder="nome@esempio.it"
+          class="custom-input">
+        </ion-input>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <ion-input
+          type="password"
+          [(ngModel)]="password"
+          fill="outline"
+          placeholder="Scegli una password"
+          class="custom-input">
+          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+        </ion-input>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta-row">
+        <button
+          class="btn-primary"
+          [disabled]="!nomeProfilo || !email || !email.includes('@') || email.lastIndexOf('.') <= email.indexOf('@') || !password"
+          (click)="registrati()">
+          <span>Registrati</span>
+          <div class="shimmer"></div>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </ion-content>

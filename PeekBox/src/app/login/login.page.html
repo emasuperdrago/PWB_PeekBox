@@ -1,43 +1,76 @@
-<ion-content class="ion-padding">
-  <div class="container d-flex flex-column justify-content-center" style="height: 100%;">
-    
-    <div class="row justify-content-center">
-      <div class="col-12 col-md-6 col-lg-4 text-center">
-        
-        <h1 class="display-4 mb-4 fw-bold">
-          <span style="color: #15425C;">Peek</span><span style="color: #8CC63E;">Box</span>
-        </h1>
-        <p class="text-muted mb-5">Accedi per gestire i tuoi contenitori virtuali</p>
+<ion-content [fullscreen]="true" [scrollY]="false" class="login-content">
 
-        <div class="mb-3 text-start">
-          <label class="form-label ms-1">Email</label>
-          <ion-input type="email" [(ngModel)]="email" fill="outline" placeholder="nome@esempio.it"></ion-input>
-        </div>
-
-        <div class="mb-4 text-start">
-          <label class="form-label ms-1">Password</label>
-          <ion-input type="password" [(ngModel)]="password" fill="outline" placeholder="Inserisci password">
-            <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-          </ion-input>
-          
-          <div class="text-end mt-1">
-            <a href="#" (click)="recuperaPassword($event)" class="text-decoration-none text-muted" style="font-size: 0.85rem;">Password dimenticata?</a>
-          </div>
-        </div>
-        
-
-        <!-- Trova il bottone Accedi e modificalo così -->
-    <ion-button 
-      [disabled]="!email || !password" 
-      (click)="accedi()" 
-      expand="block" 
-      class="mb-3">
-      Accedi
-    </ion-button>
-        <p class="mt-4">Nuovo utente? <a routerLink="/registrazione" class="text-decoration-none fw-bold">Registrati qui</a></p>
-        
-      </div>
-    </div>
-
+  <div class="fixed-bg">
+    <img [src]="bgImage" alt="Sfondo" />
   </div>
+  <div class="hero-overlay"></div>
+
+  <header class="topbar">
+    <div class="topbar-logo" routerLink="/benvenuto" style="cursor:pointer;">
+      <img src="assets/icon/logoTitolo1.png" alt="PeekBox" class="topbar-logo-img" />
+      <span class="logo-txt">
+        <span class="pk">Peek</span><span class="bx">Box</span>
+      </span>
+    </div>
+    <button class="btn-nav" routerLink="/registrazione">
+      Registrati
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </button>
+  </header>
+
+  <div class="login-wrapper">
+    <div class="login-card">
+
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Il tuo inventario domestico digitale
+      </div>
+
+      <h1 class="login-title">
+        Bentornato nel<br>
+        <span class="title-accent">tuo inventario.</span>
+      </h1>
+      <p class="login-sub">Accedi per gestire i tuoi contenitori virtuali</p>
+
+      <div class="field-group">
+        <label class="field-label">Email</label>
+        <ion-input
+          type="email"
+          [(ngModel)]="email"
+          fill="outline"
+          placeholder="nome@esempio.it"
+          class="custom-input">
+        </ion-input>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <ion-input
+          type="password"
+          [(ngModel)]="password"
+          fill="outline"
+          placeholder="Inserisci password"
+          class="custom-input">
+          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+        </ion-input>
+        <div class="forgot-row">
+          <a href="#" (click)="recuperaPassword($event)" class="forgot-link">Password dimenticata?</a>
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <button
+          class="btn-primary"
+          [disabled]="!email || !password"
+          (click)="accedi()">
+          <span>Accedi</span>
+          <div class="shimmer"></div>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </ion-content>

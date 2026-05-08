@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonInput, IonButton, IonInputPasswordToggle, AlertController } from '@ionic/angular/standalone';
-import { RouterModule, Router } from '@angular/router'; // Aggiungi Router
-import { DatabaseService } from '../services/database'; // Importa il service
+import { RouterModule, Router } from '@angular/router';
+import { DatabaseService } from '../services/database';
 
 @Component({
   selector: 'app-login',
@@ -17,31 +17,26 @@ export class LoginPage implements OnInit {
   email: string = '';
   password: string = '';
 
+  // Immagine di sfondo aggiornata
+  bgImage: string = 'https://plus.unsplash.com/premium_photo-1661913412680-c274b6fea096?q=80&w=1331&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+
   constructor(
     private alertController: AlertController,
-    private dbService: DatabaseService, // Iniettato
-    private router: Router // Iniettato per navigare
+    private dbService: DatabaseService,
+    private router: Router
   ) { }
 
-  ngOnInit() { }
+  ngOnInit() {
+  }
 
-  // Funzione principale di Login
   async accedi() {
     this.dbService.loginUtente(this.email, this.password).subscribe({
       next: async (res: any) => {
         console.log('Login effettuato:', res);
-        
-        // 1. SALVIAMO I DATI NELLA MEMORIA DEL DISPOSITIVO
-        // Salviamo il token restituito dal backend per l'autenticazione
-        localStorage.setItem('token', res.token); 
-        
-        // Il nostro backend invia un oggetto 'user' con id, username ed email.
-        // Convertiamo l'ID in stringa per evitare problemi di tipo nel localStorage
+        localStorage.setItem('token', res.token);
         localStorage.setItem('utente_id', String(res.user.id));
         localStorage.setItem('utente_nome', res.user.username);
-        
-        // 2. CI SPOSTIAMO SULLA HOME
-        this.router.navigate(['/home']); 
+        this.router.navigate(['/home']);
       },
       error: async (err) => {
         console.error('Errore login:', err);

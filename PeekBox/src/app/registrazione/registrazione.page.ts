@@ -1,9 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonInput, IonButton, IonHeader, IonToolbar, IonButtons, IonBackButton, IonInputPasswordToggle, AlertController } from '@ionic/angular/standalone';
+import { IonContent, IonInput, IonInputPasswordToggle, AlertController } from '@ionic/angular/standalone';
 import { RouterModule, Router } from '@angular/router';
-// 1. Importiamo il service
 import { DatabaseService } from '../services/database'; 
 
 @Component({
@@ -11,24 +10,46 @@ import { DatabaseService } from '../services/database';
   templateUrl: './registrazione.page.html',
   styleUrls: ['./registrazione.page.scss'],
   standalone: true,
-  imports: [IonContent, IonInput, IonButton, IonHeader, IonToolbar, IonButtons, IonBackButton, CommonModule, FormsModule, RouterModule, IonInputPasswordToggle]
+  // Rimossi gli import non utilizzati nell'HTML per mantenere il componente leggero
+  imports: [IonContent, IonInput, CommonModule, FormsModule, RouterModule, IonInputPasswordToggle]
 })
-export class RegistrazionePage implements OnInit {
+export class RegistrazionePage implements OnInit, OnDestroy {
 
   nomeProfilo: string = '';
   email: string = '';
   password: string = '';
 
-  // 2. Iniettiamo DatabaseService, Router e AlertController nel costruttore
+  slideSrcs: string[] = [
+    'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=1400&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=1400&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1484154218962-a197022b5858?q=80&w=1174&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1616046229478-9901c5536a45?w=1400&q=80&auto=format&fit=crop',
+  ];
+  currentSlide: number = 0;
+  private slideInterval: any;
+
   constructor(
     private dbService: DatabaseService, 
     private router: Router,
     private alertController: AlertController
   ) { }
 
-  ngOnInit() { }
+  ngOnInit() { 
+    this.startSlideshow();
+  }
 
-  // 3. Funzione per inviare i dati al Backend
+  ngOnDestroy() {
+    if (this.slideInterval) {
+      clearInterval(this.slideInterval);
+    }
+  }
+
+  startSlideshow() {
+    this.slideInterval = setInterval(() => {
+      this.currentSlide = (this.currentSlide + 1) % this.slideSrcs.length;
+    }, 5000); 
+  }
+
   async registrati() {
     if (this.nomeProfilo && this.email && this.password) {
       
@@ -38,12 +59,17 @@ export class RegistrazionePage implements OnInit {
           const alert = await this.alertController.create({
             header: 'Successo!',
             message: 'Registrazione completata correttamente.',
-            buttons: ['OK']
+            buttons: [
+              {
+                text: 'OK',
+                handler: () => {
+                  // La navigazione avviene SOLO dopo che l'utente clicca OK
+                  this.router.navigate(['/login']);
+                }
+              }
+            ]
           });
           await alert.present();
-          
-          // Dopo il successo, mandiamo l'utente al login
-          this.router.navigate(['/login']);
         },
         error: async (err) => {
           console.error('Errore:', err);
