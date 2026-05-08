@@ -49,6 +49,11 @@ export class DatabaseService {
 
   // --- FUNZIONI PER LE BOX ---
 
+  // FIX BUG 7: Rotta per recuperare i dettagli di una singola box (e il nome armadio)
+  getBoxSingola(id: number) {
+    return this.http.get(`${this.apiUrl}/box/singola/${id}`, { headers: this.getAuthHeaders() });
+  }
+
   getBox(utenteId: string) {
     return this.http.get(`${this.apiUrl}/box/${utenteId}`, { headers: this.getAuthHeaders() });
   }

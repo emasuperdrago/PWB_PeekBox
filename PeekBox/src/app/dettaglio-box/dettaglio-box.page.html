@@ -16,12 +16,10 @@
     </ion-title>
 
     <ion-buttons slot="end">
-      <!-- NUOVO: Bottone per mostrare/nascondere il QR Code -->
       <ion-button (click)="toggleQR()" style="color: white;">
         <ion-icon slot="icon-only" name="qr-code-outline"></ion-icon>
       </ion-button>
       
-      <!-- Bottone per aggiungere un oggetto -->
       <ion-button (click)="setOpen(true)" style="color: white;">
         <ion-icon slot="icon-only" name="add"></ion-icon>
       </ion-button>
@@ -32,7 +30,6 @@
 
 <ion-content [fullscreen]="true" class="ion-padding">
 
-  <!-- NUOVO: Sezione del QR Code (Visibile solo se si clicca sull'icona in alto) -->
   <div *ngIf="mostraQR" style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px; margin-top: 10px;">
     <ion-card style="width: 100%; max-width: 350px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 12px; margin: 0;">
       <ion-card-header>
@@ -42,7 +39,6 @@
       </ion-card-header>
       
       <ion-card-content class="ion-text-center">
-        <!-- Generatore QR: nasconde la stringa 'peekbox-box-ID' -->
         <qrcode 
           [qrdata]="qrCodeData" 
           [width]="200" 
@@ -53,7 +49,6 @@
         
         <br>
         
-        <!-- Bottone per scaricare -->
         <ion-button expand="block" (click)="scaricaQRCode()" style="--background: #15425C; margin-top: 15px; font-weight: bold; border-radius: 8px;">
           <ion-icon name="download-outline" slot="start"></ion-icon>
           Scarica QR Code
@@ -62,14 +57,12 @@
     </ion-card>
   </div>
   
-  <!-- Messaggio se la box è vuota -->
   <div *ngIf="oggetti.length === 0" class="ion-text-center" style="margin-top: 100px;">
     <ion-icon name="archive-outline" style="font-size: 80px; color: #ccc;"></ion-icon>
     <h3 style="color: #666;">nessun oggetto trovato</h3> 
     <p>Inizia aggiungendo un oggetto col tasto +</p>
   </div>
 
-  <!-- Griglia degli oggetti -->
   <ion-grid *ngIf="oggetti.length > 0" class="ion-no-padding" style="margin-top: 15px;">
     <ion-row>
       <ion-col size="4" size-md="3" size-lg="2" *ngFor="let ogg of oggetti; let i = index">
@@ -108,7 +101,6 @@
     </ion-row>
   </ion-grid>
 
-  <!-- MODAL AGGIUNGI/MODIFICA OGGETTO -->
   <ion-modal [isOpen]="isModalOpen">
     <ng-template>
       <ion-header>
@@ -134,7 +126,6 @@
 
           <ion-item>
             <ion-label position="stacked">Tipo di oggetto*</ion-label>
-            <!-- AGGIORNAMENTO: Ciclo su tipiOggetto (oggetti DB) -->
             <ion-select [(ngModel)]="nuovoOggetto.tipo" placeholder="Seleziona">
               <ion-select-option *ngFor="let tipo of tipiOggetto" [value]="tipo.nome">{{ tipo.nome }}</ion-select-option>
             </ion-select>
@@ -174,7 +165,6 @@
     </ng-template>
   </ion-modal>
 
-  <!-- MODAL DETTAGLIO INFO OGGETTO -->
   <ion-modal [isOpen]="isDettaglioOpen">
     <ng-template>
       <ion-header class="ion-no-border">

@@ -10,10 +10,11 @@ const db = new sqlite3.Database(dbPath, (err) => {
   else console.log("✅ Connesso al database SQLite (PeekBox-Backend)");
 });
 
-// Abilitiamo le chiavi esterne per far funzionare ON DELETE CASCADE
-db.run("PRAGMA foreign_keys = ON;");
-
 db.serialize(() => {
+  // FIX BUG 8: Spostato dentro serialize() per garantire l'esecuzione sequenziale
+  // Abilitiamo le chiavi esterne per far funzionare ON DELETE CASCADE
+  db.run("PRAGMA foreign_keys = ON;");
+
   // 1. Tabella UTENTI
   db.run(`CREATE TABLE IF NOT EXISTS utenti (
     id INTEGER PRIMARY KEY AUTOINCREMENT, 

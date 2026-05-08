@@ -32,8 +32,12 @@ export class LoginPage implements OnInit {
         console.log('Login effettuato:', res);
         
         // 1. SALVIAMO I DATI NELLA MEMORIA DEL DISPOSITIVO
-        // Il nostro backend invia un oggetto 'user' con id, username ed email
-        localStorage.setItem('utente_id', res.user.id);
+        // Salviamo il token restituito dal backend per l'autenticazione
+        localStorage.setItem('token', res.token); 
+        
+        // Il nostro backend invia un oggetto 'user' con id, username ed email.
+        // Convertiamo l'ID in stringa per evitare problemi di tipo nel localStorage
+        localStorage.setItem('utente_id', String(res.user.id));
         localStorage.setItem('utente_nome', res.user.username);
         
         // 2. CI SPOSTIAMO SULLA HOME

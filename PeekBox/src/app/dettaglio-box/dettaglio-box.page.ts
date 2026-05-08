@@ -1,7 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, AlertController } from '@ionic/angular';
+import { 
+  AlertController,
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, 
+  IonBackButton, IonButton, IonIcon, IonCard, IonCardHeader, 
+  IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, 
+  IonBadge, IonModal, IonInput, IonTextarea, IonSelect, 
+  IonSelectOption, IonGrid, IonRow, IonCol, IonToggle 
+} from '@ionic/angular/standalone';
 import { ActivatedRoute } from '@angular/router';
 
 import { addIcons } from 'ionicons';
@@ -20,7 +27,14 @@ import { QRCodeComponent } from 'angularx-qrcode';
   templateUrl: './dettaglio-box.page.html',
   styleUrls: ['./dettaglio-box.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, QRCodeComponent]
+  imports: [
+    CommonModule, FormsModule, QRCodeComponent,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, 
+    IonBackButton, IonButton, IonIcon, IonCard, IonCardHeader, 
+    IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, 
+    IonBadge, IonModal, IonInput, IonTextarea, IonSelect, 
+    IonSelectOption, IonGrid, IonRow, IonCol, IonToggle
+  ]
 })
 export class DettaglioBoxPage implements OnInit {
   
@@ -83,27 +97,16 @@ export class DettaglioBoxPage implements OnInit {
     });
   }
 
+  // FIX BUG 7: Caricamento ottimizzato della singola box
   caricaInfoBox() {
-    if (!this.utenteId) return;
-    this.dbService.getBox(this.utenteId).subscribe({
+    if (!this.boxId) return;
+    this.dbService.getBoxSingola(Number(this.boxId)).subscribe({
       next: (res: any) => {
-        this.boxCorrente = res.box.find((b: any) => String(b.id) === String(this.boxId));
-        if (this.boxCorrente) {
-          this.caricaNomeArmadio(this.boxCorrente.rif_armadio);
-        }
+        this.boxCorrente = res.box;
+        // Il backend ora restituisce direttamente il nome dell'armadio
+        this.nomeArmadio = res.box.nome_armadio || 'Armadio sconosciuto';
       },
-      error: (err: any) => console.error(err)
-    });
-  }
-
-  caricaNomeArmadio(armadioId: number) {
-    if (!this.utenteId) return;
-    this.dbService.getArmadi(this.utenteId).subscribe({
-      next: (res: any) => {
-        const armadio = res.armadi.find((a: any) => a.id === armadioId);
-        this.nomeArmadio = armadio ? armadio.nome : 'Armadio sconosciuto';
-      },
-      error: (err: any) => console.error(err)
+      error: (err: any) => console.error("Errore caricamento box:", err)
     });
   }
 
@@ -119,13 +122,13 @@ export class DettaglioBoxPage implements OnInit {
 
   // --- GESTIONE OGGETTI ---
 
+  // FIX BUG 2: Salvataggio con distinzione tra creazione e modifica
   salvaOggetto() {
     if (!this.nuovoOggetto.nome || !this.nuovoOggetto.tipo || !this.nuovoOggetto.quantita) {
       alert("Compila i campi obbligatori!");
       return;
     }
 
-    // MODIFICA: aggiorna oggetto esistente
     if (this.editIndex !== null) {
       const oggettoId = this.oggetti[this.editIndex].id;
       this.dbService.aggiornaOggetto(oggettoId, this.nuovoOggetto).subscribe({
@@ -136,7 +139,6 @@ export class DettaglioBoxPage implements OnInit {
         error: (err: any) => console.error("Errore aggiornamento oggetto:", err)
       });
     } else {
-      // CREAZIONE: nuovo oggetto
       const datiOggetto = { ...this.nuovoOggetto, rif_box: Number(this.boxId) };
       this.dbService.creaOggetto(datiOggetto).subscribe({
         next: () => {
@@ -155,6 +157,7 @@ export class DettaglioBoxPage implements OnInit {
     this.isModalOpen = true; 
   }
 
+  // FIX BUG 1: Eliminazione effettiva dal database
   async confermaEliminaOggetto(index: number, event: Event) {
     event.stopPropagation(); 
     const alert = await this.alertCtrl.create({
