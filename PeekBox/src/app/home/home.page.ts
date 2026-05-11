@@ -1,18 +1,20 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms'; 
-import { 
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, 
-  IonButton, IonIcon, IonFooter, IonModal, IonItem, 
-  IonLabel, IonCheckbox, IonRadioGroup, IonRadio, 
-  IonAccordion, IonAccordionGroup 
+import { FormsModule } from '@angular/forms';
+import {
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
+  IonFab, IonFabButton,
+  IonButton, IonIcon, IonFooter, IonModal, IonItem,
+  IonLabel, IonCheckbox, IonRadioGroup, IonRadio,
+  IonAccordion, IonAccordionGroup
 } from '@ionic/angular/standalone';
 import { AlertController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { 
-  trashOutline, star, starOutline, home, search, 
-  person, add, filter, cubeOutline, archiveOutline, closeOutline 
+import {
+  trashOutline, star, starOutline, home, search, searchOutline,
+  person, add, filter, cubeOutline, archiveOutline, closeOutline,
+  locationOutline, optionsOutline
 } from 'ionicons/icons';
 
 import { DatabaseService } from '../services/database';
@@ -24,21 +26,25 @@ import { DatabaseService } from '../services/database';
   standalone: true,
   imports: [
     CommonModule, RouterModule, FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, 
-    IonButton, IonIcon, IonFooter, IonModal, IonItem, 
-    IonLabel, IonCheckbox, IonRadioGroup, IonRadio, 
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
+    IonFab, IonFabButton,
+  IonFab, IonFabButton,
+    IonButton, IonIcon, IonFooter, IonModal, IonItem,
+    IonLabel, IonCheckbox, IonRadioGroup, IonRadio,
     IonAccordion, IonAccordionGroup
   ],
 })
 export class HomePage {
-  
+
   leMieBox: any[] = [];
-  boxFiltrate: any[] = []; 
+  boxFiltrate: any[] = [];
   gliArmadi: any[] = [];
-  leTipologie: any[] = []; 
+  leTipologie: any[] = [];
   utenteId: string | null = null;
+  nomeUtente: string = '';
 
   isFilterModalOpen = false;
+  searchQuery = '';
 
   filtri = {
     soloPreferiti: false,
@@ -50,9 +56,10 @@ export class HomePage {
     private alertCtrl: AlertController,
     private dbService: DatabaseService
   ) {
-    addIcons({ 
-      add, filter, home, search, person, star, starOutline, 
-      trashOutline, cubeOutline, archiveOutline, closeOutline 
+    addIcons({
+      add, filter, home, search, searchOutline, person, star, starOutline,
+      trashOutline, cubeOutline, archiveOutline, closeOutline,
+      locationOutline, optionsOutline
     });
   }
 
@@ -60,6 +67,7 @@ export class HomePage {
     this.utenteId = localStorage.getItem('utente_id');
     if (this.utenteId) {
       this.caricaDatiDalServer(this.utenteId);
+      this.nomeUtente = (localStorage.getItem('utente_nome') || '').toUpperCase();
     }
   }
 
@@ -75,21 +83,45 @@ export class HomePage {
     this.dbService.getBox(idUtente).subscribe({
       next: (res: any) => {
         this.leMieBox = res.box || [];
-        this.applicaFiltri(); 
+        this.applicaFiltri();
       }
     });
   }
 
   getNomeArmadio(id: number): string {
-    const trovato = this.gliArmadi.find(a => a.id === id); 
-    return trovato ? trovato.nome : 'Armadio sconosciuto';
+    const trovato = this.gliArmadi.find(a => a.id === id);
+    return trovato ? trovato.nome : 'Sconosciuto';
+  }
+
+  onSearch() {
+    this.applicaFiltri();
+  }
+
+  toggleSoloPreferiti() {
+    this.filtri.soloPreferiti = !this.filtri.soloPreferiti;
+    if (this.filtri.soloPreferiti) {
+      this.filtri.idArmadio = null;
+    }
+    this.applicaFiltri();
+  }
+
+  filtraPerArmadio(id: number) {
+    if (this.filtri.idArmadio === id) {
+      this.filtri.idArmadio = null;
+    } else {
+      this.filtri.idArmadio = id;
+      this.filtri.soloPreferiti = false;
+    }
+    this.applicaFiltri();
   }
 
   applicaFiltri() {
+    const q = this.searchQuery.toLowerCase().trim();
+
     this.boxFiltrate = this.leMieBox.filter(box => {
       const matchPreferiti = !this.filtri.soloPreferiti || box.is_preferito === 1;
       const matchArmadio = !this.filtri.idArmadio || box.rif_armadio === this.filtri.idArmadio;
-      
+
       let matchCategoria = true;
       if (this.filtri.categoria) {
         if (box.categorie_presenti) {
@@ -100,28 +132,32 @@ export class HomePage {
         }
       }
 
-      return matchPreferiti && matchArmadio && matchCategoria;
+      const matchSearch = !q || box.nome.toLowerCase().includes(q);
+
+      return matchPreferiti && matchArmadio && matchCategoria && matchSearch;
     });
   }
 
   resetFiltri() {
     this.filtri = { soloPreferiti: false, idArmadio: null, categoria: null };
+    this.searchQuery = '';
     this.applicaFiltri();
+    this.isFilterModalOpen = false;
   }
 
   togglePreferito(box: any, event: Event) {
-    event.stopPropagation(); 
+    event.stopPropagation();
     const nuovoStato = box.is_preferito === 1 ? false : true;
     this.dbService.updatePreferito(box.id, nuovoStato).subscribe({
       next: () => {
         box.is_preferito = nuovoStato ? 1 : 0;
-        this.applicaFiltri(); 
+        this.applicaFiltri();
       }
     });
   }
 
   async confermaEliminazione(id: number, event: Event) {
-    event.stopPropagation(); 
+    event.stopPropagation();
     const alert = await this.alertCtrl.create({
       header: 'Conferma',
       message: 'Vuoi davvero eliminare questa box e tutto il suo contenuto?',
@@ -142,20 +178,20 @@ export class HomePage {
   }
 
   async confermaEliminaArmadio(armadio: any, event: Event) {
-    event.stopPropagation(); 
+    event.stopPropagation();
     const alert = await this.alertCtrl.create({
       header: 'Elimina Armadio',
       message: `Vuoi eliminare "${armadio.nome}"? Questo cancellerà anche tutte le box al suo interno.`,
       buttons: [
         { text: 'Annulla', role: 'cancel' },
-        { 
-          text: 'Elimina', 
-          role: 'destructive', 
+        {
+          text: 'Elimina',
+          role: 'destructive',
           handler: () => {
             this.dbService.eliminaArmadio(armadio.id).subscribe(() => {
               if (this.utenteId) this.caricaDatiDalServer(this.utenteId);
             });
-          } 
+          }
         }
       ]
     });
@@ -163,20 +199,20 @@ export class HomePage {
   }
 
   async confermaEliminaTipologia(tipo: any, event: Event) {
-    event.stopPropagation(); 
+    event.stopPropagation();
     const alert = await this.alertCtrl.create({
       header: 'Elimina Categoria',
       message: `Vuoi davvero eliminare la categoria "${tipo.nome}"?`,
       buttons: [
         { text: 'Annulla', role: 'cancel' },
-        { 
-          text: 'Elimina', 
+        {
+          text: 'Elimina',
           role: 'destructive',
           handler: () => {
             this.dbService.eliminaTipologia(tipo.id).subscribe(() => {
               if (this.utenteId) this.caricaDatiDalServer(this.utenteId);
             });
-          } 
+          }
         }
       ]
     });

@@ -1,12 +1,18 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, 
-  IonBackButton, IonInput, IonItem, IonSelect, IonSelectOption, 
-  IonButton, IonToggle, AlertController 
+import {
+  IonContent, IonHeader, IonTitle, IonToolbar, IonButtons,
+  IonBackButton, IonButton, IonIcon, IonSelect, IonSelectOption,
+  IonToggle, AlertController
 } from '@ionic/angular/standalone';
+import { RouterModule } from '@angular/router';
 import { Router } from '@angular/router';
+import { addIcons } from 'ionicons';
+import {
+  arrowBackOutline, cubeOutline, locationOutline, documentTextOutline,
+  archiveOutline, addCircleOutline, checkmarkCircleOutline
+} from 'ionicons/icons';
 import { DatabaseService } from '../services/database';
 
 @Component({
@@ -15,24 +21,30 @@ import { DatabaseService } from '../services/database';
   styleUrls: ['./crea-box.page.scss'],
   standalone: true,
   imports: [
-    IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule, 
-    IonButtons, IonBackButton, IonInput, IonItem, IonSelect, IonSelectOption, 
-    IonButton, IonToggle
+    CommonModule, FormsModule, RouterModule,
+    IonContent, IonHeader, IonTitle, IonToolbar, IonButtons,
+    IonBackButton, IonButton, IonIcon, IonSelect, IonSelectOption,
+    IonToggle
   ]
 })
 export class CreaBoxPage implements OnInit {
   nome_box: string = '';
-  rif_armadio: string = ''; 
+  rif_armadio: string = '';
   descrizione: string = '';
   is_preferito: boolean = false;
   armadi_disponibili: any[] = [];
   utenteId: string = '';
 
   constructor(
-    private alertController: AlertController, 
+    private alertController: AlertController,
     private router: Router,
     private dbService: DatabaseService
-  ) { }
+  ) {
+    addIcons({
+      arrowBackOutline, cubeOutline, locationOutline, documentTextOutline,
+      archiveOutline, addCircleOutline, checkmarkCircleOutline
+    });
+  }
 
   ngOnInit() {
     this.utenteId = localStorage.getItem('utente_id') || '';
@@ -49,13 +61,15 @@ export class CreaBoxPage implements OnInit {
   }
 
   async aggiungiArmadio(event: Event) {
-    event.preventDefault(); 
+    event.preventDefault();
     const alert = await this.alertController.create({
-      header: 'Nuovo Armadio',
-      inputs: [{ name: 'nome_armadio', type: 'text', placeholder: 'Es. Ripostiglio' }],
+      header: 'Nuovo Spazio',
+      inputs: [{ name: 'nome_armadio', type: 'text', placeholder: 'Es. Ripostiglio, Garage...' }],
       buttons: [
         { text: 'Annulla', role: 'cancel' },
-        { text: 'Aggiungi', handler: (dati) => {
+        {
+          text: 'Aggiungi',
+          handler: (dati) => {
             if (dati.nome_armadio?.trim()) {
               this.dbService.creaArmadio(dati.nome_armadio.trim(), this.utenteId).subscribe({
                 next: (res: any) => {

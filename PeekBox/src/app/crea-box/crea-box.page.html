@@ -1,56 +1,126 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
+<!-- ===== HEADER ===== -->
+<ion-header class="ion-no-border crea-header">
+  <ion-toolbar class="crea-toolbar">
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home" style="color: #15425C;"></ion-back-button>
+      <ion-button class="back-btn" defaultHref="/home" routerLink="/home">
+        <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+      </ion-button>
     </ion-buttons>
-    <ion-title style="font-weight: 800;"><span style="color: #15425C;">Nuovo</span>&nbsp;<span style="color: #8CC63E;">Contenitore</span></ion-title>
+
+    <div class="topbar-logo-left">
+      <img src="assets/icon/logoTitolo1.png" alt="PeekBox" class="topbar-logo-img" />
+      <span class="logo-txt">
+        <span class="pk">Peek</span><span class="bx">Box</span>
+      </span>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  
-  <p class="text-muted mb-4">Inserisci i dettagli della box che vuoi creare</p>
+<!-- ===== CONTENT ===== -->
+<ion-content class="crea-content">
 
-  <div class="mb-4">
-    <label class="form-label ms-1 fw-bold" style="color: #15425C;">Nome*</label>
-    <ion-input type="text" [(ngModel)]="nome_box" fill="outline" placeholder="Es. Cambio stagione" class="custom-focus"></ion-input>
+  <!-- HERO BANNER blu scuro -->
+  <div class="hero-banner">
+    <div class="hero-text">
+      <p class="hero-label">NUOVA BOX 📦</p>
+      <h1 class="hero-title">
+        Crea il tuo<br>
+        <span class="hero-accent">Contenitore</span>
+      </h1>
+    </div>
   </div>
 
-  <div class="mb-4">
-    
-    <div class="d-flex justify-content-between align-items-end mb-1 ms-1 pe-1">
-      <label class="form-label mb-0 fw-bold" style="color: #15425C;">Posizione*</label>
-      <a href="#" (click)="aggiungiArmadio($event)" class="text-decoration-none fw-bold" style="color: #8CC63E; font-size: 0.85rem;">
-        + Nuovo Armadio
-      </a>
+  <!-- FORM CARD -->
+  <div class="form-card">
+
+    <!-- NOME -->
+    <div class="field-group">
+      <label class="field-label">
+        <ion-icon name="cube-outline" class="label-icon"></ion-icon>
+        Nome box
+      </label>
+      <div class="input-wrap">
+        <input
+          class="custom-input"
+          type="text"
+          [(ngModel)]="nome_box"
+          placeholder="Es. Cambio stagione"
+        />
+      </div>
     </div>
 
-    <ion-item lines="none" class="border rounded" style="--background: transparent; border-color: #ccc !important;">
-      <ion-select [(ngModel)]="rif_armadio" placeholder="Seleziona un armadio" interface="popover" style="width: 100%;">
-        <ion-select-option *ngFor="let armadio of armadi_disponibili" [value]="armadio.id">
-          {{ armadio.nome }}
-        </ion-select-option>
-      </ion-select>
-    </ion-item>
-    
+    <!-- POSIZIONE -->
+    <div class="field-group">
+      <div class="label-row">
+        <label class="field-label">
+          <ion-icon name="location-outline" class="label-icon"></ion-icon>
+          Posizione
+        </label>
+        <button class="add-link" (click)="aggiungiArmadio($event)">
+          <ion-icon name="add-circle-outline"></ion-icon>
+          Nuovo spazio
+        </button>
+      </div>
+      <div class="input-wrap select-wrap">
+        <ion-icon name="archive-outline" class="input-prefix-icon"></ion-icon>
+        <ion-select
+          class="custom-select"
+          [(ngModel)]="rif_armadio"
+          placeholder="Seleziona uno spazio"
+          interface="popover"
+        >
+          <ion-select-option *ngFor="let armadio of armadi_disponibili" [value]="armadio.id">
+            {{ armadio.nome }}
+          </ion-select-option>
+        </ion-select>
+      </div>
+    </div>
+
+    <!-- DESCRIZIONE -->
+    <div class="field-group">
+      <label class="field-label">
+        <ion-icon name="document-text-outline" class="label-icon"></ion-icon>
+        Descrizione <span class="optional">(opzionale)</span>
+      </label>
+      <div class="input-wrap textarea-wrap">
+        <textarea
+          class="custom-textarea"
+          [(ngModel)]="descrizione"
+          placeholder="Inserisci una breve descrizione..."
+          rows="3"
+        ></textarea>
+      </div>
+    </div>
+
+    <!-- PREFERITO -->
+    <div class="toggle-row">
+      <div class="toggle-info">
+        <div class="toggle-icon">⭐</div>
+        <div>
+          <span class="toggle-title">Aggiungi ai Preferiti</span>
+          <span class="toggle-sub">Apparirà in cima alla lista</span>
+        </div>
+      </div>
+      <ion-toggle [(ngModel)]="is_preferito" class="custom-toggle"></ion-toggle>
+    </div>
+
+    <!-- SEPARATOR -->
+    <div class="form-sep"></div>
+
+    <!-- SALVA BUTTON -->
+    <button
+      class="save-btn"
+      [class.save-btn--disabled]="!nome_box || !rif_armadio"
+      [disabled]="!nome_box || !rif_armadio"
+      (click)="salvaNuovaBox()"
+    >
+      <ion-icon name="checkmark-circle-outline" class="save-icon"></ion-icon>
+      <span>Salva Box</span>
+      <div class="shimmer"></div>
+    </button>
+
+    <p class="required-note">* Nome e Posizione sono campi obbligatori</p>
+
   </div>
-
-  <!-- INIZIO NUOVO BLOCCO: Descrizione -->
-  <div class="mb-4">
-    <label class="form-label ms-1 fw-bold" style="color: #15425C;">Descrizione </label>
-    <ion-textarea [(ngModel)]="descrizione" fill="outline" placeholder="Inserisci una breve descrizione..." class="custom-focus"></ion-textarea>
-  </div>
-  <!-- FINE NUOVO BLOCCO -->
-
-  <div class="mb-5 d-flex justify-content-between align-items-center px-1">
-    <label class="form-label mb-0 fw-bold" style="color: #15425C;">Aggiungi ai Preferiti</label>
-    <ion-toggle [(ngModel)]="is_preferito" color="warning"></ion-toggle>
-  </div>
-
-
-  <ion-button expand="block" [disabled]="!nome_box || !rif_armadio" (click)="salvaNuovaBox()" style="--background: #8CC63E;">
-    Salva Box
-  </ion-button>
-
 
 </ion-content>

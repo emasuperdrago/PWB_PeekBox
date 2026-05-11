@@ -1,127 +1,159 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <!-- Pulsante Filtro che apre il Modal -->
-      <ion-button (click)="isFilterModalOpen = true">
-        <ion-icon slot="icon-only" name="filter" style="color: #15425C;"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-
-    <ion-title class="ion-text-center" style="font-size: 2.3rem; font-weight: 900; letter-spacing: 1px;">
-      <span style="color: #15425C;">Peek</span><span style="color: #8CC63E;">Box</span>
-    </ion-title>
-
-    <ion-buttons slot="end">
-      <ion-button routerLink="/crea-box">
-        <ion-icon slot="icon-only" name="add" style="font-size: 1.8rem; color: #15425C;"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content class="ion-padding">
-  <h2 class="fw-bold mt-2 mb-4 text-dark">Inventario</h2>
-
-  <!-- Messaggio se non ci sono box corrispondenti ai filtri -->
-  <div *ngIf="boxFiltrate.length === 0" class="text-center text-muted" style="margin-top: 50px;">
-    <p>Nessun risultato trovato per i filtri selezionati.</p>
-    <ion-button fill="clear" (click)="resetFiltri()">Ripristina filtri</ion-button>
+<div class="fixed-logo-wrapper">
+  <div class="topbar-logo-left">
+    <img src="assets/icon/logoTitolo1.png" alt="PeekBox" class="topbar-logo-img" />
+    <span class="logo-txt">
+      <span class="pk">Peek</span><span class="bx">Box</span>
+    </span>
   </div>
+</div>
 
-  <!-- Griglia con le box filtrate -->
-  <div *ngIf="boxFiltrate.length > 0" class="box-grid">
-    <div *ngFor="let box of boxFiltrate" class="box-square">
-      <div [routerLink]="['/dettaglio-box', box.id]" style="height: 100%; width: 100%;">
-        <div class="box-emoji">📦</div>
-        <div class="box-name">{{ box.nome }}</div>
-        <div class="box-location">{{ getNomeArmadio(box.rif_armadio) }}</div>
-      </div>
+<ion-content class="home-content">
 
-      <div class="action-buttons">
-        <ion-button (click)="confermaEliminazione(box.id, $event)" fill="clear" color="danger" class="icon-btn">
-          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-        </ion-button>
-
-        <ion-button (click)="togglePreferito(box, $event)" fill="clear" class="icon-btn star-btn">
-          <ion-icon slot="icon-only" [name]="box.is_preferito === 1 ? 'star' : 'star-outline'"></ion-icon>
-        </ion-button>
-      </div>
+  <div class="hero-banner">
+    <div class="hero-text">
+      <p class="hero-label">BENTORNATO {{ nomeUtente }} 👋</p>
+      <h1 class="hero-title">
+        Il tuo<br>
+        <span class="hero-accent">Inventario</span>
+      </h1>
     </div>
   </div>
 
-  <!-- MODAL FILTRI CON CESTINO FISSO E ACCORDION -->
+  <div class="search-area">
+    <div class="search-row">
+      <div class="search-box">
+        <ion-icon name="search-outline" class="search-icon"></ion-icon>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Cerca una box..."
+          [(ngModel)]="searchQuery"
+          (input)="onSearch()"
+        />
+      </div>
+      <button class="filter-pill-btn" (click)="isFilterModalOpen = true">
+        <ion-icon name="options-outline" style="font-size:1.2rem; color:#15425C;"></ion-icon>
+      </button>
+    </div>
+
+    <div class="chips-row">
+      <button class="chip" [class.chip--active]="!filtri.idArmadio && !filtri.soloPreferiti" (click)="resetFiltri()">Tutti</button>
+      <button class="chip chip--star" [class.chip--active]="filtri.soloPreferiti" (click)="toggleSoloPreferiti()">
+        ⭐ Preferiti
+      </button>
+      <button
+        class="chip"
+        *ngFor="let arm of gliArmadi"
+        [class.chip--active]="filtri.idArmadio === arm.id"
+        (click)="filtraPerArmadio(arm.id)"
+      >{{ arm.nome }}</button>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <span class="section-title">Inventario</span>
+    <span class="section-count">{{ boxFiltrate.length }} box</span>
+  </div>
+
+  <div *ngIf="boxFiltrate.length === 0" class="empty-state">
+    <div class="empty-icon">📦</div>
+    <p class="empty-text">Nessun risultato trovato</p>
+    <ion-button fill="clear" class="reset-btn" (click)="resetFiltri()">Ripristina filtri</ion-button>
+  </div>
+
+  <div *ngIf="boxFiltrate.length > 0" class="box-grid">
+    <div *ngFor="let box of boxFiltrate" class="box-card">
+
+      <div class="card-actions">
+        <button class="action-btn action-btn--delete" (click)="confermaEliminazione(box.id, $event)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+        <button class="action-btn" [class.action-btn--star-active]="box.is_preferito === 1" (click)="togglePreferito(box, $event)">
+          <ion-icon [name]="box.is_preferito === 1 ? 'star' : 'star-outline'"></ion-icon>
+        </button>
+      </div>
+
+      <div class="card-body" [routerLink]="['/dettaglio-box', box.id]">
+        <div class="card-emoji">
+          <span *ngIf="!box.emoji">📦</span>
+          <span *ngIf="box.emoji">{{ box.emoji }}</span>
+        </div>
+        <div class="card-name">{{ box.nome }}</div>
+        <div class="card-location">
+          <ion-icon name="location-outline" class="loc-icon"></ion-icon>
+          {{ getNomeArmadio(box.rif_armadio) }}
+        </div>
+        <div class="card-tag" *ngIf="box.categorie_presenti">
+          {{ box.categorie_presenti.split(',')[0] }}
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <ion-modal [isOpen]="isFilterModalOpen" (didDismiss)="isFilterModalOpen = false">
     <ng-template>
       <ion-header class="ion-no-border">
-        <ion-toolbar>
-          <ion-title style="color: #15425C; font-weight: bold;">Filtri</ion-title>
+        <ion-toolbar style="--background:#fff;">
+          <ion-title style="color:#15425C; font-weight:800; font-family:'Outfit',sans-serif;">Filtri</ion-title>
           <ion-buttons slot="end">
             <ion-button (click)="isFilterModalOpen = false">
-              <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+              <ion-icon name="close-outline" slot="icon-only" style="color:#15425C;"></ion-icon>
             </ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding">
-        
-        <!-- 1. FILTRO RAPIDO PREFERITI -->
-        <ion-item lines="none" class="filter-item" style="margin-bottom: 10px;">
+      <ion-content class="ion-padding" style="--background:#F4FBFF;">
+
+        <ion-item lines="none" class="filter-item">
           <ion-icon name="star" slot="start" color="warning"></ion-icon>
-          <ion-label style="font-weight: bold; color: #15425C;">Solo Preferiti</ion-label>
+          <ion-label style="font-weight:700; color:#15425C;">Solo Preferiti</ion-label>
           <ion-checkbox slot="end" [(ngModel)]="filtri.soloPreferiti" (ionChange)="applicaFiltri()"></ion-checkbox>
         </ion-item>
 
         <ion-accordion-group>
-          
-          <!-- TENDINA ARMADI CON CESTINO FISSO -->
+
           <ion-accordion value="armadi">
             <ion-item slot="header" lines="none">
-              <ion-icon name="archive-outline" slot="start" style="color: #15425C;"></ion-icon>
-              <ion-label style="font-weight: bold; color: #15425C;">Filtra per Armadio</ion-label>
+              <ion-icon name="archive-outline" slot="start" style="color:#15425C;"></ion-icon>
+              <ion-label style="font-weight:700; color:#15425C;">Filtra per Armadio</ion-label>
             </ion-item>
-            
             <div slot="content" class="ion-padding-start">
               <ion-radio-group [(ngModel)]="filtri.idArmadio" (ionChange)="applicaFiltri()">
                 <ion-item lines="none" class="filter-option">
                   <ion-label>Tutti gli Armadi</ion-label>
                   <ion-radio slot="start" [value]="null"></ion-radio>
                 </ion-item>
-
-                <!-- Cestino fisso invece di sliding -->
                 <ion-item lines="none" class="filter-option" *ngFor="let armadio of gliArmadi">
                   <ion-radio slot="start" [value]="armadio.id"></ion-radio>
                   <ion-label>{{ armadio.nome }}</ion-label>
                   <ion-button slot="end" fill="clear" color="danger" (click)="confermaEliminaArmadio(armadio, $event)">
-                    <ion-icon slot="icon-only" name="trash-outline" style="font-size: 1.1rem;"></ion-icon>
+                    <ion-icon slot="icon-only" name="trash-outline" style="font-size:1.1rem;"></ion-icon>
                   </ion-button>
                 </ion-item>
               </ion-radio-group>
             </div>
           </ion-accordion>
 
-          <hr class="divider" style="margin: 0;">
+          <hr class="modal-divider">
 
-          <!-- TENDINA CATEGORIE CON CESTINO FISSO -->
           <ion-accordion value="categorie">
             <ion-item slot="header" lines="none">
-              <ion-icon name="cube-outline" slot="start" style="color: #15425C;"></ion-icon>
-              <ion-label style="font-weight: bold; color: #15425C;">Filtra per Categoria</ion-label>
+              <ion-icon name="cube-outline" slot="start" style="color:#15425C;"></ion-icon>
+              <ion-label style="font-weight:700; color:#15425C;">Filtra per Categoria</ion-label>
             </ion-item>
-            
             <div slot="content" class="ion-padding-start">
               <ion-radio-group [(ngModel)]="filtri.categoria" (ionChange)="applicaFiltri()">
                 <ion-item lines="none" class="filter-option">
                   <ion-label>Qualsiasi Categoria</ion-label>
                   <ion-radio slot="start" [value]="null"></ion-radio>
                 </ion-item>
-
-                <!-- Cestino fisso invece di sliding -->
                 <ion-item lines="none" class="filter-option" *ngFor="let tipo of leTipologie">
                   <ion-radio slot="start" [value]="tipo.nome"></ion-radio>
                   <ion-label>{{ tipo.nome }}</ion-label>
                   <ion-button slot="end" fill="clear" color="danger" (click)="confermaEliminaTipologia(tipo, $event)">
-                    <ion-icon slot="icon-only" name="trash-outline" style="font-size: 1.1rem;"></ion-icon>
+                    <ion-icon slot="icon-only" name="trash-outline" style="font-size:1.1rem;"></ion-icon>
                   </ion-button>
                 </ion-item>
               </ion-radio-group>
@@ -131,30 +163,35 @@
         </ion-accordion-group>
 
         <div class="ion-padding-top">
-          <ion-button expand="block" fill="clear" color="medium" (click)="resetFiltri()" style="font-weight: bold; letter-spacing: 1px;">
+          <ion-button expand="block" fill="clear" color="medium" (click)="resetFiltri()" style="font-weight:700; letter-spacing:1px;">
             RESETTA TUTTI I FILTRI
           </ion-button>
         </div>
       </ion-content>
     </ng-template>
   </ion-modal>
+
 </ion-content>
 
-<ion-footer>
-  <ion-toolbar>
-    <div class="d-flex justify-content-around align-items-center w-100 py-2">
-      <div class="d-flex flex-column align-items-center" style="color: #15425C; cursor: pointer;">
-        <ion-icon name="home" style="font-size: 1.6rem;"></ion-icon>
-        <span style="font-size: 0.75rem; font-weight: bold;">Home</span>
-      </div>
-      <div class="d-flex flex-column align-items-center text-muted" style="cursor: pointer;">
-        <ion-icon name="search" style="font-size: 1.6rem;"></ion-icon>
-        <span style="font-size: 0.75rem; font-weight: 500;">Cerca</span>
-      </div>
-      <div class="d-flex flex-column align-items-center text-muted" style="cursor: pointer;">
-        <ion-icon name="person" style="font-size: 1.6rem;"></ion-icon>
-        <span style="font-size: 0.75rem; font-weight: 500;">Profilo</span>
-      </div>
+<ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 115px; margin-right: 8px;">
+  <ion-fab-button routerLink="/crea-box" class="fab-add">
+    <ion-icon name="add"></ion-icon>
+  </ion-fab-button>
+</ion-fab>
+
+<ion-footer class="home-footer">
+  <div class="navbar">
+    <div class="nav-item nav-item--active" routerLink="/home">
+      <ion-icon name="home" class="nav-icon"></ion-icon>
+      <span class="nav-label">Home</span>
     </div>
-  </ion-toolbar>
+    <div class="nav-item" routerLink="/search">
+      <ion-icon name="search" class="nav-icon"></ion-icon>
+      <span class="nav-label">Cerca</span>
+    </div>
+    <div class="nav-item">
+      <ion-icon name="person" class="nav-icon"></ion-icon>
+      <span class="nav-label">Profilo</span>
+    </div>
+  </div>
 </ion-footer>
