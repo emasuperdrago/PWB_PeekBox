@@ -1,13 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken'); 
-const db = require('./db'); 
+const jwt = require('jsonwebtoken');
+const db = require('./db');
 
 const app = express();
 const PORT = 3000;
 
-const SECRET_KEY = "chiave_super_segreta_peekbox"; 
+const SECRET_KEY = "chiave_super_segreta_peekbox";
 
 app.use(cors());
 app.use(express.json());
@@ -15,14 +15,14 @@ app.use(express.json());
 // --- MIDDLEWARE DI AUTENTICAZIONE ---
 function verificaToken(req, res, next) {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; 
+    const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) return res.status(401).json({ error: "Accesso negato. Token mancante." });
 
     jwt.verify(token, SECRET_KEY, (err, user) => {
         if (err) return res.status(403).json({ error: "Token non valido o scaduto." });
-        req.user = user; 
-        next(); 
+        req.user = user;
+        next();
     });
 }
 
@@ -53,17 +53,17 @@ app.post('/api/login', (req, res) => {
     const sql = 'SELECT * FROM utenti WHERE email = ?';
     db.get(sql, [email], async (err, user) => {
         if (err || !user) return res.status(401).json({ error: "Credenziali non valide." });
-        
+
         const match = await bcrypt.compare(password, user.password);
         if (match) {
             const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '24h' });
-            res.json({ 
-                message: "Accesso eseguito!", 
-                token: token, 
-                user: { id: user.id, username: user.username, email: user.email } 
+            res.json({
+                message: "Accesso eseguito!",
+                token: token,
+                user: { id: user.id, username: user.username, email: user.email }
             });
-        } else { 
-            res.status(401).json({ error: "Credenziali non valide." }); 
+        } else {
+            res.status(401).json({ error: "Credenziali non valide." });
         }
     });
 });
@@ -87,17 +87,13 @@ app.post('/api/armadi', verificaToken, (req, res) => {
     });
 });
 
-// FIX BUG 10: Eliminazione sicura dell'armadio verificando la proprietà
 app.delete('/api/armadi/:id', verificaToken, (req, res) => {
     const sql = 'DELETE FROM armadi WHERE id = ? AND rif_utente = ?';
     db.run(sql, [req.params.id, req.user.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
-        
-        // Se non è stata eliminata nessuna riga, significa che l'ID non esiste o non appartiene all'utente
         if (this.changes === 0) {
             return res.status(403).json({ error: "Non autorizzato o armadio non trovato." });
         }
-        
         res.json({ message: "Armadio eliminato!" });
     });
 });
@@ -106,7 +102,7 @@ app.delete('/api/armadi/:id', verificaToken, (req, res) => {
 app.get('/api/box/singola/:id', verificaToken, (req, res) => {
     const sql = `
         SELECT box.*, armadi.nome as nome_armadio, armadi.rif_utente
-        FROM box 
+        FROM box
         JOIN armadi ON box.rif_armadio = armadi.id
         WHERE box.id = ?
     `;
@@ -114,29 +110,33 @@ app.get('/api/box/singola/:id', verificaToken, (req, res) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!row) return res.status(404).json({ error: "Box non trovata." });
         if (String(row.rif_utente) !== String(req.user.id)) return res.status(403).json({ error: "Non autorizzato." });
-        res.json({ box: row }); 
+        res.json({ box: row });
     });
 });
 
 app.get('/api/box/:utenteId', verificaToken, (req, res) => {
+    // Esclude le box nel cestino (data_eliminazione non null)
     const sql = `
         SELECT box.*, GROUP_CONCAT(DISTINCT oggetti.tipo) as categorie_presenti,
-               MAX(oggetti.fragile) as contiene_fragili
-        FROM box 
+               MAX(oggetti.fragile) as contiene_fragili,
+               COUNT(oggetti.id) as num_oggetti
+        FROM box
         JOIN armadi ON box.rif_armadio = armadi.id
         LEFT JOIN oggetti ON oggetti.rif_box = box.id
         WHERE armadi.rif_utente = ?
+          AND box.data_eliminazione IS NULL
         GROUP BY box.id
     `;
     db.all(sql, [req.params.utenteId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ box: rows }); 
+        res.json({ box: rows });
     });
 });
 
 app.post('/api/box', verificaToken, (req, res) => {
     const { nome, rif_armadio, is_preferito } = req.body;
-    db.run('INSERT INTO box (nome, rif_armadio, is_preferito) VALUES (?, ?, ?)', [nome, rif_armadio, is_preferito ? 1 : 0], function(err) {
+    db.run('INSERT INTO box (nome, rif_armadio, is_preferito) VALUES (?, ?, ?)',
+        [nome, rif_armadio, is_preferito ? 1 : 0], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.status(201).json({ id: this.lastID });
     });
@@ -151,10 +151,48 @@ app.put('/api/box/preferito/:id', verificaToken, (req, res) => {
     });
 });
 
+// Soft delete: imposta data_eliminazione invece di cancellare fisicamente
 app.delete('/api/box/:id', verificaToken, (req, res) => {
-    db.run('DELETE FROM box WHERE id = ?', [req.params.id], (err) => {
+    const now = new Date().toISOString();
+    db.run('UPDATE box SET data_eliminazione = ? WHERE id = ?', [now, req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: "Box eliminata!" });
+        res.json({ message: "Box spostata nel cestino!" });
+    });
+});
+
+// --- BOX ELIMINATE — cestino (max 30 giorni) ---
+app.get('/api/box/eliminate/:utenteId', verificaToken, (req, res) => {
+    if (String(req.user.id) !== String(req.params.utenteId))
+        return res.status(403).json({ error: "Non autorizzato." });
+
+    // Restituisce solo le box eliminate negli ultimi 30 giorni
+    const trentaGiorniFa = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    const sql = `
+        SELECT box.*, armadi.nome as nome_armadio,
+               COUNT(oggetti.id) as num_oggetti
+        FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        LEFT JOIN oggetti ON oggetti.rif_box = box.id
+        WHERE armadi.rif_utente = ?
+          AND box.data_eliminazione IS NOT NULL
+          AND box.data_eliminazione >= ?
+        GROUP BY box.id
+        ORDER BY box.data_eliminazione DESC
+    `;
+    db.all(sql, [req.params.utenteId, trentaGiorniFa], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ box_eliminate: rows });
+    });
+});
+
+// Pulizia automatica: elimina definitivamente le box oltre i 30 giorni
+app.delete('/api/box/cestino/pulisci', verificaToken, (req, res) => {
+    const trentaGiorniFa = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    db.run('DELETE FROM box WHERE data_eliminazione IS NOT NULL AND data_eliminazione < ?',
+        [trentaGiorniFa], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: `Rimosse ${this.changes} box scadute.` });
     });
 });
 
@@ -200,6 +238,7 @@ app.get('/api/cerca/:utenteId', verificaToken, (req, res) => {
         JOIN box ON oggetti.rif_box = box.id
         JOIN armadi ON box.rif_armadio = armadi.id
         WHERE armadi.rif_utente = ?
+          AND box.data_eliminazione IS NULL
           AND (oggetti.nome LIKE ? OR oggetti.descrizione LIKE ? OR oggetti.tipo LIKE ?)
     `;
     db.all(sql, [req.params.utenteId, termine, termine, termine], (err, rows) => {

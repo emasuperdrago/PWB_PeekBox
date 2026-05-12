@@ -9,7 +9,6 @@ export class DatabaseService {
 
   constructor(private http: HttpClient) { }
 
-  // Costruisce gli header con il token JWT preso dal localStorage
   private getAuthHeaders(): HttpHeaders {
     const token = localStorage.getItem('token');
     return new HttpHeaders({ 'Authorization': `Bearer ${token}` });
@@ -19,7 +18,7 @@ export class DatabaseService {
     console.log('✅ Service pronto a comunicare con il Backend');
   }
 
-  // --- AUTENTICAZIONE (nessun header richiesto) ---
+  // --- AUTENTICAZIONE ---
 
   registraUtente(username: string, email: string, pass: string) {
     return this.http.post(`${this.apiUrl}/registrazione`, {
@@ -33,7 +32,7 @@ export class DatabaseService {
     });
   }
 
-  // --- FUNZIONI PER ARMADI ---
+  // --- ARMADI ---
 
   getArmadi(utenteId: string) {
     return this.http.get(`${this.apiUrl}/armadi/${utenteId}`, { headers: this.getAuthHeaders() });
@@ -47,13 +46,13 @@ export class DatabaseService {
     return this.http.delete(`${this.apiUrl}/armadi/${id}`, { headers: this.getAuthHeaders() });
   }
 
-  // --- FUNZIONI PER LE BOX ---
+  // --- BOX ---
 
-  // FIX BUG 7: Rotta per recuperare i dettagli di una singola box (e il nome armadio)
   getBoxSingola(id: number) {
     return this.http.get(`${this.apiUrl}/box/singola/${id}`, { headers: this.getAuthHeaders() });
   }
 
+  /** Restituisce le box attive (non nel cestino). Include num_oggetti per box. */
   getBox(utenteId: string) {
     return this.http.get(`${this.apiUrl}/box/${utenteId}`, { headers: this.getAuthHeaders() });
   }
@@ -66,11 +65,19 @@ export class DatabaseService {
     return this.http.put(`${this.apiUrl}/box/preferito/${id}`, { is_preferito }, { headers: this.getAuthHeaders() });
   }
 
+  /** Soft delete: sposta la box nel cestino (max 30 giorni). */
   eliminaBox(id: number) {
     return this.http.delete(`${this.apiUrl}/box/${id}`, { headers: this.getAuthHeaders() });
   }
 
-  // --- FUNZIONI PER GLI OGGETTI ---
+  // --- BOX ELIMINATE (cestino 30 giorni) ---
+
+  /** Restituisce le box eliminate negli ultimi 30 giorni. */
+  getBoxEliminate(utenteId: string) {
+    return this.http.get(`${this.apiUrl}/box/eliminate/${utenteId}`, { headers: this.getAuthHeaders() });
+  }
+
+  // --- OGGETTI ---
 
   getOggettiPerBox(boxId: number) {
     return this.http.get(`${this.apiUrl}/oggetti/${boxId}`, { headers: this.getAuthHeaders() });
@@ -88,7 +95,7 @@ export class DatabaseService {
     return this.http.delete(`${this.apiUrl}/oggetti/${id}`, { headers: this.getAuthHeaders() });
   }
 
-  // --- FUNZIONI PER LE TIPOLOGIE ---
+  // --- TIPOLOGIE ---
 
   getTipologie(utenteId: string) {
     return this.http.get(`${this.apiUrl}/tipologie/${utenteId}`, { headers: this.getAuthHeaders() });
@@ -100,12 +107,6 @@ export class DatabaseService {
 
   eliminaTipologia(id: number) {
     return this.http.delete(`${this.apiUrl}/tipologie/${id}`, { headers: this.getAuthHeaders() });
-  }
-
-  // --- BOX ELIMINATE (cestino 30 giorni) ---
-
-  getBoxEliminate(utenteId: string) {
-    return this.http.get(`${this.apiUrl}/box/eliminate/${utenteId}`, { headers: this.getAuthHeaders() });
   }
 
   // --- RICERCA ---

@@ -244,9 +244,9 @@ export class HomePage {
   // AREA PERSONALE
   // =====================================================
 
-  /** Apre il pannello Area Personale (tab Profilo nella navbar) */
+  /** Naviga all'Area Personale (pagina dedicata — Sezione 5) */
   apriAreaPersonale() {
-    this.isProfiloModalOpen = true;
+    this.router.navigateByUrl('/area-personale');
   }
 
   /** Apre la sezione Box Eliminate e carica i dati dal server */
