@@ -362,3 +362,55 @@ $mid:     #4A7A94;
   text-align: center;
   margin: 12px 0 0;
 }
+
+// ===== ION-SELECT POPOVER personalizzato =====
+// Stili globali per il popover — devono essere in :root o in global.scss
+// Li aggiungiamo qui con :host-context e ::ng-deep per Ionic
+::ng-deep ion-popover.select-popover {
+  --background: rgba(9,28,42,.97);
+  --backdrop-opacity: 0.5;
+  --border-radius: 16px;
+  --box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+
+  ion-list { background: transparent; }
+
+  ion-item {
+    --background: transparent;
+    --background-hover: rgba(58,171,219,.12);
+    --color: rgba(255,255,255,.85);
+    --border-color: rgba(58,171,219,.12);
+    font-family: 'Outfit', sans-serif;
+    font-size: .95rem;
+    border-radius: 8px;
+    margin: 2px 6px;
+    transition: background .15s;
+  }
+
+  ion-item.item-radio-checked {
+    --background: rgba(58,171,219,.18);
+    --color: #3AABDB;
+    ion-label { color: #3AABDB !important; font-weight: 700; }
+  }
+
+  ion-radio {
+    --color: rgba(255,255,255,.3);
+    --color-checked: #3AABDB;
+  }
+
+  // Barra colorata in cima al popover
+  &::before {
+    content: '';
+    display: block;
+    height: 3px;
+    background: linear-gradient(90deg, #3AABDB, #7DC740);
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+// Action sheet e alert dark
+::ng-deep ion-action-sheet {
+  --background: rgba(9,28,42,.97);
+  --color: rgba(255,255,255,.85);
+  .action-sheet-button { color: rgba(255,255,255,.85) !important; }
+  .action-sheet-button.action-sheet-destructive { color: #f87171 !important; }
+}

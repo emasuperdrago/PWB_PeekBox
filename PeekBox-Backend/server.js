@@ -120,7 +120,8 @@ app.get('/api/box/singola/:id', verificaToken, (req, res) => {
 
 app.get('/api/box/:utenteId', verificaToken, (req, res) => {
     const sql = `
-        SELECT box.*, GROUP_CONCAT(DISTINCT oggetti.tipo) as categorie_presenti
+        SELECT box.*, GROUP_CONCAT(DISTINCT oggetti.tipo) as categorie_presenti,
+               MAX(oggetti.fragile) as contiene_fragili
         FROM box 
         JOIN armadi ON box.rif_armadio = armadi.id
         LEFT JOIN oggetti ON oggetti.rif_box = box.id

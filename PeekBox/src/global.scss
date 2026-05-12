@@ -38,3 +38,75 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+// ===== PEEKBOX — GLOBAL CUSTOM STYLES =====
+
+// Ion-select popover dark theme
+ion-popover.select-popover,
+ion-popover[trigger] {
+  --background: rgba(9,28,42,.98);
+  --border-radius: 16px;
+  --box-shadow: 0 16px 48px rgba(0,0,0,.55);
+
+  &::part(content) {
+    border: 1px solid rgba(58,171,219,.2);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  ion-list {
+    background: transparent !important;
+    padding: 6px !important;
+  }
+
+  ion-item {
+    --background: transparent;
+    --background-hover: rgba(58,171,219,.1);
+    --color: rgba(255,255,255,.85);
+    --border-color: transparent;
+    border-radius: 10px;
+    margin: 2px 0;
+    font-family: 'Outfit', sans-serif;
+    font-size: .93rem;
+    font-weight: 500;
+  }
+
+  ion-radio {
+    --color: rgba(255,255,255,.3);
+    --color-checked: #3AABDB;
+  }
+
+  ion-item.item-radio-checked {
+    --background: rgba(58,171,219,.15);
+    ion-label { color: #3AABDB !important; font-weight: 700; }
+  }
+}
+
+// Alert dark
+ion-alert {
+  --background: rgba(9,28,42,.98);
+  --border-radius: 20px;
+  --box-shadow: 0 20px 60px rgba(0,0,0,.6);
+
+  &::part(container) {
+    border: 1px solid rgba(58,171,219,.2);
+    border-radius: 20px;
+  }
+
+  .alert-title { color: #fff !important; font-family: 'Outfit', sans-serif !important; font-weight: 800 !important; }
+  .alert-message { color: rgba(255,255,255,.65) !important; font-family: 'DM Sans', sans-serif !important; }
+  .alert-input { background: rgba(255,255,255,.06) !important; color: #fff !important; border: 1px solid rgba(58,171,219,.3) !important; border-radius: 10px !important; font-family: 'DM Sans', sans-serif !important; }
+  .alert-button { color: #3AABDB !important; font-family: 'Outfit', sans-serif !important; font-weight: 700 !important; }
+  .alert-button.alert-button-role-destructive,
+  .alert-button.ion-color-danger { color: #f87171 !important; }
+  .alert-button-group { border-top: 1px solid rgba(58,171,219,.12) !important; }
+}
+
+// Toast dark
+ion-toast {
+  --background: rgba(9,28,42,.97);
+  --color: rgba(255,255,255,.9);
+  --border-radius: 14px;
+  --box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  font-family: 'Outfit', sans-serif;
+}

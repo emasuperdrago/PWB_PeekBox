@@ -3,11 +3,10 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
-  IonFab, IonFabButton,
-  IonButton, IonIcon, IonFooter, IonModal, IonItem,
-  IonLabel, IonCheckbox, IonRadioGroup, IonRadio,
-  IonAccordion, IonAccordionGroup
+  IonHeader, IonToolbar, IonTitle,
+  IonContent, IonButtons,
+  IonButton, IonIcon, IonFooter, IonModal,
+  IonCheckbox, IonRadioGroup, IonRadio,
 } from '@ionic/angular/standalone';
 import { AlertController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -26,12 +25,10 @@ import { DatabaseService } from '../services/database';
   standalone: true,
   imports: [
     CommonModule, RouterModule, FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
-    IonFab, IonFabButton,
-  IonFab, IonFabButton,
-    IonButton, IonIcon, IonFooter, IonModal, IonItem,
-    IonLabel, IonCheckbox, IonRadioGroup, IonRadio,
-    IonAccordion, IonAccordionGroup
+    IonHeader, IonToolbar, IonTitle,
+    IonContent, IonButtons,
+    IonButton, IonIcon, IonFooter, IonModal,
+    IonCheckbox, IonRadioGroup, IonRadio,
   ],
 })
 export class HomePage {
@@ -217,5 +214,31 @@ export class HomePage {
       ]
     });
     await alert.present();
+  }
+
+  // Immagini di qualità per le card — ruotano in base all'indice
+  private readonly BOX_IMAGES = [
+    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&auto=format&fit=crop',  // scatole organizzazione
+    'https://images.unsplash.com/photo-1609710228159-0fa9bd7c0827?w=400&q=80&auto=format&fit=crop',  // storage minimal
+    'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80&auto=format&fit=crop',  // interior dark
+    'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80&auto=format&fit=crop',  // living storage
+    'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&q=80&auto=format&fit=crop',  // bedroom minimal
+    'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400&q=80&auto=format&fit=crop',  // closet organized
+    'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=400&q=80&auto=format&fit=crop',  // modern storage
+    'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=400&q=80&auto=format&fit=crop',  // bedroom dark
+    'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=400&q=80&auto=format&fit=crop',  // cushions textures
+    'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=400&q=80&auto=format&fit=crop',  // shelf books
+  ];
+
+  getBoxImage(box: any, index: number): string {
+    // Se la box ha una foto personalizzata usala, altrimenti ruota le immagini default
+    if (box.foto_url) return box.foto_url;
+    return this.BOX_IMAGES[index % this.BOX_IMAGES.length];
+  }
+
+  onImgError(event: Event) {
+    const img = event.target as HTMLImageElement;
+    // Fallback neutro in caso di errore di caricamento
+    img.src = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&auto=format&fit=crop';
   }
 }
