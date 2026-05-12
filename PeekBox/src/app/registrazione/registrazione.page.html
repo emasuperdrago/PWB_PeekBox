@@ -1,15 +1,5 @@
 <ion-content [fullscreen]="true" class="login-content">
 
-  <!-- Slideshow sfondo -->
-  <div class="slideshow">
-    <div *ngFor="let src of slideSrcs; let i = index"
-         class="slide"
-         [class.active]="i === currentSlide">
-      <img [src]="src" alt="" />
-    </div>
-  </div>
-  <div class="hero-overlay"></div>
-
   <!-- TOP BAR -->
   <header class="topbar">
     <div class="topbar-logo" routerLink="/benvenuto" style="cursor:pointer;">

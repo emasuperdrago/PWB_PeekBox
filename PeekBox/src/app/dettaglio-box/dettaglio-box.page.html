@@ -1,26 +1,23 @@
 <ion-header class="ion-no-border">
-  <ion-toolbar style="--background: #8CC63E;">
-    
+  <ion-toolbar class="detail-toolbar">
+
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home" style="color: white;"></ion-back-button>
+      <ion-back-button defaultHref="/home" class="back-btn"></ion-back-button>
     </ion-buttons>
-    
-    <ion-title style="color: white;">
-      <div style="font-weight: 800; font-size: 1.2rem; line-height: 1.2;">
-        {{ boxCorrente?.nome || 'Dettaglio Box' }}
-      </div>
-      <div *ngIf="nomeArmadio" style="font-size: 0.8rem; font-weight: 500; opacity: 0.9; line-height: 1.2;">
-        <ion-icon name="cube-outline" style="vertical-align: middle; margin-right: 3px;"></ion-icon>
+
+    <ion-title class="toolbar-title">
+      <div class="toolbar-title-name">{{ boxCorrente?.nome || 'Dettaglio Box' }}</div>
+      <div *ngIf="nomeArmadio" class="toolbar-title-sub">
+        <ion-icon name="cube-outline"></ion-icon>
         {{ nomeArmadio }}
       </div>
     </ion-title>
 
     <ion-buttons slot="end">
-      <ion-button (click)="toggleQR()" style="color: white;">
+      <ion-button (click)="mostraQR = true" class="toolbar-btn">
         <ion-icon slot="icon-only" name="qr-code-outline"></ion-icon>
       </ion-button>
-      
-      <ion-button (click)="setOpen(true)" style="color: white;">
+      <ion-button (click)="setOpen(true)" class="toolbar-btn toolbar-btn-add">
         <ion-icon slot="icon-only" name="add"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -28,184 +25,223 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="ion-padding">
+<ion-content [fullscreen]="true" class="detail-content">
 
-  <div *ngIf="mostraQR" style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px; margin-top: 10px;">
-    <ion-card style="width: 100%; max-width: 350px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 12px; margin: 0;">
-      <ion-card-header>
-        <ion-card-title class="ion-text-center" style="color: #15425C; font-weight: 800; font-size: 1.2rem;">
-          Etichetta Scatola
-        </ion-card-title>
-      </ion-card-header>
-      
-      <ion-card-content class="ion-text-center">
-        <qrcode 
-          [qrdata]="qrCodeData" 
-          [width]="200" 
-          [errorCorrectionLevel]="'M'"
-          elementType="canvas"
-          style="display: inline-block; padding: 10px; background: white; border-radius: 8px; border: 1px solid #eee;">
-        </qrcode>
-        
-        <br>
-        
-        <ion-button expand="block" (click)="scaricaQRCode()" style="--background: #15425C; margin-top: 15px; font-weight: bold; border-radius: 8px;">
-          <ion-icon name="download-outline" slot="start"></ion-icon>
-          Scarica QR Code
-        </ion-button>
-      </ion-card-content>
-    </ion-card>
-  </div>
-  
-  <div *ngIf="oggetti.length === 0" class="ion-text-center" style="margin-top: 100px;">
-    <ion-icon name="archive-outline" style="font-size: 80px; color: #ccc;"></ion-icon>
-    <h3 style="color: #666;">nessun oggetto trovato</h3> 
-    <p>Inizia aggiungendo un oggetto col tasto +</p>
-  </div>
-
-  <ion-grid *ngIf="oggetti.length > 0" class="ion-no-padding" style="margin-top: 15px;">
-    <ion-row>
-      <ion-col size="4" size-md="3" size-lg="2" *ngFor="let ogg of oggetti; let i = index">
-        
-        <ion-card class="card-oggetto" (click)="apriDettaglio(ogg)">
-          <div class="foto-container">
-            <img *ngIf="ogg.foto" [src]="ogg.foto" class="foto-img" />
-            
-            <div *ngIf="!ogg.foto" class="foto-vuota">
-              <ion-icon name="image-outline"></ion-icon>
-            </div>
-
-            <ion-badge color="primary" class="badge-qty">x{{ ogg.quantita }}</ion-badge>
-            <ion-badge *ngIf="ogg.fragile" color="danger" class="badge-fragile">FRAGILE</ion-badge>
-          </div>
-
-          <div class="info-container">
-            <div class="testi-oggetto">
-              <h2 class="nome-oggetto">{{ ogg.nome }}</h2>
-              <p class="tipo-oggetto">{{ ogg.tipo }}</p>
-            </div>
-            
-            <div class="action-buttons-oggetto">
-              <ion-button fill="clear" color="primary" class="btn-cestino" (click)="apriModifica(i, $event)">
-                <ion-icon name="create-outline" slot="icon-only"></ion-icon>
-              </ion-button>
-
-              <ion-button fill="clear" color="danger" class="btn-cestino" (click)="confermaEliminaOggetto(i, $event)">
-                <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
-              </ion-button>
-            </div>
-          </div>
-        </ion-card>
-
-      </ion-col>
-    </ion-row>
-  </ion-grid>
-
-  <ion-modal [isOpen]="isModalOpen">
+  <!-- MODAL QR CODE -->
+  <ion-modal [isOpen]="mostraQR" (didDismiss)="mostraQR = false">
     <ng-template>
-      <ion-header>
-        <ion-toolbar>
-          <ion-title>{{ editIndex !== null ? 'Modifica Elemento' : 'Nuovo Elemento' }}</ion-title>
+      <ion-header class="ion-no-border">
+        <ion-toolbar class="modal-toolbar">
+          <ion-title class="modal-title">QR Code Scatola</ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="setOpen(false)">Annulla</ion-button>
+            <ion-button (click)="mostraQR = false" class="modal-close-btn">Chiudi</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding">
-        <ion-list>
-          <ion-item>
-            <ion-label position="stacked">Nome oggetto*</ion-label>
-            <ion-input [(ngModel)]="nuovoOggetto.nome" type="text" placeholder="Es. Servizio piatti"></ion-input>
-          </ion-item>
+      <ion-content class="modal-content">
+        <div class="modal-body">
 
-          <ion-item>
-            <ion-label position="stacked">Descrizione</ion-label>
-            <ion-textarea [(ngModel)]="nuovoOggetto.descrizione" placeholder="Altre info..."></ion-textarea>
-          </ion-item>
-
-          <ion-item>
-            <ion-label position="stacked">Tipo di oggetto*</ion-label>
-            <ion-select [(ngModel)]="nuovoOggetto.tipo" placeholder="Seleziona">
-              <ion-select-option *ngFor="let tipo of tipiOggetto" [value]="tipo.nome">{{ tipo.nome }}</ion-select-option>
-            </ion-select>
-            <ion-button slot="end" fill="clear" (click)="aggiungiNuovoTipo()" style="margin-top: 15px;">
-              <ion-icon name="add-circle-outline" slot="icon-only"></ion-icon>
-            </ion-button>
-          </ion-item>
-
-          <ion-item>
-            <ion-label>Oggetto fragile?</ion-label>
-            <ion-toggle slot="end" [(ngModel)]="nuovoOggetto.fragile"></ion-toggle>
-          </ion-item>
-
-          <ion-item>
-            <ion-label position="stacked">Quantità*</ion-label>
-            <ion-input [(ngModel)]="nuovoOggetto.quantita" type="number"></ion-input>
-          </ion-item>
-
-          <div class="ion-padding-top">
-            <ion-button expand="block" fill="outline" (click)="scattaFoto()">
-              <ion-icon slot="start" name="camera"></ion-icon>
-              {{ nuovoOggetto.foto ? 'Foto Acquisita!' : 'Scatta o allega foto' }}
-            </ion-button>
-            
-            <div *ngIf="nuovoOggetto.foto" class="ion-text-center ion-margin-top">
-              <img [src]="nuovoOggetto.foto" style="max-height: 150px; border-radius: 8px;" />
+          <div class="modal-field" style="align-items: center; gap: 20px;">
+            <div class="qr-frame">
+              <qrcode
+                [qrdata]="qrCodeData"
+                [width]="220"
+                [errorCorrectionLevel]="'M'"
+                elementType="canvas">
+              </qrcode>
             </div>
+            <p class="qr-label">{{ boxCorrente?.nome }}</p>
           </div>
-        </ion-list>
 
-        <div class="ion-padding">
-          <ion-button expand="block" class="btn-salva" (click)="salvaOggetto()">
-            SALVA ELEMENTO
-          </ion-button>
+          <button class="btn-salva" (click)="scaricaQRCode()">
+            <ion-icon name="download-outline" style="margin-right: 8px; position: relative; z-index:1;"></ion-icon>
+            <span>Scarica QR Code</span>
+            <div class="shimmer"></div>
+          </button>
+
         </div>
       </ion-content>
     </ng-template>
   </ion-modal>
 
-  <ion-modal [isOpen]="isDettaglioOpen">
+  <!-- STATO VUOTO -->
+  <div *ngIf="oggetti.length === 0" class="empty-state">
+    <div class="empty-icon-wrap">
+      <ion-icon name="archive-outline"></ion-icon>
+    </div>
+    <h3 class="empty-title">Nessun oggetto</h3>
+    <p class="empty-sub">Aggiungi il primo oggetto con il tasto <strong>+</strong></p>
+  </div>
+
+  <!-- GRIGLIA OGGETTI -->
+  <div *ngIf="oggetti.length > 0" class="oggetti-grid">
+    <div class="oggetto-card" *ngFor="let ogg of oggetti; let i = index" (click)="apriDettaglio(ogg)">
+
+      <div class="card-foto">
+        <img *ngIf="ogg.foto" [src]="ogg.foto" class="foto-img" />
+        <div *ngIf="!ogg.foto" class="foto-placeholder">
+          <ion-icon name="image-outline"></ion-icon>
+        </div>
+        <span class="badge-qty">×{{ ogg.quantita }}</span>
+        <span *ngIf="ogg.fragile" class="badge-fragile">FRAGILE</span>
+      </div>
+
+      <div class="card-info">
+        <div class="card-testi">
+          <p class="card-nome">{{ ogg.nome }}</p>
+          <p class="card-tipo">{{ ogg.tipo }}</p>
+        </div>
+        <div class="card-actions">
+          <button class="btn-action btn-edit" (click)="apriModifica(i, $event)">
+            <ion-icon name="create-outline"></ion-icon>
+          </button>
+          <button class="btn-action btn-delete" (click)="confermaEliminaOggetto(i, $event)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MODAL AGGIUNGI / MODIFICA -->
+  <ion-modal [isOpen]="isModalOpen">
     <ng-template>
       <ion-header class="ion-no-border">
-        <ion-toolbar style="--background: #8CC63E;">
-          <ion-title style="color: white; font-weight: 700;">Info Oggetto</ion-title>
+        <ion-toolbar class="modal-toolbar">
+          <ion-title class="modal-title">
+            {{ editIndex !== null ? 'Modifica Elemento' : 'Nuovo Elemento' }}
+          </ion-title>
           <ion-buttons slot="end">
-            <ion-button (click)="chiudiDettaglio()" style="color: white; font-weight: bold;">Chiudi</ion-button>
+            <ion-button (click)="setOpen(false)" class="modal-close-btn">Annulla</ion-button>
           </ion-buttons>
         </ion-toolbar>
       </ion-header>
 
-      <ion-content class="ion-padding" *ngIf="oggettoSelezionato">
-        
-        <div *ngIf="oggettoSelezionato.foto" style="text-align: center; margin-bottom: 20px;">
-          <img [src]="oggettoSelezionato.foto" style="max-height: 300px; width: 100%; object-fit: cover; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" />
-        </div>
-        
-        <div *ngIf="!oggettoSelezionato.foto" style="text-align: center; margin-bottom: 20px; padding: 40px; background: #f4f5f8; border-radius: 12px;">
-          <ion-icon name="image-outline" style="font-size: 80px; color: #ccc;"></ion-icon>
-        </div>
+      <ion-content class="modal-content">
+        <div class="modal-body">
 
-        <h1 style="color: #15425C; font-weight: 900; font-size: 2rem; margin-top: 0;">{{ oggettoSelezionato.nome }}</h1>
-        
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-          <ion-badge color="medium" style="font-size: 0.9rem; padding: 8px 12px;">{{ oggettoSelezionato.tipo }}</ion-badge>
-          <ion-badge *ngIf="oggettoSelezionato.fragile" color="danger" style="font-size: 0.9rem; padding: 8px 12px;">FRAGILE</ion-badge>
+          <div class="modal-field">
+            <label class="modal-label">Nome oggetto *</label>
+            <ion-input
+              [(ngModel)]="nuovoOggetto.nome"
+              type="text"
+              placeholder="Es. Servizio piatti"
+              fill="outline"
+              class="modal-input">
+            </ion-input>
+          </div>
+
+          <div class="modal-field">
+            <label class="modal-label">Descrizione</label>
+            <ion-textarea
+              [(ngModel)]="nuovoOggetto.descrizione"
+              placeholder="Altre informazioni..."
+              fill="outline"
+              class="modal-input"
+              rows="3">
+            </ion-textarea>
+          </div>
+
+          <div class="modal-field">
+            <label class="modal-label">Categoria *</label>
+            <div class="select-row">
+              <ion-select
+                [(ngModel)]="nuovoOggetto.tipo"
+                placeholder="Seleziona categoria"
+                class="modal-select">
+                <ion-select-option *ngFor="let tipo of tipiOggetto" [value]="tipo.nome">
+                  {{ tipo.nome }}
+                </ion-select-option>
+              </ion-select>
+              <button class="btn-add-tipo" (click)="aggiungiNuovoTipo()">
+                <ion-icon name="add-circle-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+
+          <div class="modal-field toggle-field">
+            <div class="toggle-info">
+              <label class="modal-label">Oggetto fragile?</label>
+              <p class="toggle-sub">Verrà mostrata un'etichetta FRAGILE</p>
+            </div>
+            <ion-toggle [(ngModel)]="nuovoOggetto.fragile" class="modal-toggle"></ion-toggle>
+          </div>
+
+          <div class="modal-field">
+            <label class="modal-label">Quantità *</label>
+            <ion-input
+              [(ngModel)]="nuovoOggetto.quantita"
+              type="number"
+              fill="outline"
+              class="modal-input">
+            </ion-input>
+          </div>
+
+          <div class="modal-field">
+            <button class="btn-foto" (click)="scattaFoto()">
+              <ion-icon name="camera"></ion-icon>
+              {{ nuovoOggetto.foto ? '✓ Foto acquisita' : 'Scatta o allega foto' }}
+            </button>
+            <div *ngIf="nuovoOggetto.foto" class="foto-preview">
+              <img [src]="nuovoOggetto.foto" />
+            </div>
+          </div>
+
+          <button class="btn-salva" (click)="salvaOggetto()">
+            <span>{{ editIndex !== null ? 'Aggiorna elemento' : 'Salva elemento' }}</span>
+            <div class="shimmer"></div>
+          </button>
+
         </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
 
-        <ion-item lines="none" style="--background: #f4f5f8; border-radius: 10px; margin-bottom: 20px;">
-          <ion-icon name="cube-outline" slot="start" style="color: #8CC63E;"></ion-icon>
-          <ion-label style="font-weight: bold; color: #15425C;">Quantità</ion-label>
-          <ion-badge slot="end" color="primary" style="font-size: 1rem;">{{ oggettoSelezionato.quantita }}</ion-badge>
-        </ion-item>
+  <!-- MODAL DETTAGLIO OGGETTO -->
+  <ion-modal [isOpen]="isDettaglioOpen">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar class="modal-toolbar">
+          <ion-title class="modal-title">Info Oggetto</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="chiudiDettaglio()" class="modal-close-btn">Chiudi</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
 
-        <div *ngIf="oggettoSelezionato.descrizione">
-          <h3 style="color: #15425C; font-weight: bold; border-bottom: 2px solid #8CC63E; padding-bottom: 5px; display: inline-block;">Descrizione</h3>
-          <p style="font-size: 1.1rem; color: #555; line-height: 1.6;">
-            {{ oggettoSelezionato.descrizione }}
-          </p>
+      <ion-content class="modal-content" *ngIf="oggettoSelezionato">
+        <div class="dettaglio-body">
+
+          <div class="dettaglio-foto-wrap">
+            <img *ngIf="oggettoSelezionato.foto" [src]="oggettoSelezionato.foto" class="dettaglio-foto" />
+            <div *ngIf="!oggettoSelezionato.foto" class="dettaglio-foto-empty">
+              <ion-icon name="image-outline"></ion-icon>
+            </div>
+          </div>
+
+          <div class="dettaglio-info">
+            <h1 class="dettaglio-nome">{{ oggettoSelezionato.nome }}</h1>
+
+            <div class="dettaglio-badges">
+              <span class="det-badge det-badge-tipo">{{ oggettoSelezionato.tipo }}</span>
+              <span *ngIf="oggettoSelezionato.fragile" class="det-badge det-badge-fragile">FRAGILE</span>
+            </div>
+
+            <div class="dettaglio-qty-row">
+              <ion-icon name="cube-outline" class="qty-icon"></ion-icon>
+              <span class="qty-label">Quantità</span>
+              <span class="qty-value">{{ oggettoSelezionato.quantita }}</span>
+            </div>
+
+            <div *ngIf="oggettoSelezionato.descrizione" class="dettaglio-desc">
+              <p class="desc-label">Descrizione</p>
+              <p class="desc-text">{{ oggettoSelezionato.descrizione }}</p>
+            </div>
+          </div>
+
         </div>
-
       </ion-content>
     </ng-template>
   </ion-modal>
