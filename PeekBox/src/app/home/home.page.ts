@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { CommonModule, DatePipe } from '@angular/common';
+import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import {
   IonHeader, IonToolbar, IonTitle,
@@ -13,7 +13,8 @@ import { addIcons } from 'ionicons';
 import {
   trashOutline, star, starOutline, home, search, searchOutline,
   person, add, filter, cubeOutline, archiveOutline, closeOutline,
-  locationOutline, optionsOutline
+  locationOutline, optionsOutline, logOutOutline, timeOutline,
+  chevronForwardOutline, informationCircleOutline, arrowBackOutline
 } from 'ionicons/icons';
 
 import { DatabaseService } from '../services/database';
@@ -23,6 +24,7 @@ import { DatabaseService } from '../services/database';
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   standalone: true,
+  providers: [DatePipe],
   imports: [
     CommonModule, RouterModule, FormsModule,
     IonHeader, IonToolbar, IonTitle,
@@ -39,8 +41,19 @@ export class HomePage {
   leTipologie: any[] = [];
   utenteId: string | null = null;
   nomeUtente: string = '';
+  emailUtente: string = '';
 
+  // Contatore articoli totali (somma degli oggetti in tutte le box)
+  totaleArticoli: number = 0;
+
+  // Stato modals
   isFilterModalOpen = false;
+  isProfiloModalOpen = false;
+  isBoxEliminateOpen = false;
+
+  // Box eliminate di recente (max 30 giorni)
+  boxEliminate: any[] = [];
+
   searchQuery = '';
 
   filtri = {
@@ -51,12 +64,15 @@ export class HomePage {
 
   constructor(
     private alertCtrl: AlertController,
-    private dbService: DatabaseService
+    private dbService: DatabaseService,
+    private router: Router,
+    private datePipe: DatePipe
   ) {
     addIcons({
       add, filter, home, search, searchOutline, person, star, starOutline,
       trashOutline, cubeOutline, archiveOutline, closeOutline,
-      locationOutline, optionsOutline
+      locationOutline, optionsOutline, logOutOutline, timeOutline,
+      chevronForwardOutline, informationCircleOutline, arrowBackOutline
     });
   }
 
@@ -65,6 +81,7 @@ export class HomePage {
     if (this.utenteId) {
       this.caricaDatiDalServer(this.utenteId);
       this.nomeUtente = (localStorage.getItem('utente_nome') || '').toUpperCase();
+      this.emailUtente = localStorage.getItem('utente_email') || '';
     }
   }
 
@@ -81,6 +98,10 @@ export class HomePage {
       next: (res: any) => {
         this.leMieBox = res.box || [];
         this.applicaFiltri();
+        // Calcola il totale articoli (se il backend restituisce num_oggetti per box)
+        this.totaleArticoli = this.leMieBox.reduce(
+          (acc: number, b: any) => acc + (b.num_oggetti || 0), 0
+        );
       }
     });
   }
@@ -219,29 +240,87 @@ export class HomePage {
     await alert.present();
   }
 
-  // Immagini di qualità per le card — ruotano in base all'indice
+  // =====================================================
+  // AREA PERSONALE
+  // =====================================================
+
+  /** Apre il pannello Area Personale (tab Profilo nella navbar) */
+  apriAreaPersonale() {
+    this.isProfiloModalOpen = true;
+  }
+
+  /** Apre la sezione Box Eliminate e carica i dati dal server */
+  apriBoxEliminate() {
+    if (this.utenteId) {
+      this.dbService.getBoxEliminate(this.utenteId).subscribe({
+        next: (res: any) => {
+          // Filtra solo quelle entro 30 giorni
+          const trenta = 30 * 24 * 60 * 60 * 1000;
+          const ora = Date.now();
+          this.boxEliminate = (res.box_eliminate || []).filter((b: any) => {
+            const diff = ora - new Date(b.data_eliminazione).getTime();
+            return diff <= trenta;
+          });
+          this.isBoxEliminateOpen = true;
+        }
+      });
+    }
+  }
+
+  /** Calcola i giorni rimasti prima della rimozione definitiva */
+  giorniRimasti(dataEliminazione: string): number {
+    const diff = Date.now() - new Date(dataEliminazione).getTime();
+    const giorniPassati = Math.floor(diff / (1000 * 60 * 60 * 24));
+    return Math.max(0, 30 - giorniPassati);
+  }
+
+  /** Chiede conferma e poi esegue il logout */
+  async confermaLogout() {
+    const alert = await this.alertCtrl.create({
+      cssClass: 'peekbox-alert',
+      header: 'Logout',
+      message: 'Sei sicuro di voler uscire dal tuo account?',
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Esci',
+          role: 'destructive',
+          handler: () => this.eseguiLogout()
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  eseguiLogout() {
+    localStorage.clear();
+    this.isProfiloModalOpen = false;
+    this.router.navigateByUrl('/login', { replaceUrl: true });
+  }
+
+  // =====================================================
+  // IMMAGINI CARD (invariate)
+  // =====================================================
   private readonly BOX_IMAGES = [
-    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&auto=format&fit=crop',  // scatole organizzazione
-    'https://images.unsplash.com/photo-1609710228159-0fa9bd7c0827?w=400&q=80&auto=format&fit=crop',  // storage minimal
-    'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80&auto=format&fit=crop',  // interior dark
-    'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80&auto=format&fit=crop',  // living storage
-    'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&q=80&auto=format&fit=crop',  // bedroom minimal
-    'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400&q=80&auto=format&fit=crop',  // closet organized
-    'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=400&q=80&auto=format&fit=crop',  // modern storage
-    'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=400&q=80&auto=format&fit=crop',  // bedroom dark
-    'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=400&q=80&auto=format&fit=crop',  // cushions textures
-    'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=400&q=80&auto=format&fit=crop',  // shelf books
+    'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1609710228159-0fa9bd7c0827?w=400&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=400&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1524758631624-e2822e304c36?w=400&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=400&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=400&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=400&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?w=400&q=80&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=400&q=80&auto=format&fit=crop',
   ];
 
   getBoxImage(box: any, index: number): string {
-    // Se la box ha una foto personalizzata usala, altrimenti ruota le immagini default
     if (box.foto_url) return box.foto_url;
     return this.BOX_IMAGES[index % this.BOX_IMAGES.length];
   }
 
   onImgError(event: Event) {
     const img = event.target as HTMLImageElement;
-    // Fallback neutro in caso di errore di caricamento
     img.src = 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80&auto=format&fit=crop';
   }
 }

@@ -53,6 +53,14 @@ db.serialize(() => {
     FOREIGN KEY(rif_box) REFERENCES box(id) ON DELETE CASCADE
   )`);
 
+  // 5. Tabella TIPOLOGIE
+  db.run(`CREATE TABLE IF NOT EXISTS tipologie (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome TEXT NOT NULL,
+    rif_utente INTEGER,
+    FOREIGN KEY(rif_utente) REFERENCES utenti(id) ON DELETE CASCADE
+  )`);
+
   console.log("✅ Schema tabelle SQLite pronto.");
   
   popolaDatiEsempio();

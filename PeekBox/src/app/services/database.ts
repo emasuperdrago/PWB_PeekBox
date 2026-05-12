@@ -102,6 +102,12 @@ export class DatabaseService {
     return this.http.delete(`${this.apiUrl}/tipologie/${id}`, { headers: this.getAuthHeaders() });
   }
 
+  // --- BOX ELIMINATE (cestino 30 giorni) ---
+
+  getBoxEliminate(utenteId: string) {
+    return this.http.get(`${this.apiUrl}/box/eliminate/${utenteId}`, { headers: this.getAuthHeaders() });
+  }
+
   // --- RICERCA ---
 
   cercaOggetti(utenteId: string, termine: string) {
