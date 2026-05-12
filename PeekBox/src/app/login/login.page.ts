@@ -41,6 +41,7 @@ export class LoginPage implements OnInit {
       error: async (err) => {
         console.error('Errore login:', err);
         const alert = await this.alertController.create({
+          cssClass: 'peekbox-alert',
           header: 'Accesso Negato',
           message: 'Email o password errati. Riprova.',
           buttons: ['OK']
@@ -53,6 +54,7 @@ export class LoginPage implements OnInit {
   async recuperaPassword(event: Event) {
     event.preventDefault();
     const alert = await this.alertController.create({
+          cssClass: 'peekbox-alert',
       header: 'Recupero Password',
       message: 'Funzionalità non ancora disponibile sul database fisico.',
       buttons: ['OK']

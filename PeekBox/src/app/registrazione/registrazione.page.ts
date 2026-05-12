@@ -57,6 +57,7 @@ export class RegistrazionePage implements OnInit, OnDestroy {
         next: async (res: any) => {
           console.log('Risposta server:', res);
           const alert = await this.alertController.create({
+          cssClass: 'peekbox-alert',
             header: 'Successo!',
             message: 'Registrazione completata correttamente.',
             buttons: [
@@ -74,6 +75,7 @@ export class RegistrazionePage implements OnInit, OnDestroy {
         error: async (err) => {
           console.error('Errore:', err);
           const alert = await this.alertController.create({
+          cssClass: 'peekbox-alert',
             header: 'Errore',
             message: 'Impossibile registrarsi. Email già presente o server offline.',
             buttons: ['OK']
@@ -84,6 +86,7 @@ export class RegistrazionePage implements OnInit, OnDestroy {
 
     } else {
       const alert = await this.alertController.create({
+          cssClass: 'peekbox-alert',
         header: 'Attenzione',
         message: 'Tutti i campi sono obbligatori!',
         buttons: ['OK']

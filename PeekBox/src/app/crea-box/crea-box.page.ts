@@ -63,6 +63,7 @@ export class CreaBoxPage implements OnInit {
   async aggiungiArmadio(event: Event) {
     event.preventDefault();
     const alert = await this.alertController.create({
+      cssClass: 'peekbox-alert',
       header: 'Nuovo Spazio',
       inputs: [{ name: 'nome_armadio', type: 'text', placeholder: 'Es. Ripostiglio, Garage...' }],
       buttons: [

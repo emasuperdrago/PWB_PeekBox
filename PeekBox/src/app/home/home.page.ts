@@ -156,6 +156,7 @@ export class HomePage {
   async confermaEliminazione(id: number, event: Event) {
     event.stopPropagation();
     const alert = await this.alertCtrl.create({
+      cssClass: 'peekbox-alert',
       header: 'Conferma',
       message: 'Vuoi davvero eliminare questa box e tutto il suo contenuto?',
       buttons: [
@@ -177,6 +178,7 @@ export class HomePage {
   async confermaEliminaArmadio(armadio: any, event: Event) {
     event.stopPropagation();
     const alert = await this.alertCtrl.create({
+      cssClass: 'peekbox-alert',
       header: 'Elimina Armadio',
       message: `Vuoi eliminare "${armadio.nome}"? Questo cancellerà anche tutte le box al suo interno.`,
       buttons: [
@@ -198,6 +200,7 @@ export class HomePage {
   async confermaEliminaTipologia(tipo: any, event: Event) {
     event.stopPropagation();
     const alert = await this.alertCtrl.create({
+      cssClass: 'peekbox-alert',
       header: 'Elimina Categoria',
       message: `Vuoi davvero eliminare la categoria "${tipo.nome}"?`,
       buttons: [

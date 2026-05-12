@@ -125,7 +125,7 @@ export class DettaglioBoxPage implements OnInit {
   // FIX BUG 2: Salvataggio con distinzione tra creazione e modifica
   salvaOggetto() {
     if (!this.nuovoOggetto.nome || !this.nuovoOggetto.tipo || !this.nuovoOggetto.quantita) {
-      alert("Compila i campi obbligatori!");
+      this.mostraAlertCampi(); return;
       return;
     }
 
@@ -161,6 +161,7 @@ export class DettaglioBoxPage implements OnInit {
   async confermaEliminaOggetto(index: number, event: Event) {
     event.stopPropagation(); 
     const alert = await this.alertCtrl.create({
+      cssClass: 'peekbox-alert',
       header: 'Elimina',
       message: 'Vuoi rimuovere questo elemento dalla box?',
       buttons: [
@@ -183,6 +184,7 @@ export class DettaglioBoxPage implements OnInit {
 
   async aggiungiNuovoTipo() {
     const alert = await this.alertCtrl.create({
+      cssClass: 'peekbox-alert',
       header: 'Nuova Categoria',
       inputs: [{ name: 'nuovoTipo', type: 'text', placeholder: 'Es. Utensili' }],
       buttons: [
@@ -233,6 +235,17 @@ export class DettaglioBoxPage implements OnInit {
   chiudiDettaglio() {
     this.isDettaglioOpen = false;
     setTimeout(() => { this.oggettoSelezionato = null; }, 300);
+  }
+
+  // --- ALERT CAMPI OBBLIGATORI ---
+  async mostraAlertCampi() {
+    const alert = await this.alertCtrl.create({
+      cssClass: 'peekbox-alert',
+      header: 'Attenzione',
+      message: 'Compila tutti i campi obbligatori.',
+      buttons: [{ text: 'OK', role: 'cancel' }]
+    });
+    await alert.present();
   }
 
   // --- FUNZIONI PER IL QR CODE ---
