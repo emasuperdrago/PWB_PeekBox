@@ -54,19 +54,44 @@
             <p class="qr-label">{{ boxCorrente?.nome }}</p>
           </div>
 
+          <!-- Scarica QR -->
           <button class="btn-salva" (click)="scaricaQRCode()">
             <ion-icon name="download-outline" style="margin-right: 8px; position: relative; z-index:1;"></ion-icon>
             <span>Scarica QR Code</span>
             <div class="shimmer"></div>
           </button>
 
-          <!-- Bottone Tracking — visibile se moving_mode o profilo business -->
+          <!-- Stampa etichette PDF -->
+          <button class="btn-tracking btn-etichette" (click)="stampaEtichettePDF()">
+            <ion-icon name="document-text-outline"></ion-icon>
+            <span>Stampa Etichette PDF</span>
+          </button>
+
+          <!-- Bottone Transit Zone -->
+          <button class="btn-tracking btn-transit" (click)="apriTransitZone()">
+            <ion-icon name="swap-horizontal-outline"></ion-icon>
+            <span>Zona di Transito</span>
+          </button>
+
+          <!-- Bottone Tracking GPS -->
           <button class="btn-tracking"
             *ngIf="boxCorrente?.moving_mode === 1 || tipoProfilo === 'business'"
             (click)="apriTracking()">
             <ion-icon name="location-outline"></ion-icon>
             <span>Storico Posizioni GPS</span>
           </button>
+
+          <!-- Esporta inventario -->
+          <div class="export-row">
+            <button class="btn-export" (click)="downloadInventarioCsv()">
+              <ion-icon name="cloud-download-outline"></ion-icon>
+              CSV
+            </button>
+            <button class="btn-export" (click)="downloadInventarioJson()">
+              <ion-icon name="cloud-download-outline"></ion-icon>
+              JSON
+            </button>
+          </div>
 
         </div>
       </ion-content>

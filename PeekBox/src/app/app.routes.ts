@@ -34,9 +34,14 @@ export const routes: Routes = [
     path: 'area-personale',
     loadComponent: () => import('./area-personale/area-personale.page').then(m => m.AreaPersonalePage)
   },
-  // ── TRACKING GPS (Sezione GPS) ──────────────────────────────────────
+  // ── TRACKING GPS ────────────────────────────────────────────────────────
   {
     path: 'tracking-box/:id',
     loadComponent: () => import('./tracking-box/tracking-box.page').then(m => m.TrackingBoxPage)
+  },
+  // ── TRANSIT ZONE — Drag & Drop riorganizzazione + Export ────────────────
+  {
+    path: 'transit-zone',
+    loadComponent: () => import('./transit-zone/transit-zone.page').then(m => m.TransitZonePage)
   },
 ];

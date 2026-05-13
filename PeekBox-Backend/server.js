@@ -31,7 +31,6 @@ app.get('/', (req, res) => {
 // UTENTI
 // ─────────────────────────────────────────────
 
-// Registrazione con tipo_profilo
 app.post('/api/registrazione', async (req, res) => {
     const { username, email, password, tipo_profilo = 'personal' } = req.body;
     if (!username || !email || !password) return res.status(400).json({ error: "Tutti i campi sono obbligatori." });
@@ -47,7 +46,6 @@ app.post('/api/registrazione', async (req, res) => {
     } catch (error) { res.status(500).json({ error: "Errore server." }); }
 });
 
-// Login — restituisce anche tipo_profilo
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: "Email e password sono obbligatorie." });
@@ -67,7 +65,6 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Aggiorna tipo_profilo utente
 app.put('/api/utenti/:id/profilo', verificaToken, (req, res) => {
     if (String(req.user.id) !== String(req.params.id))
         return res.status(403).json({ error: "Non autorizzato." });
@@ -164,10 +161,8 @@ app.put('/api/box/preferito/:id', verificaToken, (req, res) => {
     });
 });
 
-// Moving Mode toggle
 app.put('/api/box/moving-mode/:id', verificaToken, (req, res) => {
     const { moving_mode } = req.body;
-    // Verifica proprietà box
     const sqlCheck = `
         SELECT box.id FROM box
         JOIN armadi ON box.rif_armadio = armadi.id
@@ -224,13 +219,11 @@ app.delete('/api/box/cestino/pulisci', verificaToken, (req, res) => {
 // CHECKPOINT GPS
 // ─────────────────────────────────────────────
 
-// Registra un checkpoint (chiamato quando si scansiona il QR)
 app.post('/api/checkpoint', verificaToken, (req, res) => {
     const { rif_box, latitudine, longitudine, accuratezza, label } = req.body;
     if (!rif_box || latitudine == null || longitudine == null)
         return res.status(400).json({ error: "rif_box, latitudine e longitudine sono obbligatori." });
 
-    // Verifica che la box appartenga all'utente
     const sqlCheck = `
         SELECT box.id, box.moving_mode FROM box
         JOIN armadi ON box.rif_armadio = armadi.id
@@ -248,7 +241,6 @@ app.post('/api/checkpoint', verificaToken, (req, res) => {
     });
 });
 
-// Storico checkpoint per una box
 app.get('/api/checkpoint/:boxId', verificaToken, (req, res) => {
     const sqlCheck = `
         SELECT box.id FROM box
@@ -257,7 +249,6 @@ app.get('/api/checkpoint/:boxId', verificaToken, (req, res) => {
     `;
     db.get(sqlCheck, [req.params.boxId, req.user.id], (err, row) => {
         if (err || !row) return res.status(403).json({ error: "Non autorizzato." });
-
         db.all(
             'SELECT * FROM checkpoint_gps WHERE rif_box = ? ORDER BY timestamp ASC',
             [req.params.boxId],
@@ -269,7 +260,6 @@ app.get('/api/checkpoint/:boxId', verificaToken, (req, res) => {
     });
 });
 
-// Ultimo checkpoint (posizione attuale) per una box
 app.get('/api/checkpoint/:boxId/ultimo', verificaToken, (req, res) => {
     const sqlCheck = `
         SELECT box.id FROM box
@@ -278,7 +268,6 @@ app.get('/api/checkpoint/:boxId/ultimo', verificaToken, (req, res) => {
     `;
     db.get(sqlCheck, [req.params.boxId, req.user.id], (err, row) => {
         if (err || !row) return res.status(403).json({ error: "Non autorizzato." });
-
         db.get(
             'SELECT * FROM checkpoint_gps WHERE rif_box = ? ORDER BY timestamp DESC LIMIT 1',
             [req.params.boxId],
@@ -290,7 +279,6 @@ app.get('/api/checkpoint/:boxId/ultimo', verificaToken, (req, res) => {
     });
 });
 
-// Dashboard business: panoramica di tutte le box con ultimo checkpoint
 app.get('/api/dashboard/business/:utenteId', verificaToken, (req, res) => {
     if (String(req.user.id) !== String(req.params.utenteId))
         return res.status(403).json({ error: "Non autorizzato." });
@@ -325,7 +313,6 @@ app.get('/api/dashboard/business/:utenteId', verificaToken, (req, res) => {
     });
 });
 
-// Elimina tutti i checkpoint di una box (reset tracking)
 app.delete('/api/checkpoint/:boxId', verificaToken, (req, res) => {
     const sqlCheck = `
         SELECT box.id FROM box
@@ -374,6 +361,223 @@ app.delete('/api/oggetti/:id', verificaToken, (req, res) => {
     db.run('DELETE FROM oggetti WHERE id = ?', [req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: "Oggetto eliminato!" });
+    });
+});
+
+// ─────────────────────────────────────────────
+// TRANSIT ZONE — Spostamento oggetti tra box
+// ─────────────────────────────────────────────
+
+/**
+ * Sposta uno o più oggetti da una box di origine a una box di destinazione.
+ * Body: { oggetti_ids: number[], box_destinazione_id: number }
+ * Verifica che sia la box origine che quella destinazione appartengano
+ * all'utente autenticato prima di eseguire l'UPDATE.
+ */
+app.put('/api/oggetti/sposta', verificaToken, (req, res) => {
+    const { oggetti_ids, box_destinazione_id } = req.body;
+
+    if (!Array.isArray(oggetti_ids) || oggetti_ids.length === 0 || !box_destinazione_id) {
+        return res.status(400).json({ error: "oggetti_ids (array) e box_destinazione_id sono obbligatori." });
+    }
+
+    // Verifica che la box destinazione appartenga all'utente
+    const sqlCheckDest = `
+        SELECT box.id FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        WHERE box.id = ? AND armadi.rif_utente = ? AND box.data_eliminazione IS NULL
+    `;
+    db.get(sqlCheckDest, [box_destinazione_id, req.user.id], (err, destRow) => {
+        if (err || !destRow) {
+            return res.status(403).json({ error: "Box destinazione non trovata o non autorizzata." });
+        }
+
+        // Verifica che tutti gli oggetti appartengano a box dell'utente
+        const placeholders = oggetti_ids.map(() => '?').join(',');
+        const sqlCheckOggetti = `
+            SELECT oggetti.id FROM oggetti
+            JOIN box ON oggetti.rif_box = box.id
+            JOIN armadi ON box.rif_armadio = armadi.id
+            WHERE oggetti.id IN (${placeholders}) AND armadi.rif_utente = ?
+        `;
+        db.all(sqlCheckOggetti, [...oggetti_ids, req.user.id], (errO, oggettiAutorizzati) => {
+            if (errO) return res.status(500).json({ error: errO.message });
+            if (oggettiAutorizzati.length !== oggetti_ids.length) {
+                return res.status(403).json({ error: "Alcuni oggetti non appartengono all'utente." });
+            }
+
+            // Esegui lo spostamento
+            const sqlUpdate = `UPDATE oggetti SET rif_box = ? WHERE id IN (${placeholders})`;
+            db.run(sqlUpdate, [box_destinazione_id, ...oggetti_ids], function(runErr) {
+                if (runErr) return res.status(500).json({ error: runErr.message });
+                res.json({
+                    message: `${this.changes} oggett${this.changes === 1 ? 'o spostato' : 'i spostati'} con successo.`,
+                    spostati: this.changes,
+                    box_destinazione_id
+                });
+            });
+        });
+    });
+});
+
+// ─────────────────────────────────────────────
+// EXPORT DATI INVENTARIO
+// ─────────────────────────────────────────────
+
+/**
+ * Esporta l'intero inventario dell'utente come JSON strutturato.
+ * GET /api/export/json/:utenteId
+ * Restituisce armadi → box → oggetti in formato annidato.
+ */
+app.get('/api/export/json/:utenteId', verificaToken, (req, res) => {
+    if (String(req.user.id) !== String(req.params.utenteId))
+        return res.status(403).json({ error: "Non autorizzato." });
+
+    const sql = `
+        SELECT
+            armadi.id as armadio_id,
+            armadi.nome as armadio_nome,
+            box.id as box_id,
+            box.nome as box_nome,
+            box.is_preferito,
+            box.moving_mode,
+            oggetti.id as oggetto_id,
+            oggetti.nome as oggetto_nome,
+            oggetti.descrizione,
+            oggetti.tipo,
+            oggetti.fragile,
+            oggetti.quantita
+        FROM armadi
+        LEFT JOIN box ON box.rif_armadio = armadi.id AND box.data_eliminazione IS NULL
+        LEFT JOIN oggetti ON oggetti.rif_box = box.id
+        WHERE armadi.rif_utente = ?
+        ORDER BY armadi.id, box.id, oggetti.id
+    `;
+
+    db.all(sql, [req.params.utenteId], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        // Struttura annidiata armadi → box → oggetti
+        const armadiMap = new Map();
+        for (const row of rows) {
+            if (!armadiMap.has(row.armadio_id)) {
+                armadiMap.set(row.armadio_id, { id: row.armadio_id, nome: row.armadio_nome, box: [] });
+            }
+            const armadio = armadiMap.get(row.armadio_id);
+
+            if (row.box_id == null) continue;
+
+            let boxEntry = armadio.box.find(b => b.id === row.box_id);
+            if (!boxEntry) {
+                boxEntry = {
+                    id: row.box_id,
+                    nome: row.box_nome,
+                    is_preferito: row.is_preferito === 1,
+                    moving_mode: row.moving_mode === 1,
+                    oggetti: []
+                };
+                armadio.box.push(boxEntry);
+            }
+
+            if (row.oggetto_id != null) {
+                boxEntry.oggetti.push({
+                    id: row.oggetto_id,
+                    nome: row.oggetto_nome,
+                    descrizione: row.descrizione || '',
+                    tipo: row.tipo,
+                    fragile: row.fragile === 1,
+                    quantita: row.quantita
+                });
+            }
+        }
+
+        const exportData = {
+            esportato_il: new Date().toISOString(),
+            utente_id: req.params.utenteId,
+            armadi: Array.from(armadiMap.values())
+        };
+
+        res.setHeader('Content-Disposition', `attachment; filename="peekbox-inventario-${req.params.utenteId}.json"`);
+        res.setHeader('Content-Type', 'application/json');
+        res.json(exportData);
+    });
+});
+
+/**
+ * Esporta l'inventario come CSV flat (una riga per oggetto).
+ * GET /api/export/csv/:utenteId
+ */
+app.get('/api/export/csv/:utenteId', verificaToken, (req, res) => {
+    if (String(req.user.id) !== String(req.params.utenteId))
+        return res.status(403).json({ error: "Non autorizzato." });
+
+    const sql = `
+        SELECT
+            armadi.nome as Armadio,
+            box.nome as Box,
+            box.is_preferito as Preferito,
+            oggetti.nome as Oggetto,
+            oggetti.tipo as Categoria,
+            oggetti.descrizione as Descrizione,
+            oggetti.quantita as Quantita,
+            oggetti.fragile as Fragile
+        FROM armadi
+        JOIN box ON box.rif_armadio = armadi.id AND box.data_eliminazione IS NULL
+        JOIN oggetti ON oggetti.rif_box = box.id
+        WHERE armadi.rif_utente = ?
+        ORDER BY armadi.nome, box.nome, oggetti.nome
+    `;
+
+    db.all(sql, [req.params.utenteId], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+
+        const headers = ['Armadio', 'Box', 'Preferito', 'Oggetto', 'Categoria', 'Descrizione', 'Quantita', 'Fragile'];
+        const escape = (v) => {
+            const s = String(v === null || v === undefined ? '' : v);
+            return s.includes(',') || s.includes('"') || s.includes('\n')
+                ? `"${s.replace(/"/g, '""')}"`
+                : s;
+        };
+
+        const lines = [headers.join(',')];
+        for (const row of rows) {
+            lines.push(headers.map(h => {
+                const val = row[h];
+                if (h === 'Fragile' || h === 'Preferito') return val === 1 ? 'Sì' : 'No';
+                return escape(val);
+            }).join(','));
+        }
+
+        const csv = lines.join('\r\n');
+        res.setHeader('Content-Disposition', `attachment; filename="peekbox-inventario-${req.params.utenteId}.csv"`);
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.send('\uFEFF' + csv); // BOM UTF-8 per Excel
+    });
+});
+
+/**
+ * Restituisce i dati completi di una box con tutti gli oggetti,
+ * pronti per la generazione del PDF etichette lato client.
+ * GET /api/export/etichette/:boxId
+ */
+app.get('/api/export/etichette/:boxId', verificaToken, (req, res) => {
+    // Verifica proprietà box
+    const sqlCheck = `
+        SELECT box.id, box.nome, armadi.nome as nome_armadio, armadi.rif_utente
+        FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        WHERE box.id = ? AND armadi.rif_utente = ?
+    `;
+    db.get(sqlCheck, [req.params.boxId, req.user.id], (err, boxRow) => {
+        if (err || !boxRow) return res.status(403).json({ error: "Non autorizzato." });
+
+        db.all('SELECT * FROM oggetti WHERE rif_box = ? ORDER BY nome', [req.params.boxId], (errO, oggetti) => {
+            if (errO) return res.status(500).json({ error: errO.message });
+            res.json({
+                box: { id: boxRow.id, nome: boxRow.nome, armadio: boxRow.nome_armadio },
+                oggetti: oggetti || []
+            });
+        });
     });
 });
 

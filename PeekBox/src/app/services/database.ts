@@ -67,7 +67,6 @@ export class DatabaseService {
     return this.http.put(`${this.apiUrl}/box/preferito/${id}`, { is_preferito }, { headers: this.getAuthHeaders() });
   }
 
-  /** Attiva/disattiva il Moving Mode per una singola box */
   updateMovingMode(id: number, moving_mode: boolean) {
     return this.http.put(`${this.apiUrl}/box/moving-mode/${id}`, { moving_mode }, { headers: this.getAuthHeaders() });
   }
@@ -82,35 +81,26 @@ export class DatabaseService {
 
   // ─── CHECKPOINT GPS ───────────────────────────────────────
 
-  /**
-   * Salva un checkpoint GPS per una box.
-   * Va chiamato ogni volta che un QR Code viene scansionato
-   * e la box ha moving_mode attivo (o il profilo è business).
-   */
   salvaCheckpoint(rif_box: number, latitudine: number, longitudine: number, accuratezza?: number, label?: string) {
     return this.http.post(`${this.apiUrl}/checkpoint`, {
       rif_box, latitudine, longitudine, accuratezza, label
     }, { headers: this.getAuthHeaders() });
   }
 
-  /** Storico completo dei checkpoint per una box */
   getCheckpoints(boxId: number) {
     return this.http.get(`${this.apiUrl}/checkpoint/${boxId}`, { headers: this.getAuthHeaders() });
   }
 
-  /** Solo l'ultimo checkpoint (posizione attuale) */
   getUltimoCheckpoint(boxId: number) {
     return this.http.get(`${this.apiUrl}/checkpoint/${boxId}/ultimo`, { headers: this.getAuthHeaders() });
   }
 
-  /** Reset storico tracking di una box */
   eliminaCheckpoints(boxId: number) {
     return this.http.delete(`${this.apiUrl}/checkpoint/${boxId}`, { headers: this.getAuthHeaders() });
   }
 
   // ─── DASHBOARD BUSINESS ───────────────────────────────────
 
-  /** Panoramica asset con ultima posizione — solo profili Business */
   getDashboardBusiness(utenteId: string) {
     return this.http.get(`${this.apiUrl}/dashboard/business/${utenteId}`, { headers: this.getAuthHeaders() });
   }
@@ -131,6 +121,20 @@ export class DatabaseService {
 
   eliminaOggetto(id: number) {
     return this.http.delete(`${this.apiUrl}/oggetti/${id}`, { headers: this.getAuthHeaders() });
+  }
+
+  // ─── TRANSIT ZONE — Spostamento oggetti ───────────────────
+
+  /**
+   * Sposta uno o più oggetti in una box di destinazione.
+   * Usato dalla Transit Zone per sincronizzare con il DB dopo il drag & drop.
+   */
+  spostaOggetti(oggettiIds: number[], boxDestinazioneId: number) {
+    return this.http.put(
+      `${this.apiUrl}/oggetti/sposta`,
+      { oggetti_ids: oggettiIds, box_destinazione_id: boxDestinazioneId },
+      { headers: this.getAuthHeaders() }
+    );
   }
 
   // ─── TIPOLOGIE ────────────────────────────────────────────
@@ -154,5 +158,38 @@ export class DatabaseService {
       `${this.apiUrl}/cerca/${utenteId}?q=${encodeURIComponent(termine)}`,
       { headers: this.getAuthHeaders() }
     );
+  }
+
+  // ─── EXPORT ───────────────────────────────────────────────
+
+  /**
+   * Recupera i dati JSON completi per l'export dell'inventario.
+   * Il download viene gestito lato client da ExportService.
+   */
+  getExportJson(utenteId: string) {
+    return this.http.get(`${this.apiUrl}/export/json/${utenteId}`, {
+      headers: this.getAuthHeaders(),
+      responseType: 'blob'
+    });
+  }
+
+  /**
+   * Recupera il CSV dell'inventario.
+   */
+  getExportCsv(utenteId: string) {
+    return this.http.get(`${this.apiUrl}/export/csv/${utenteId}`, {
+      headers: this.getAuthHeaders(),
+      responseType: 'blob'
+    });
+  }
+
+  /**
+   * Recupera i dati di una singola box con oggetti per la generazione
+   * del PDF etichette lato client.
+   */
+  getEtichetteBox(boxId: number) {
+    return this.http.get(`${this.apiUrl}/export/etichette/${boxId}`, {
+      headers: this.getAuthHeaders()
+    });
   }
 }

@@ -15,10 +15,12 @@ import { addIcons } from 'ionicons';
 import {
   add, camera, archiveOutline, addCircleOutline,
   trashOutline, imageOutline, cubeOutline, createOutline,
-  qrCodeOutline, downloadOutline, locationOutline, navigateOutline
+  qrCodeOutline, downloadOutline, locationOutline, navigateOutline,
+  swapHorizontalOutline, documentTextOutline, cloudDownloadOutline
 } from 'ionicons/icons';
 import { PhotoService } from '../services/photo';
 import { DatabaseService } from '../services/database';
+import { ExportService } from '../services/export';
 import { GpsService } from '../services/gps';
 
 import { QRCodeComponent } from 'angularx-qrcode';
@@ -68,9 +70,15 @@ export class DettaglioBoxPage implements OnInit {
     private toastCtrl: ToastController,
     public photoService: PhotoService,
     private dbService: DatabaseService,
+    private exportService: ExportService,
     private gpsService: GpsService
   ) {
-    addIcons({ add, camera, archiveOutline, addCircleOutline, trashOutline, imageOutline, cubeOutline, createOutline, qrCodeOutline, downloadOutline, locationOutline, navigateOutline });
+    addIcons({
+      add, camera, archiveOutline, addCircleOutline, trashOutline,
+      imageOutline, cubeOutline, createOutline, qrCodeOutline,
+      downloadOutline, locationOutline, navigateOutline,
+      swapHorizontalOutline, documentTextOutline, cloudDownloadOutline
+    });
   }
 
   ngOnInit() {
@@ -83,13 +91,10 @@ export class DettaglioBoxPage implements OnInit {
       this.caricaOggettiDalServer();
       this.caricaTipologieDalServer();
       this.qrCodeData = `peekbox-box-${this.boxId}`;
-
-      // Registra checkpoint GPS se la box è in moving mode o il profilo è business
       this.registraCheckpointSeNecessario();
     }
   }
 
-  /** Registra automaticamente la posizione GPS quando si apre la pagina (= scansione QR) */
   private async registraCheckpointSeNecessario() {
     this.dbService.getBoxSingola(Number(this.boxId)).subscribe({
       next: async (res: any) => {
@@ -111,7 +116,7 @@ export class DettaglioBoxPage implements OnInit {
                 });
                 await toast.present();
               },
-              error: () => { /* silenziosa — non bloccare l'utente */ }
+              error: () => {}
             });
           } catch (err) {
             console.warn('GPS non disponibile al momento della scansione.');
@@ -155,6 +160,39 @@ export class DettaglioBoxPage implements OnInit {
 
   apriTracking() {
     this.router.navigate(['/tracking-box', this.boxId]);
+  }
+
+  // ─── TRANSIT ZONE ──────────────────────────────────────────
+
+  apriTransitZone() {
+    this.router.navigate(['/transit-zone']);
+  }
+
+  // ─── EXPORT / STAMPA ───────────────────────────────────────
+
+  async stampaEtichettePDF() {
+    if (!this.boxId) return;
+    try {
+      await this.exportService.stampaEtichetteBox(Number(this.boxId));
+    } catch {
+      const toast = await this.toastCtrl.create({
+        message: 'Errore generazione etichette PDF.',
+        duration: 2000,
+        color: 'danger',
+        position: 'bottom'
+      });
+      await toast.present();
+    }
+  }
+
+  downloadInventarioCsv() {
+    if (!this.utenteId) return;
+    this.exportService.downloadCsv(this.utenteId);
+  }
+
+  downloadInventarioJson() {
+    if (!this.utenteId) return;
+    this.exportService.downloadJson(this.utenteId);
   }
 
   // ─── GESTIONE OGGETTI ──────────────────────────────────────
