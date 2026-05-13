@@ -20,7 +20,6 @@
   <div class="login-wrapper">
     <div class="login-card">
 
-      <!-- Badge -->
       <div class="badge">
         <span class="badge-dot"></span>
         Inizia gratuitamente
@@ -30,50 +29,68 @@
         Crea il tuo nuovo<br>
         <span class="title-accent">account.</span>
       </h1>
-      <p class="login-sub">Tieni finalmente ogni cosa sotto controllo assoluto.</p>
+      <p class="login-sub">Scegli come vuoi usare PeekBox.</p>
 
-      <!-- Form fields -->
+      <!-- SELEZIONE TIPO PROFILO -->
+      <div class="profilo-selector">
+        <div class="profilo-card" [class.selected]="tipoProfilo === 'personal'" (click)="selezionaProfilo('personal')">
+          <div class="profilo-icon">🏠</div>
+          <div class="profilo-info">
+            <span class="profilo-nome">Uso Personale</span>
+            <span class="profilo-desc">Casa, garage, traslochi</span>
+          </div>
+          <div class="profilo-check" [class.visible]="tipoProfilo === 'personal'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="profilo-card" [class.selected]="tipoProfilo === 'business'" (click)="selezionaProfilo('business')">
+          <div class="profilo-icon">🏢</div>
+          <div class="profilo-info">
+            <span class="profilo-nome">Business & Logistica</span>
+            <span class="profilo-desc">Aziende, artigiani, flotte</span>
+          </div>
+          <div class="profilo-check" [class.visible]="tipoProfilo === 'business'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- BADGE BUSINESS FEATURES -->
+      <div class="business-features" *ngIf="tipoProfilo === 'business'">
+        <span class="feat-tag">📍 Tracking GPS</span>
+        <span class="feat-tag">🗺️ Mappa Asset</span>
+        <span class="feat-tag">📊 Dashboard</span>
+      </div>
+
+      <!-- FORM -->
       <div class="field-group">
         <label class="field-label">Nome Profilo</label>
-        <ion-input
-          type="text"
-          [(ngModel)]="nomeProfilo"
-          fill="outline"
-          placeholder="Es. MarcoRossi"
-          class="custom-input">
-        </ion-input>
+        <ion-input type="text" [(ngModel)]="nomeProfilo" fill="outline" placeholder="Es. MarcoRossi" class="custom-input"></ion-input>
       </div>
 
       <div class="field-group">
         <label class="field-label">Email</label>
-        <ion-input
-          type="email"
-          [(ngModel)]="email"
-          fill="outline"
-          placeholder="nome@esempio.it"
-          class="custom-input">
-        </ion-input>
+        <ion-input type="email" [(ngModel)]="email" fill="outline" placeholder="nome@esempio.it" class="custom-input"></ion-input>
       </div>
 
       <div class="field-group">
         <label class="field-label">Password</label>
-        <ion-input
-          type="password"
-          [(ngModel)]="password"
-          fill="outline"
-          placeholder="Scegli una password"
-          class="custom-input">
+        <ion-input type="password" [(ngModel)]="password" fill="outline" placeholder="Scegli una password" class="custom-input">
           <ion-input-password-toggle slot="end"></ion-input-password-toggle>
         </ion-input>
       </div>
 
-      <!-- CTA -->
       <div class="cta-row">
         <button
           class="btn-primary"
-          [disabled]="!nomeProfilo || !email || !email.includes('@') || email.lastIndexOf('.') <= email.indexOf('@') || !password"
+          [disabled]="!nomeProfilo || !email || !email.includes('@') || !password"
           (click)="registrati()">
-          <span>Registrati</span>
+          <span>Crea Account {{ tipoProfilo === 'business' ? 'Business' : 'Personale' }}</span>
           <div class="shimmer"></div>
         </button>
       </div>

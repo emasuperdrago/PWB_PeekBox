@@ -1,0 +1,120 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="transparent">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Tracking Box</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="caricaCheckpoints()" fill="clear">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="tracking-content">
+
+  <!-- INFO BOX -->
+  <ion-card class="box-info-card" *ngIf="boxInfo">
+    <ion-card-content>
+      <div class="box-header-row">
+        <div>
+          <h2 class="box-nome">{{ boxInfo.nome }}</h2>
+          <span class="box-armadio">{{ boxInfo.nome_armadio }}</span>
+        </div>
+        <ion-badge [color]="movingModeAttivo ? 'warning' : 'medium'" class="moving-badge">
+          {{ movingModeAttivo ? '🚚 Moving' : '📦 Statico' }}
+        </ion-badge>
+      </div>
+
+      <!-- MOVING MODE TOGGLE -->
+      <div class="moving-mode-row">
+        <div class="moving-mode-info">
+          <span class="toggle-label">Moving Mode</span>
+          <span class="toggle-sub">Registra GPS ad ogni scansione QR</span>
+        </div>
+        <ion-toggle
+          [(ngModel)]="movingModeAttivo"
+          (ionChange)="toggleMovingMode($event)"
+          color="warning">
+        </ion-toggle>
+      </div>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- STATISTICHE TRACKING -->
+  <div class="stats-row" *ngIf="checkpoints.length > 0">
+    <div class="stat-chip">
+      <span class="stat-num">{{ checkpoints.length }}</span>
+      <span class="stat-lbl">Checkpoint</span>
+    </div>
+    <div class="stat-chip" *ngIf="checkpoints.length >= 2">
+      <span class="stat-num">{{ checkpoints.length - 1 }}</span>
+      <span class="stat-lbl">Tappe</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num">{{ formatData(checkpoints[checkpoints.length-1].timestamp) }}</span>
+      <span class="stat-lbl">Ultima scansione</span>
+    </div>
+  </div>
+
+  <!-- AZIONI -->
+  <div class="azioni-row">
+    <button class="btn-azione primary" (click)="aggiungiCheckpointManuale()">
+      <ion-icon name="location-outline"></ion-icon>
+      Registra Posizione
+    </button>
+    <button class="btn-azione secondary" (click)="apriPercorsoCompleto()" [disabled]="checkpoints.length < 2">
+      <ion-icon name="map-outline"></ion-icon>
+      Vedi Percorso
+    </button>
+  </div>
+
+  <!-- LISTA CHECKPOINT -->
+  <div class="section-title" *ngIf="checkpoints.length > 0">
+    Storico Posizioni
+  </div>
+
+  <div class="checkpoint-list" *ngIf="!isLoading && checkpoints.length > 0">
+    <div class="checkpoint-item" *ngFor="let cp of checkpoints | slice: 0: (checkpoints.length); let i = index; let last = last">
+      <!-- Timeline connector -->
+      <div class="timeline-col">
+        <div class="timeline-dot" [class.first]="i === 0" [class.last]="last"></div>
+        <div class="timeline-line" *ngIf="!last"></div>
+      </div>
+
+      <div class="checkpoint-body">
+        <div class="cp-header">
+          <span class="cp-label">{{ cp.label || ('Posizione #' + (i + 1)) }}</span>
+          <span class="cp-time">{{ formatData(cp.timestamp) }}</span>
+        </div>
+        <div class="cp-coords">
+          {{ cp.latitudine | number:'1.4-4' }}, {{ cp.longitudine | number:'1.4-4' }}
+          <span *ngIf="cp.accuratezza"> · ±{{ cp.accuratezza | number:'1.0-0' }}m</span>
+        </div>
+        <button class="btn-mini" (click)="apriPosizioneInMappa(cp.latitudine, cp.longitudine)">
+          <ion-icon name="navigate-outline"></ion-icon> Apri in Mappa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div class="empty-state" *ngIf="!isLoading && checkpoints.length === 0">
+    <div class="empty-icon">📍</div>
+    <p class="empty-title">Nessun checkpoint registrato</p>
+    <p class="empty-sub">
+      {{ movingModeAttivo
+        ? 'Il GPS verrà registrato automaticamente alla prossima scansione QR.'
+        : 'Attiva il Moving Mode o aggiungi manualmente la posizione corrente.' }}
+    </p>
+  </div>
+
+  <!-- RESET -->
+  <div class="reset-row" *ngIf="checkpoints.length > 0">
+    <button class="btn-reset" (click)="confermaResetTracking()">
+      <ion-icon name="trash-outline"></ion-icon> Elimina storico
+    </button>
+  </div>
+
+</ion-content>

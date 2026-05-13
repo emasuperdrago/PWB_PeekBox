@@ -1,18 +1,14 @@
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
-  {
-    path: '',
-    redirectTo: 'benvenuto',
-    pathMatch: 'full',
-  },
+  { path: '', redirectTo: 'benvenuto', pathMatch: 'full' },
   {
     path: 'benvenuto',
     loadComponent: () => import('./benvenuto/benvenuto.page').then(m => m.BenvenutoPage)
   },
   {
     path: 'home',
-    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
+    loadComponent: () => import('./home/home.page').then(m => m.HomePage)
   },
   {
     path: 'login',
@@ -34,9 +30,13 @@ export const routes: Routes = [
     path: 'search',
     loadComponent: () => import('./search/search.page').then(m => m.SearchPage)
   },
-  // ── AREA PERSONALE (Sezione 5) ──────────────────────────────────
   {
     path: 'area-personale',
     loadComponent: () => import('./area-personale/area-personale.page').then(m => m.AreaPersonalePage)
+  },
+  // ── TRACKING GPS (Sezione GPS) ──────────────────────────────────────
+  {
+    path: 'tracking-box/:id',
+    loadComponent: () => import('./tracking-box/tracking-box.page').then(m => m.TrackingBoxPage)
   },
 ];

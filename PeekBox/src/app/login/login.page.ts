@@ -36,6 +36,7 @@ export class LoginPage implements OnInit {
         localStorage.setItem('token', res.token);
         localStorage.setItem('utente_id', String(res.user.id));
         localStorage.setItem('utente_nome', res.user.username);
+        localStorage.setItem('tipo_profilo', res.user.tipo_profilo || 'personal');
         this.router.navigate(['/home']);
       },
       error: async (err) => {

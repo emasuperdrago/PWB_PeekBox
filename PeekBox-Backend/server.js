@@ -6,19 +6,16 @@ const db = require('./db');
 
 const app = express();
 const PORT = 3000;
-
 const SECRET_KEY = "chiave_super_segreta_peekbox";
 
 app.use(cors());
 app.use(express.json());
 
-// --- MIDDLEWARE DI AUTENTICAZIONE ---
+// --- MIDDLEWARE AUTENTICAZIONE ---
 function verificaToken(req, res, next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
-
     if (!token) return res.status(401).json({ error: "Accesso negato. Token mancante." });
-
     jwt.verify(token, SECRET_KEY, (err, user) => {
         if (err) return res.status(403).json({ error: "Token non valido o scaduto." });
         req.user = user;
@@ -27,40 +24,42 @@ function verificaToken(req, res, next) {
 }
 
 app.get('/', (req, res) => {
-    res.send('🚀 Backend di PeekBox attivo e protetto!');
+    res.send('🚀 Backend PeekBox v2 attivo — GPS + Profili!');
 });
 
-// --- UTENTI ---
-app.post('/api/registrazione', async (req, res) => {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password) return res.status(400).json({ error: "Tutti i campi sono obbligatori." });
+// ─────────────────────────────────────────────
+// UTENTI
+// ─────────────────────────────────────────────
 
+// Registrazione con tipo_profilo
+app.post('/api/registrazione', async (req, res) => {
+    const { username, email, password, tipo_profilo = 'personal' } = req.body;
+    if (!username || !email || !password) return res.status(400).json({ error: "Tutti i campi sono obbligatori." });
+    if (!['personal', 'business'].includes(tipo_profilo))
+        return res.status(400).json({ error: "tipo_profilo non valido. Usa 'personal' o 'business'." });
     try {
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
-        const sql = 'INSERT INTO utenti (username, email, password) VALUES (?, ?, ?)';
-        db.run(sql, [username, email, hashedPassword], function(err) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const sql = 'INSERT INTO utenti (username, email, password, tipo_profilo) VALUES (?, ?, ?, ?)';
+        db.run(sql, [username, email, hashedPassword, tipo_profilo], function(err) {
             if (err) return res.status(400).json({ error: "Email già registrata." });
-            res.status(201).json({ id: this.lastID, message: "Utente creato!" });
+            res.status(201).json({ id: this.lastID, message: "Utente creato!", tipo_profilo });
         });
     } catch (error) { res.status(500).json({ error: "Errore server." }); }
 });
 
+// Login — restituisce anche tipo_profilo
 app.post('/api/login', (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: "Email e password sono obbligatorie." });
-
-    const sql = 'SELECT * FROM utenti WHERE email = ?';
-    db.get(sql, [email], async (err, user) => {
+    db.get('SELECT * FROM utenti WHERE email = ?', [email], async (err, user) => {
         if (err || !user) return res.status(401).json({ error: "Credenziali non valide." });
-
         const match = await bcrypt.compare(password, user.password);
         if (match) {
-            const token = jwt.sign({ id: user.id, email: user.email }, SECRET_KEY, { expiresIn: '24h' });
+            const token = jwt.sign({ id: user.id, email: user.email, tipo_profilo: user.tipo_profilo }, SECRET_KEY, { expiresIn: '24h' });
             res.json({
                 message: "Accesso eseguito!",
-                token: token,
-                user: { id: user.id, username: user.username, email: user.email }
+                token,
+                user: { id: user.id, username: user.username, email: user.email, tipo_profilo: user.tipo_profilo }
             });
         } else {
             res.status(401).json({ error: "Credenziali non valide." });
@@ -68,12 +67,27 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// --- ARMADI ---
-app.get('/api/armadi/:utenteId', verificaToken, (req, res) => {
-    if (String(req.user.id) !== String(req.params.utenteId)) return res.status(403).json({ error: "Non autorizzato." });
+// Aggiorna tipo_profilo utente
+app.put('/api/utenti/:id/profilo', verificaToken, (req, res) => {
+    if (String(req.user.id) !== String(req.params.id))
+        return res.status(403).json({ error: "Non autorizzato." });
+    const { tipo_profilo } = req.body;
+    if (!['personal', 'business'].includes(tipo_profilo))
+        return res.status(400).json({ error: "tipo_profilo non valido." });
+    db.run('UPDATE utenti SET tipo_profilo = ? WHERE id = ?', [tipo_profilo, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Profilo aggiornato!", tipo_profilo });
+    });
+});
 
-    const sql = 'SELECT * FROM armadi WHERE rif_utente = ?';
-    db.all(sql, [req.params.utenteId], (err, rows) => {
+// ─────────────────────────────────────────────
+// ARMADI
+// ─────────────────────────────────────────────
+
+app.get('/api/armadi/:utenteId', verificaToken, (req, res) => {
+    if (String(req.user.id) !== String(req.params.utenteId))
+        return res.status(403).json({ error: "Non autorizzato." });
+    db.all('SELECT * FROM armadi WHERE rif_utente = ?', [req.params.utenteId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ armadi: rows });
     });
@@ -88,17 +102,17 @@ app.post('/api/armadi', verificaToken, (req, res) => {
 });
 
 app.delete('/api/armadi/:id', verificaToken, (req, res) => {
-    const sql = 'DELETE FROM armadi WHERE id = ? AND rif_utente = ?';
-    db.run(sql, [req.params.id, req.user.id], function(err) {
+    db.run('DELETE FROM armadi WHERE id = ? AND rif_utente = ?', [req.params.id, req.user.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
-        if (this.changes === 0) {
-            return res.status(403).json({ error: "Non autorizzato o armadio non trovato." });
-        }
+        if (this.changes === 0) return res.status(403).json({ error: "Non autorizzato o armadio non trovato." });
         res.json({ message: "Armadio eliminato!" });
     });
 });
 
-// --- BOX ---
+// ─────────────────────────────────────────────
+// BOX
+// ─────────────────────────────────────────────
+
 app.get('/api/box/singola/:id', verificaToken, (req, res) => {
     const sql = `
         SELECT box.*, armadi.nome as nome_armadio, armadi.rif_utente
@@ -109,13 +123,13 @@ app.get('/api/box/singola/:id', verificaToken, (req, res) => {
     db.get(sql, [req.params.id], (err, row) => {
         if (err) return res.status(500).json({ error: err.message });
         if (!row) return res.status(404).json({ error: "Box non trovata." });
-        if (String(row.rif_utente) !== String(req.user.id)) return res.status(403).json({ error: "Non autorizzato." });
+        if (String(row.rif_utente) !== String(req.user.id))
+            return res.status(403).json({ error: "Non autorizzato." });
         res.json({ box: row });
     });
 });
 
 app.get('/api/box/:utenteId', verificaToken, (req, res) => {
-    // Esclude le box nel cestino (data_eliminazione non null)
     const sql = `
         SELECT box.*, GROUP_CONCAT(DISTINCT oggetti.tipo) as categorie_presenti,
                MAX(oggetti.fragile) as contiene_fragili,
@@ -134,9 +148,9 @@ app.get('/api/box/:utenteId', verificaToken, (req, res) => {
 });
 
 app.post('/api/box', verificaToken, (req, res) => {
-    const { nome, rif_armadio, is_preferito } = req.body;
-    db.run('INSERT INTO box (nome, rif_armadio, is_preferito) VALUES (?, ?, ?)',
-        [nome, rif_armadio, is_preferito ? 1 : 0], function(err) {
+    const { nome, rif_armadio, is_preferito, moving_mode = 0 } = req.body;
+    db.run('INSERT INTO box (nome, rif_armadio, is_preferito, moving_mode) VALUES (?, ?, ?, ?)',
+        [nome, rif_armadio, is_preferito ? 1 : 0, moving_mode ? 1 : 0], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.status(201).json({ id: this.lastID });
     });
@@ -144,14 +158,30 @@ app.post('/api/box', verificaToken, (req, res) => {
 
 app.put('/api/box/preferito/:id', verificaToken, (req, res) => {
     const { is_preferito } = req.body;
-    const sql = 'UPDATE box SET is_preferito = ? WHERE id = ?';
-    db.run(sql, [is_preferito ? 1 : 0, req.params.id], function(err) {
+    db.run('UPDATE box SET is_preferito = ? WHERE id = ?', [is_preferito ? 1 : 0, req.params.id], function(err) {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ message: "Stato preferito aggiornato!" });
     });
 });
 
-// Soft delete: imposta data_eliminazione invece di cancellare fisicamente
+// Moving Mode toggle
+app.put('/api/box/moving-mode/:id', verificaToken, (req, res) => {
+    const { moving_mode } = req.body;
+    // Verifica proprietà box
+    const sqlCheck = `
+        SELECT box.id FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        WHERE box.id = ? AND armadi.rif_utente = ?
+    `;
+    db.get(sqlCheck, [req.params.id, req.user.id], (err, row) => {
+        if (err || !row) return res.status(403).json({ error: "Non autorizzato." });
+        db.run('UPDATE box SET moving_mode = ? WHERE id = ?', [moving_mode ? 1 : 0, req.params.id], function(runErr) {
+            if (runErr) return res.status(500).json({ error: runErr.message });
+            res.json({ message: `Moving Mode ${moving_mode ? 'attivato' : 'disattivato'}!`, moving_mode: moving_mode ? 1 : 0 });
+        });
+    });
+});
+
 app.delete('/api/box/:id', verificaToken, (req, res) => {
     const now = new Date().toISOString();
     db.run('UPDATE box SET data_eliminazione = ? WHERE id = ?', [now, req.params.id], function(err) {
@@ -160,17 +190,12 @@ app.delete('/api/box/:id', verificaToken, (req, res) => {
     });
 });
 
-// --- BOX ELIMINATE — cestino (max 30 giorni) ---
 app.get('/api/box/eliminate/:utenteId', verificaToken, (req, res) => {
     if (String(req.user.id) !== String(req.params.utenteId))
         return res.status(403).json({ error: "Non autorizzato." });
-
-    // Restituisce solo le box eliminate negli ultimi 30 giorni
     const trentaGiorniFa = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-
     const sql = `
-        SELECT box.*, armadi.nome as nome_armadio,
-               COUNT(oggetti.id) as num_oggetti
+        SELECT box.*, armadi.nome as nome_armadio, COUNT(oggetti.id) as num_oggetti
         FROM box
         JOIN armadi ON box.rif_armadio = armadi.id
         LEFT JOIN oggetti ON oggetti.rif_box = box.id
@@ -186,7 +211,6 @@ app.get('/api/box/eliminate/:utenteId', verificaToken, (req, res) => {
     });
 });
 
-// Pulizia automatica: elimina definitivamente le box oltre i 30 giorni
 app.delete('/api/box/cestino/pulisci', verificaToken, (req, res) => {
     const trentaGiorniFa = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     db.run('DELETE FROM box WHERE data_eliminazione IS NOT NULL AND data_eliminazione < ?',
@@ -196,7 +220,131 @@ app.delete('/api/box/cestino/pulisci', verificaToken, (req, res) => {
     });
 });
 
-// --- OGGETTI ---
+// ─────────────────────────────────────────────
+// CHECKPOINT GPS
+// ─────────────────────────────────────────────
+
+// Registra un checkpoint (chiamato quando si scansiona il QR)
+app.post('/api/checkpoint', verificaToken, (req, res) => {
+    const { rif_box, latitudine, longitudine, accuratezza, label } = req.body;
+    if (!rif_box || latitudine == null || longitudine == null)
+        return res.status(400).json({ error: "rif_box, latitudine e longitudine sono obbligatori." });
+
+    // Verifica che la box appartenga all'utente
+    const sqlCheck = `
+        SELECT box.id, box.moving_mode FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        WHERE box.id = ? AND armadi.rif_utente = ?
+    `;
+    db.get(sqlCheck, [rif_box, req.user.id], (err, boxRow) => {
+        if (err || !boxRow) return res.status(403).json({ error: "Box non trovata o non autorizzato." });
+
+        const sql = `INSERT INTO checkpoint_gps (rif_box, rif_utente, latitudine, longitudine, accuratezza, label, timestamp)
+                     VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`;
+        db.run(sql, [rif_box, req.user.id, latitudine, longitudine, accuratezza || null, label || null], function(runErr) {
+            if (runErr) return res.status(500).json({ error: runErr.message });
+            res.status(201).json({ id: this.lastID, message: "Checkpoint salvato!" });
+        });
+    });
+});
+
+// Storico checkpoint per una box
+app.get('/api/checkpoint/:boxId', verificaToken, (req, res) => {
+    const sqlCheck = `
+        SELECT box.id FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        WHERE box.id = ? AND armadi.rif_utente = ?
+    `;
+    db.get(sqlCheck, [req.params.boxId, req.user.id], (err, row) => {
+        if (err || !row) return res.status(403).json({ error: "Non autorizzato." });
+
+        db.all(
+            'SELECT * FROM checkpoint_gps WHERE rif_box = ? ORDER BY timestamp ASC',
+            [req.params.boxId],
+            (fetchErr, rows) => {
+                if (fetchErr) return res.status(500).json({ error: fetchErr.message });
+                res.json({ checkpoints: rows });
+            }
+        );
+    });
+});
+
+// Ultimo checkpoint (posizione attuale) per una box
+app.get('/api/checkpoint/:boxId/ultimo', verificaToken, (req, res) => {
+    const sqlCheck = `
+        SELECT box.id FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        WHERE box.id = ? AND armadi.rif_utente = ?
+    `;
+    db.get(sqlCheck, [req.params.boxId, req.user.id], (err, row) => {
+        if (err || !row) return res.status(403).json({ error: "Non autorizzato." });
+
+        db.get(
+            'SELECT * FROM checkpoint_gps WHERE rif_box = ? ORDER BY timestamp DESC LIMIT 1',
+            [req.params.boxId],
+            (fetchErr, checkpoint) => {
+                if (fetchErr) return res.status(500).json({ error: fetchErr.message });
+                res.json({ checkpoint: checkpoint || null });
+            }
+        );
+    });
+});
+
+// Dashboard business: panoramica di tutte le box con ultimo checkpoint
+app.get('/api/dashboard/business/:utenteId', verificaToken, (req, res) => {
+    if (String(req.user.id) !== String(req.params.utenteId))
+        return res.status(403).json({ error: "Non autorizzato." });
+    if (req.user.tipo_profilo !== 'business')
+        return res.status(403).json({ error: "Riservato ai profili Business." });
+
+    const sql = `
+        SELECT box.id, box.nome, box.moving_mode, armadi.nome as nome_armadio,
+               COUNT(oggetti.id) as num_oggetti,
+               gps.latitudine as last_lat,
+               gps.longitudine as last_lng,
+               gps.timestamp as last_scan,
+               gps.label as last_label
+        FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        LEFT JOIN oggetti ON oggetti.rif_box = box.id
+        LEFT JOIN (
+            SELECT rif_box, latitudine, longitudine, timestamp, label
+            FROM checkpoint_gps c1
+            WHERE timestamp = (
+                SELECT MAX(timestamp) FROM checkpoint_gps c2 WHERE c2.rif_box = c1.rif_box
+            )
+        ) gps ON gps.rif_box = box.id
+        WHERE armadi.rif_utente = ?
+          AND box.data_eliminazione IS NULL
+        GROUP BY box.id
+        ORDER BY gps.timestamp DESC
+    `;
+    db.all(sql, [req.params.utenteId], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ assets: rows });
+    });
+});
+
+// Elimina tutti i checkpoint di una box (reset tracking)
+app.delete('/api/checkpoint/:boxId', verificaToken, (req, res) => {
+    const sqlCheck = `
+        SELECT box.id FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        WHERE box.id = ? AND armadi.rif_utente = ?
+    `;
+    db.get(sqlCheck, [req.params.boxId, req.user.id], (err, row) => {
+        if (err || !row) return res.status(403).json({ error: "Non autorizzato." });
+        db.run('DELETE FROM checkpoint_gps WHERE rif_box = ?', [req.params.boxId], function(runErr) {
+            if (runErr) return res.status(500).json({ error: runErr.message });
+            res.json({ message: `Rimossi ${this.changes} checkpoint.` });
+        });
+    });
+});
+
+// ─────────────────────────────────────────────
+// OGGETTI
+// ─────────────────────────────────────────────
+
 app.get('/api/oggetti/:boxId', verificaToken, (req, res) => {
     db.all('SELECT * FROM oggetti WHERE rif_box = ?', [req.params.boxId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -206,8 +354,8 @@ app.get('/api/oggetti/:boxId', verificaToken, (req, res) => {
 
 app.post('/api/oggetti', verificaToken, (req, res) => {
     const { nome, descrizione, tipo, fragile, quantita, foto, rif_box } = req.body;
-    const sql = `INSERT INTO oggetti (nome, descrizione, tipo, fragile, quantita, foto, rif_box) VALUES (?, ?, ?, ?, ?, ?, ?)`;
-    db.run(sql, [nome, descrizione, tipo, fragile ? 1 : 0, quantita || 1, foto, rif_box], function(err) {
+    db.run(`INSERT INTO oggetti (nome, descrizione, tipo, fragile, quantita, foto, rif_box) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [nome, descrizione, tipo, fragile ? 1 : 0, quantita || 1, foto, rif_box], function(err) {
         if (err) return res.status(500).json({ error: "Errore salvataggio." });
         res.status(201).json({ id: this.lastID });
     });
@@ -215,8 +363,8 @@ app.post('/api/oggetti', verificaToken, (req, res) => {
 
 app.put('/api/oggetti/:id', verificaToken, (req, res) => {
     const { nome, descrizione, tipo, fragile, quantita, foto } = req.body;
-    const sql = `UPDATE oggetti SET nome = ?, descrizione = ?, tipo = ?, fragile = ?, quantita = ?, foto = ? WHERE id = ?`;
-    db.run(sql, [nome, descrizione, tipo, fragile ? 1 : 0, quantita || 1, foto, req.params.id], function(err) {
+    db.run(`UPDATE oggetti SET nome = ?, descrizione = ?, tipo = ?, fragile = ?, quantita = ?, foto = ? WHERE id = ?`,
+        [nome, descrizione, tipo, fragile ? 1 : 0, quantita || 1, foto, req.params.id], function(err) {
         if (err) return res.status(500).json({ error: "Errore aggiornamento." });
         res.json({ message: "Oggetto aggiornato!" });
     });
@@ -229,7 +377,10 @@ app.delete('/api/oggetti/:id', verificaToken, (req, res) => {
     });
 });
 
-// --- RICERCA ---
+// ─────────────────────────────────────────────
+// RICERCA
+// ─────────────────────────────────────────────
+
 app.get('/api/cerca/:utenteId', verificaToken, (req, res) => {
     const termine = `%${req.query.q}%`;
     const sql = `
@@ -247,7 +398,10 @@ app.get('/api/cerca/:utenteId', verificaToken, (req, res) => {
     });
 });
 
-// --- TIPOLOGIE ---
+// ─────────────────────────────────────────────
+// TIPOLOGIE
+// ─────────────────────────────────────────────
+
 app.get('/api/tipologie/:utenteId', verificaToken, (req, res) => {
     db.all('SELECT * FROM tipologie WHERE rif_utente = ?', [req.params.utenteId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });

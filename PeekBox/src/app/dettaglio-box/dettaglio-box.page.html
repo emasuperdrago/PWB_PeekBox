@@ -60,6 +60,14 @@
             <div class="shimmer"></div>
           </button>
 
+          <!-- Bottone Tracking — visibile se moving_mode o profilo business -->
+          <button class="btn-tracking"
+            *ngIf="boxCorrente?.moving_mode === 1 || tipoProfilo === 'business'"
+            (click)="apriTracking()">
+            <ion-icon name="location-outline"></ion-icon>
+            <span>Storico Posizioni GPS</span>
+          </button>
+
         </div>
       </ion-content>
     </ng-template>

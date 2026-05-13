@@ -1,24 +1,25 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { 
-  AlertController,
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, 
-  IonBackButton, IonButton, IonIcon, IonCard, IonCardHeader, 
-  IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, 
-  IonBadge, IonModal, IonInput, IonTextarea, IonSelect, 
-  IonSelectOption, IonGrid, IonRow, IonCol, IonToggle 
+import {
+  AlertController, ToastController,
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
+  IonBackButton, IonButton, IonIcon, IonCard, IonCardHeader,
+  IonCardTitle, IonCardContent, IonList, IonItem, IonLabel,
+  IonBadge, IonModal, IonInput, IonTextarea, IonSelect,
+  IonSelectOption, IonGrid, IonRow, IonCol, IonToggle
 } from '@ionic/angular/standalone';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { addIcons } from 'ionicons';
-import { 
-  add, camera, archiveOutline, addCircleOutline, 
+import {
+  add, camera, archiveOutline, addCircleOutline,
   trashOutline, imageOutline, cubeOutline, createOutline,
-  qrCodeOutline, downloadOutline
+  qrCodeOutline, downloadOutline, locationOutline, navigateOutline
 } from 'ionicons/icons';
-import { PhotoService } from '../services/photo'; 
+import { PhotoService } from '../services/photo';
 import { DatabaseService } from '../services/database';
+import { GpsService } from '../services/gps';
 
 import { QRCodeComponent } from 'angularx-qrcode';
 
@@ -29,123 +30,151 @@ import { QRCodeComponent } from 'angularx-qrcode';
   standalone: true,
   imports: [
     CommonModule, FormsModule, QRCodeComponent,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, 
-    IonBackButton, IonButton, IonIcon, IonCard, IonCardHeader, 
-    IonCardTitle, IonCardContent, IonList, IonItem, IonLabel, 
-    IonBadge, IonModal, IonInput, IonTextarea, IonSelect, 
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
+    IonBackButton, IonButton, IonIcon, IonCard, IonCardHeader,
+    IonCardTitle, IonCardContent, IonList, IonItem, IonLabel,
+    IonBadge, IonModal, IonInput, IonTextarea, IonSelect,
     IonSelectOption, IonGrid, IonRow, IonCol, IonToggle
   ]
 })
 export class DettaglioBoxPage implements OnInit {
-  
+
   boxId: string | null = null;
   utenteId: string | null = null;
-  
+  tipoProfilo: string = 'personal';
+
   boxCorrente: any = null;
   nomeArmadio: string = '';
-  
+
   isModalOpen = false;
   isDettaglioOpen = false;
   oggettoSelezionato: any = null;
   editIndex: number | null = null;
 
-  oggetti: any[] = []; 
-  tipiOggetto: any[] = []; 
+  oggetti: any[] = [];
+  tipiOggetto: any[] = [];
 
-  qrCodeData: string = ''; 
+  qrCodeData: string = '';
   mostraQR: boolean = false;
 
   nuovoOggetto: any = {
-    nome: '',
-    descrizione: '',
-    tipo: '',
-    fragile: false,
-    quantita: 1,
-    foto: null
+    nome: '', descrizione: '', tipo: '', fragile: false, quantita: 1, foto: null
   };
 
   constructor(
-    private route: ActivatedRoute, 
+    private route: ActivatedRoute,
+    private router: Router,
     private alertCtrl: AlertController,
+    private toastCtrl: ToastController,
     public photoService: PhotoService,
-    private dbService: DatabaseService
+    private dbService: DatabaseService,
+    private gpsService: GpsService
   ) {
-    addIcons({ add, camera, archiveOutline, addCircleOutline, trashOutline, imageOutline, cubeOutline, createOutline, qrCodeOutline, downloadOutline });
+    addIcons({ add, camera, archiveOutline, addCircleOutline, trashOutline, imageOutline, cubeOutline, createOutline, qrCodeOutline, downloadOutline, locationOutline, navigateOutline });
   }
 
   ngOnInit() {
     this.boxId = this.route.snapshot.paramMap.get('id');
     this.utenteId = localStorage.getItem('utente_id');
-    
+    this.tipoProfilo = localStorage.getItem('tipo_profilo') || 'personal';
+
     if (this.boxId && this.utenteId) {
-      this.caricaInfoBox(); 
+      this.caricaInfoBox();
       this.caricaOggettiDalServer();
       this.caricaTipologieDalServer();
       this.qrCodeData = `peekbox-box-${this.boxId}`;
+
+      // Registra checkpoint GPS se la box è in moving mode o il profilo è business
+      this.registraCheckpointSeNecessario();
     }
   }
 
-  // --- CARICAMENTO DATI ---
+  /** Registra automaticamente la posizione GPS quando si apre la pagina (= scansione QR) */
+  private async registraCheckpointSeNecessario() {
+    this.dbService.getBoxSingola(Number(this.boxId)).subscribe({
+      next: async (res: any) => {
+        const box = res.box;
+        const deveTracciare = box.moving_mode === 1 || this.tipoProfilo === 'business';
+
+        if (deveTracciare) {
+          try {
+            const pos = await this.gpsService.getPosizione();
+            this.dbService.salvaCheckpoint(
+              Number(this.boxId), pos.latitudine, pos.longitudine, pos.accuratezza, 'Scansione QR'
+            ).subscribe({
+              next: async () => {
+                const toast = await this.toastCtrl.create({
+                  message: '📍 Posizione GPS registrata.',
+                  duration: 2000,
+                  color: 'success',
+                  position: 'bottom'
+                });
+                await toast.present();
+              },
+              error: () => { /* silenziosa — non bloccare l'utente */ }
+            });
+          } catch (err) {
+            console.warn('GPS non disponibile al momento della scansione.');
+          }
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  // ─── CARICAMENTO DATI ──────────────────────────────────────
 
   caricaTipologieDalServer() {
     if (!this.utenteId) return;
     this.dbService.getTipologie(this.utenteId).subscribe({
-      next: (res: any) => {
-        this.tipiOggetto = res.tipologie || [];
-      },
-      error: (err: any) => console.error("Errore caricamento tipologie:", err)
+      next: (res: any) => { this.tipiOggetto = res.tipologie || []; },
+      error: (err: any) => console.error('Errore tipologie:', err)
     });
   }
 
-  // FIX BUG 7: Caricamento ottimizzato della singola box
   caricaInfoBox() {
     if (!this.boxId) return;
     this.dbService.getBoxSingola(Number(this.boxId)).subscribe({
       next: (res: any) => {
         this.boxCorrente = res.box;
-        // Il backend ora restituisce direttamente il nome dell'armadio
         this.nomeArmadio = res.box.nome_armadio || 'Armadio sconosciuto';
       },
-      error: (err: any) => console.error("Errore caricamento box:", err)
+      error: (err: any) => console.error('Errore box:', err)
     });
   }
 
   caricaOggettiDalServer() {
     if (!this.boxId) return;
     this.dbService.getOggettiPerBox(Number(this.boxId)).subscribe({
-      next: (res: any) => {
-        this.oggetti = res.oggetti || [];
-      },
-      error: (err: any) => console.error("Errore caricamento oggetti:", err)
+      next: (res: any) => { this.oggetti = res.oggetti || []; },
+      error: (err: any) => console.error('Errore oggetti:', err)
     });
   }
 
-  // --- GESTIONE OGGETTI ---
+  // ─── TRACKING ──────────────────────────────────────────────
 
-  // FIX BUG 2: Salvataggio con distinzione tra creazione e modifica
+  apriTracking() {
+    this.router.navigate(['/tracking-box', this.boxId]);
+  }
+
+  // ─── GESTIONE OGGETTI ──────────────────────────────────────
+
   salvaOggetto() {
     if (!this.nuovoOggetto.nome || !this.nuovoOggetto.tipo || !this.nuovoOggetto.quantita) {
       this.mostraAlertCampi(); return;
-      return;
     }
 
     if (this.editIndex !== null) {
       const oggettoId = this.oggetti[this.editIndex].id;
       this.dbService.aggiornaOggetto(oggettoId, this.nuovoOggetto).subscribe({
-        next: () => {
-          this.caricaOggettiDalServer();
-          this.setOpen(false);
-        },
-        error: (err: any) => console.error("Errore aggiornamento oggetto:", err)
+        next: () => { this.caricaOggettiDalServer(); this.setOpen(false); },
+        error: (err: any) => console.error('Errore aggiornamento:', err)
       });
     } else {
       const datiOggetto = { ...this.nuovoOggetto, rif_box: Number(this.boxId) };
       this.dbService.creaOggetto(datiOggetto).subscribe({
-        next: () => {
-          this.caricaOggettiDalServer();
-          this.setOpen(false);
-        },
-        error: (err: any) => console.error("Errore salvataggio oggetto:", err)
+        next: () => { this.caricaOggettiDalServer(); this.setOpen(false); },
+        error: (err: any) => console.error('Errore salvataggio:', err)
       });
     }
   }
@@ -153,13 +182,12 @@ export class DettaglioBoxPage implements OnInit {
   apriModifica(index: number, event: Event) {
     event.stopPropagation();
     this.editIndex = index;
-    this.nuovoOggetto = { ...this.oggetti[index] }; 
-    this.isModalOpen = true; 
+    this.nuovoOggetto = { ...this.oggetti[index] };
+    this.isModalOpen = true;
   }
 
-  // FIX BUG 1: Eliminazione effettiva dal database
   async confermaEliminaOggetto(index: number, event: Event) {
-    event.stopPropagation(); 
+    event.stopPropagation();
     const alert = await this.alertCtrl.create({
       cssClass: 'peekbox-alert',
       header: 'Elimina',
@@ -167,13 +195,11 @@ export class DettaglioBoxPage implements OnInit {
       buttons: [
         { text: 'Annulla', role: 'cancel' },
         {
-          text: 'Elimina',
-          role: 'destructive',
+          text: 'Elimina', role: 'destructive',
           handler: () => {
-            const oggettoId = this.oggetti[index].id;
-            this.dbService.eliminaOggetto(oggettoId).subscribe({
+            this.dbService.eliminaOggetto(this.oggetti[index].id).subscribe({
               next: () => this.caricaOggettiDalServer(),
-              error: (err: any) => console.error("Errore eliminazione oggetto:", err)
+              error: (err: any) => console.error('Errore eliminazione:', err)
             });
           }
         }
@@ -194,11 +220,8 @@ export class DettaglioBoxPage implements OnInit {
           handler: (data) => {
             if (data.nuovoTipo && this.utenteId) {
               this.dbService.creaTipologia(data.nuovoTipo, this.utenteId).subscribe({
-                next: () => {
-                  this.caricaTipologieDalServer(); 
-                  this.nuovoOggetto.tipo = data.nuovoTipo; 
-                },
-                error: (err: any) => console.error("Errore creazione tipologia:", err)
+                next: () => { this.caricaTipologieDalServer(); this.nuovoOggetto.tipo = data.nuovoTipo; },
+                error: (err: any) => console.error('Errore tipologia:', err)
               });
             }
           }
@@ -208,7 +231,7 @@ export class DettaglioBoxPage implements OnInit {
     await alert.present();
   }
 
-  // --- UI UTILITY ---
+  // ─── UI UTILITY ────────────────────────────────────────────
 
   setOpen(isOpen: boolean) {
     this.isModalOpen = isOpen;
@@ -223,7 +246,7 @@ export class DettaglioBoxPage implements OnInit {
   async scattaFoto() {
     try {
       const photo = await this.photoService.addNewToGallery();
-      this.nuovoOggetto.foto = photo.webviewPath; 
+      this.nuovoOggetto.foto = photo.webviewPath;
     } catch (error) { console.error(error); }
   }
 
@@ -237,7 +260,6 @@ export class DettaglioBoxPage implements OnInit {
     setTimeout(() => { this.oggettoSelezionato = null; }, 300);
   }
 
-  // --- ALERT CAMPI OBBLIGATORI ---
   async mostraAlertCampi() {
     const alert = await this.alertCtrl.create({
       cssClass: 'peekbox-alert',
@@ -248,11 +270,7 @@ export class DettaglioBoxPage implements OnInit {
     await alert.present();
   }
 
-  // --- FUNZIONI PER IL QR CODE ---
-  
-  toggleQR() {
-    this.mostraQR = !this.mostraQR;
-  }
+  toggleQR() { this.mostraQR = !this.mostraQR; }
 
   scaricaQRCode() {
     const canvas = document.querySelector('qrcode canvas') as HTMLCanvasElement;
@@ -260,8 +278,7 @@ export class DettaglioBoxPage implements OnInit {
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = dataUrl;
-      const nomeScatola = this.boxCorrente ? this.boxCorrente.nome : 'Sconosciuta';
-      link.download = `QR_Box_${nomeScatola}.png`; 
+      link.download = `QR_Box_${this.boxCorrente?.nome || 'Sconosciuta'}.png`;
       link.click();
     }
   }
