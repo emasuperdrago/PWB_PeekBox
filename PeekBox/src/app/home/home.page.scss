@@ -54,8 +54,12 @@ $red:     #F87171;
   top: env(safe-area-inset-top, 0px);
   padding-top: max(16px, env(safe-area-inset-top, 16px));
   left: 20px;
+  right: 20px;
   z-index: 9999;
   pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   &::after {
     content: '';
     position: fixed;
@@ -72,6 +76,25 @@ $red:     #F87171;
   align-items: center;
   gap: 8px;
   pointer-events: auto;
+}
+
+.topbar-profilo-btn {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(58,171,219,.18);
+  border: 1.5px solid rgba(58,171,219,.4);
+  border-radius: 20px;
+  padding: 7px 14px;
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: .85rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  ion-icon { color: $blue; }
 }
 
 .topbar-logo-img {

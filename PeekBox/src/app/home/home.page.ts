@@ -48,11 +48,6 @@ export class HomePage {
 
   // Stato modals
   isFilterModalOpen = false;
-  isProfiloModalOpen = false;
-  isBoxEliminateOpen = false;
-
-  // Box eliminate di recente (max 30 giorni)
-  boxEliminate: any[] = [];
 
   searchQuery = '';
 
@@ -249,30 +244,6 @@ export class HomePage {
     this.router.navigateByUrl('/area-personale');
   }
 
-  /** Apre la sezione Box Eliminate e carica i dati dal server */
-  apriBoxEliminate() {
-    if (this.utenteId) {
-      this.dbService.getBoxEliminate(this.utenteId).subscribe({
-        next: (res: any) => {
-          // Filtra solo quelle entro 30 giorni
-          const trenta = 30 * 24 * 60 * 60 * 1000;
-          const ora = Date.now();
-          this.boxEliminate = (res.box_eliminate || []).filter((b: any) => {
-            const diff = ora - new Date(b.data_eliminazione).getTime();
-            return diff <= trenta;
-          });
-          this.isBoxEliminateOpen = true;
-        }
-      });
-    }
-  }
-
-  /** Calcola i giorni rimasti prima della rimozione definitiva */
-  giorniRimasti(dataEliminazione: string): number {
-    const diff = Date.now() - new Date(dataEliminazione).getTime();
-    const giorniPassati = Math.floor(diff / (1000 * 60 * 60 * 24));
-    return Math.max(0, 30 - giorniPassati);
-  }
 
   /** Chiede conferma e poi esegue il logout */
   async confermaLogout() {
@@ -294,7 +265,6 @@ export class HomePage {
 
   eseguiLogout() {
     localStorage.clear();
-    this.isProfiloModalOpen = false;
     this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 
