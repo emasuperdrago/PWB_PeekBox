@@ -5,7 +5,12 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
   providedIn: 'root'
 })
 export class DatabaseService {
-  private apiUrl = 'http://localhost:3000/api';
+  private backendPort = 3000;
+  private get apiUrl(): string {
+    // Usa sempre l'IP/host con cui il browser ha raggiunto questa app,
+    // ma punta alla porta del backend (3000). Funziona sia su localhost che su IP locale.
+    return `${window.location.protocol}//${window.location.hostname}:${this.backendPort}/api`;
+  }
 
   constructor(private http: HttpClient) { }
 
@@ -102,6 +107,12 @@ export class DatabaseService {
   /** Smart QR — ottiene o genera il token pubblico per la box */
   getQrToken(boxId: number) {
     return this.http.post(`${this.apiUrl}/box/${boxId}/qr-token`, {}, { headers: this.getAuthHeaders() });
+  }
+
+  /** Costruisce l'URL pubblico del QR usando l'IP/host corrente del browser */
+  buildQrUrl(boxId: number, token: string): string {
+    const base = `${window.location.protocol}//${window.location.hostname}:${this.backendPort}`;
+    return `${base}/scan?box=${boxId}&t=${token}`;
   }
 
   // ─── DASHBOARD BUSINESS ───────────────────────────────────

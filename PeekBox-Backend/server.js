@@ -2,16 +2,37 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const os = require('os');
+const path = require('path');
 const db = require('./db');
 
 const app = express();
 const PORT = 3000;
-const HOST = process.env.HOST || 'localhost';
 const SECRET_KEY = "chiave_super_segreta_peekbox";
+
+// Rileva automaticamente l'IP locale della macchina (es. 192.168.x.x)
+function getLocalIP() {
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+        for (const iface of interfaces[name]) {
+            if (iface.family === 'IPv4' && !iface.internal) {
+                return iface.address;
+            }
+        }
+    }
+    return 'localhost';
+}
+const HOST = process.env.HOST || getLocalIP();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
+
+// ─── SMART QR: Route pubblica per la pagina di scansione ───────────────────
+app.get('/scan', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'scan.html'));
+});
+// ───────────────────────────────────────────────────────────────────────────
 
 // --- MIDDLEWARE AUTENTICAZIONE ---
 function verificaToken(req, res, next) {
@@ -1150,6 +1171,6 @@ app.get('/api/box/:id/segnalazioni', verificaToken, (req, res) => {
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 SERVER ATTIVO: http://localhost:${PORT}`);
-    console.log(`📱 Da altri dispositivi: http://${HOST}:${PORT}`);
-    console.log(`   (imposta HOST=<tuo-ip-locale> se non configurato)`);
+    console.log(`📱 QR scan (stesso WiFi): http://${HOST}:${PORT}/scan`);
+    console.log(`   IP rilevato automaticamente: ${HOST}`);
 });

@@ -337,10 +337,12 @@ export class DettaglioBoxPage implements OnInit {
     if (!this.boxId) return;
     this.dbService.getQrToken(Number(this.boxId)).subscribe({
       next: (res: any) => {
-        this.qrCodeData = res.qr_url;
+        // Costruisce l'URL lato client usando l'IP con cui il browser ha raggiunto l'app
+        // In questo modo funziona sia su localhost che da telefono sulla stessa rete
+        const token = res.token;
+        this.qrCodeData = this.dbService.buildQrUrl(Number(this.boxId), token);
       },
       error: () => {
-        // Fallback al testo statico se il backend non è raggiungibile
         this.qrCodeData = `peekbox-box-${this.boxId}`;
       }
     });
