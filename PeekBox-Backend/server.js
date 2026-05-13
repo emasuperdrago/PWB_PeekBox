@@ -6,10 +6,12 @@ const db = require('./db');
 
 const app = express();
 const PORT = 3000;
+const HOST = process.env.HOST || 'localhost';
 const SECRET_KEY = "chiave_super_segreta_peekbox";
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static('public'));
 
 // --- MIDDLEWARE AUTENTICAZIONE ---
 function verificaToken(req, res, next) {
@@ -1000,6 +1002,154 @@ app.post('/api/checkpoint/sicuro', verificaToken, (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+
+// ─────────────────────────────────────────────
+// SMART QR — Tracciamento Pubblico (Guest Mode)
+// ─────────────────────────────────────────────
+
+const crypto = require('crypto');
+
+function hashIp(req) {
+    const raw = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || '';
+    return crypto.createHash('sha256').update(raw + 'peekbox_salt').digest('hex').slice(0, 16);
+}
+
+function getOrCreateQrToken(boxId, cb) {
+    db.get('SELECT token FROM qr_token WHERE rif_box = ?', [boxId], (err, row) => {
+        if (row) return cb(null, row.token);
+        const token = crypto.randomBytes(24).toString('hex');
+        db.run('INSERT INTO qr_token (rif_box, token) VALUES (?, ?)', [boxId, token], function(e) {
+            if (e) return cb(e);
+            cb(null, token);
+        });
+    });
+}
+
+app.post('/api/box/:id/qr-token', verificaToken, (req, res) => {
+    const sqlCheck = `
+        SELECT box.id FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        WHERE box.id = ? AND armadi.rif_utente = ?
+    `;
+    db.get(sqlCheck, [req.params.id, req.user.id], (err, row) => {
+        if (err || !row) return res.status(403).json({ error: 'Non autorizzato.' });
+        getOrCreateQrToken(req.params.id, (e2, token) => {
+            if (e2) return res.status(500).json({ error: e2.message });
+            const qrUrl = `http://${HOST}:${PORT}/scan?box=${req.params.id}&t=${token}`;
+            res.json({ token, qr_url: qrUrl });
+        });
+    });
+});
+
+app.get('/api/public/box/:boxId', (req, res) => {
+    const { t: token } = req.query;
+    if (!token) return res.status(400).json({ error: 'Token mancante.' });
+    db.get('SELECT rif_box FROM qr_token WHERE rif_box = ? AND token = ?', [req.params.boxId, token], (err, qr) => {
+        if (err || !qr) return res.status(403).json({ error: 'QR non valido o scaduto.' });
+        const sql = `
+            SELECT box.id, box.nome as box_nome, box.moving_mode,
+                   utenti.username as company
+            FROM box
+            JOIN armadi ON box.rif_armadio = armadi.id
+            JOIN utenti ON armadi.rif_utente = utenti.id
+            WHERE box.id = ? AND box.data_eliminazione IS NULL
+        `;
+        db.get(sql, [req.params.boxId], (e2, row) => {
+            if (e2 || !row) return res.status(404).json({ error: 'Collo non trovato.' });
+            res.json({
+                box: { id: row.id, nome: row.box_nome },
+                company: row.company,
+                moving_mode: row.moving_mode === 1
+            });
+        });
+    });
+});
+
+app.post('/api/public/segnalazione', (req, res) => {
+    const { box_id, token, gps, nota } = req.body;
+    if (!box_id || !token) return res.status(400).json({ error: 'box_id e token sono obbligatori.' });
+    if (!gps && !nota) return res.status(400).json({ error: 'Fornire almeno una posizione GPS o una nota.' });
+    if (nota && nota.length > 1000) return res.status(400).json({ error: 'Nota troppo lunga (max 1000 caratteri).' });
+    if (gps) {
+        const lat = parseFloat(gps.latitudine);
+        const lng = parseFloat(gps.longitudine);
+        if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180)
+            return res.status(400).json({ error: 'Coordinate GPS non valide.' });
+    }
+    db.get('SELECT rif_box FROM qr_token WHERE rif_box = ? AND token = ?', [box_id, token], (err, qr) => {
+        if (err || !qr) return res.status(403).json({ error: 'QR non valido o scaduto.' });
+        const sqlOwner = `
+            SELECT utenti.id as owner_id, utenti.username,
+                   box.nome as box_nome
+            FROM box
+            JOIN armadi ON box.rif_armadio = armadi.id
+            JOIN utenti ON armadi.rif_utente = utenti.id
+            WHERE box.id = ? AND box.data_eliminazione IS NULL
+        `;
+        db.get(sqlOwner, [box_id], (e2, owner) => {
+            if (e2 || !owner) return res.status(404).json({ error: 'Box non trovata.' });
+            const soglia = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+            db.get('SELECT COUNT(*) as cnt FROM segnalazioni_guest WHERE rif_box = ? AND timestamp > ?',
+                [box_id, soglia], (e3, rate) => {
+                if (rate && rate.cnt >= 10)
+                    return res.status(429).json({ error: 'Troppe segnalazioni per questo collo. Riprova domani.' });
+                const ipHash = hashIp(req);
+                const latitudine = gps ? parseFloat(gps.latitudine) : null;
+                const longitudine = gps ? parseFloat(gps.longitudine) : null;
+                const accuratezza = gps ? parseFloat(gps.accuratezza) || null : null;
+                const sqlInsert = `
+                    INSERT INTO segnalazioni_guest
+                        (rif_box, latitudine, longitudine, accuratezza, nota, ip_hash, timestamp)
+                    VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+                `;
+                db.run(sqlInsert, [box_id, latitudine, longitudine, accuratezza, nota || null, ipHash],
+                    function(e4) {
+                        if (e4) return res.status(500).json({ error: 'Errore salvataggio.' });
+                        inviaNotificaProprietario({
+                            owner_id: owner.owner_id,
+                            box_id,
+                            box_nome: owner.box_nome,
+                            segnalazione_id: this.lastID,
+                            gps: latitudine ? { latitudine, longitudine, accuratezza } : null,
+                            nota: nota || null
+                        });
+                        res.status(201).json({
+                            id: this.lastID,
+                            message: 'Segnalazione registrata. Il proprietario e stato notificato.'
+                        });
+                    }
+                );
+            });
+        });
+    });
+});
+
+function inviaNotificaProprietario(payload) {
+    // TODO: sostituire con FCM/APNs usando il device token dell utente
+    console.log('[PUSH] Notifica -> utente ' + payload.owner_id + ' | box "' + payload.box_nome + '" | segnalazione #' + payload.segnalazione_id);
+}
+
+app.get('/api/box/:id/segnalazioni', verificaToken, (req, res) => {
+    const sqlCheck = `
+        SELECT box.id FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        WHERE box.id = ? AND armadi.rif_utente = ?
+    `;
+    db.get(sqlCheck, [req.params.id, req.user.id], (err, row) => {
+        if (err || !row) return res.status(403).json({ error: 'Non autorizzato.' });
+        db.all(
+            'SELECT id, latitudine, longitudine, accuratezza, nota, timestamp FROM segnalazioni_guest WHERE rif_box = ? ORDER BY timestamp DESC LIMIT 50',
+            [req.params.id],
+            (e2, rows) => {
+                if (e2) return res.status(500).json({ error: e2.message });
+                res.json({ segnalazioni: rows });
+            }
+        );
+    });
+});
+
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 SERVER ATTIVO: http://localhost:${PORT}`);
+    console.log(`📱 Da altri dispositivi: http://${HOST}:${PORT}`);
+    console.log(`   (imposta HOST=<tuo-ip-locale> se non configurato)`);
 });

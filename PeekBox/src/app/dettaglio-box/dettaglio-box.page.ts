@@ -92,7 +92,8 @@ export class DettaglioBoxPage implements OnInit {
       this.caricaInfoBox();
       this.caricaOggettiDalServer();
       this.caricaTipologieDalServer();
-      this.qrCodeData = `peekbox-box-${this.boxId}`;
+      // Genera QR con URL pubblico Smart QR
+      this.generaQrCodeUrl();
       this.registraCheckpointSeNecessario();
     }
   }
@@ -330,6 +331,19 @@ export class DettaglioBoxPage implements OnInit {
       buttons: [{ text: 'OK', role: 'cancel' }]
     });
     await alert.present();
+  }
+
+  generaQrCodeUrl() {
+    if (!this.boxId) return;
+    this.dbService.getQrToken(Number(this.boxId)).subscribe({
+      next: (res: any) => {
+        this.qrCodeData = res.qr_url;
+      },
+      error: () => {
+        // Fallback al testo statico se il backend non è raggiungibile
+        this.qrCodeData = `peekbox-box-${this.boxId}`;
+      }
+    });
   }
 
   toggleQR() { this.mostraQR = !this.mostraQR; }

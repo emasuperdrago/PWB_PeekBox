@@ -99,6 +99,11 @@ export class DatabaseService {
     return this.http.delete(`${this.apiUrl}/checkpoint/${boxId}`, { headers: this.getAuthHeaders() });
   }
 
+  /** Smart QR — ottiene o genera il token pubblico per la box */
+  getQrToken(boxId: number) {
+    return this.http.post(`${this.apiUrl}/box/${boxId}/qr-token`, {}, { headers: this.getAuthHeaders() });
+  }
+
   // ─── DASHBOARD BUSINESS ───────────────────────────────────
 
   getDashboardBusiness(utenteId: string) {

@@ -122,7 +122,38 @@ db.serialize(() => {
     FOREIGN KEY(rif_armadio) REFERENCES armadi(id) ON DELETE CASCADE
   )`);
 
-  console.log("✅ Schema tabelle SQLite pronto (v3 — Condivisioni + Geofence).");
+  // ─────────────────────────────────────────────
+  // 9. SMART QR — Token pubblici per Moving Mode
+  //    Un token per box, generato all'attivazione
+  //    del Moving Mode. Codificato nel QR stampato.
+  // ─────────────────────────────────────────────
+  db.run(`CREATE TABLE IF NOT EXISTS qr_token (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    rif_box   INTEGER NOT NULL UNIQUE,
+    token     TEXT NOT NULL UNIQUE,
+    creato_il TEXT NOT NULL DEFAULT (datetime('now')),
+    FOREIGN KEY(rif_box) REFERENCES box(id) ON DELETE CASCADE
+  )`);
+
+  // ─────────────────────────────────────────────
+  // 10. SEGNALAZIONI GUEST — Log tracciamenti pubblici
+  //     L'IP viene anonimizzato (SHA-256) per GDPR.
+  //     max 10 segnalazioni per box ogni 24h.
+  // ─────────────────────────────────────────────
+  db.run(`CREATE TABLE IF NOT EXISTS segnalazioni_guest (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    rif_box      INTEGER NOT NULL,
+    latitudine   REAL,
+    longitudine  REAL,
+    accuratezza  REAL,
+    nota         TEXT,
+    ip_hash      TEXT,
+    timestamp    TEXT NOT NULL DEFAULT (datetime('now')),
+    notificato   INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY(rif_box) REFERENCES box(id) ON DELETE CASCADE
+  )`);
+
+  console.log("✅ Schema tabelle SQLite pronto (v4 — Smart QR + Segnalazioni Guest).");
   popolaDatiEsempio();
 });
 
