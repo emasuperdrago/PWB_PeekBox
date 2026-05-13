@@ -17,7 +17,8 @@ import {
   trashOutline, imageOutline, cubeOutline, createOutline,
   qrCodeOutline, downloadOutline, locationOutline, navigateOutline,
   swapHorizontalOutline, documentTextOutline, cloudDownloadOutline,
-  shareOutline, shieldCheckmarkOutline
+  shareOutline, shieldCheckmarkOutline, alertCircleOutline, warningOutline,
+  checkmarkCircleOutline, timeOutline
 } from 'ionicons/icons';
 import { PhotoService } from '../services/photo';
 import { DatabaseService } from '../services/database';
@@ -60,6 +61,10 @@ export class DettaglioBoxPage implements OnInit {
   qrCodeData: string = '';
   mostraQR: boolean = false;
 
+  segnalazioni: any[] = [];
+  segnalazioniNonLette: number = 0;
+  mostraSegnalazioni: boolean = false;
+
   nuovoOggetto: any = {
     nome: '', descrizione: '', tipo: '', fragile: false, quantita: 1, foto: null
   };
@@ -79,7 +84,8 @@ export class DettaglioBoxPage implements OnInit {
       imageOutline, cubeOutline, createOutline, qrCodeOutline,
       downloadOutline, locationOutline, navigateOutline,
       swapHorizontalOutline, documentTextOutline, cloudDownloadOutline,
-      shareOutline, shieldCheckmarkOutline
+      shareOutline, shieldCheckmarkOutline, alertCircleOutline, warningOutline,
+      checkmarkCircleOutline, timeOutline
     });
   }
 
@@ -95,6 +101,7 @@ export class DettaglioBoxPage implements OnInit {
       // Genera QR con URL pubblico Smart QR
       this.generaQrCodeUrl();
       this.registraCheckpointSeNecessario();
+      this.caricaSegnalazioni();
     }
   }
 
@@ -157,6 +164,42 @@ export class DettaglioBoxPage implements OnInit {
       next: (res: any) => { this.oggetti = res.oggetti || []; },
       error: (err: any) => console.error('Errore oggetti:', err)
     });
+  }
+
+  // ─── SEGNALAZIONI ──────────────────────────────────────────
+
+  caricaSegnalazioni() {
+    if (!this.boxId) return;
+    this.dbService.getSegnalazioni(Number(this.boxId)).subscribe({
+      next: (res: any) => {
+        this.segnalazioni = res.segnalazioni || [];
+        const ultimaLettura = localStorage.getItem(`segnalazioni_lette_${this.boxId}`);
+        if (ultimaLettura) {
+          this.segnalazioniNonLette = this.segnalazioni.filter(
+            s => new Date(s.timestamp) > new Date(ultimaLettura)
+          ).length;
+        } else {
+          this.segnalazioniNonLette = this.segnalazioni.length;
+        }
+      },
+      error: () => {}
+    });
+  }
+
+  apriSegnalazioni() {
+    this.mostraSegnalazioni = true;
+    localStorage.setItem(`segnalazioni_lette_${this.boxId}`, new Date().toISOString());
+    this.segnalazioniNonLette = 0;
+  }
+
+  formatData(timestamp: string): string {
+    const d = new Date(timestamp);
+    return d.toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  apriPosizioneInMappa(lat: number, lng: number) {
+    const url = this.gpsService.buildGoogleMapsUrl(lat, lng);
+    window.open(url, '_blank');
   }
 
   // ─── TRACKING ──────────────────────────────────────────────

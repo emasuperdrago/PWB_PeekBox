@@ -17,6 +17,10 @@
       <ion-button (click)="mostraQR = true" class="toolbar-btn">
         <ion-icon slot="icon-only" name="qr-code-outline"></ion-icon>
       </ion-button>
+      <ion-button (click)="apriSegnalazioni()" class="toolbar-btn toolbar-btn-segnalazioni">
+        <ion-icon slot="icon-only" name="alert-circle-outline"></ion-icon>
+        <span *ngIf="segnalazioniNonLette > 0" class="badge-notifica">{{ segnalazioniNonLette }}</span>
+      </ion-button>
       <ion-button (click)="setOpen(true)" class="toolbar-btn toolbar-btn-add">
         <ion-icon slot="icon-only" name="add"></ion-icon>
       </ion-button>
@@ -283,6 +287,59 @@
             <div *ngIf="oggettoSelezionato.descrizione" class="dettaglio-desc">
               <p class="desc-label">Descrizione</p>
               <p class="desc-text">{{ oggettoSelezionato.descrizione }}</p>
+            </div>
+          </div>
+
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- MODAL SEGNALAZIONI GUEST -->
+  <ion-modal [isOpen]="mostraSegnalazioni" (didDismiss)="mostraSegnalazioni = false">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar class="modal-toolbar">
+          <ion-title class="modal-title">
+            <ion-icon name="alert-circle-outline" style="color: #f59e0b; margin-right: 6px; vertical-align: middle;"></ion-icon>
+            Segnalazioni Ricevute
+          </ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="mostraSegnalazioni = false" class="modal-close-btn">Chiudi</ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="modal-content">
+        <div class="modal-body">
+
+          <!-- Empty state -->
+          <div *ngIf="segnalazioni.length === 0" class="segnalazioni-empty">
+            <div class="segn-empty-icon">📭</div>
+            <p class="segn-empty-title">Nessuna segnalazione</p>
+            <p class="segn-empty-sub">Chi scansiona il QR di questa box può inviarti una segnalazione. Apparirà qui.</p>
+          </div>
+
+          <!-- Lista segnalazioni -->
+          <div *ngFor="let s of segnalazioni" class="segn-card">
+            <div class="segn-header">
+              <ion-icon name="warning-outline" class="segn-icon"></ion-icon>
+              <span class="segn-time">
+                <ion-icon name="time-outline"></ion-icon>
+                {{ formatData(s.timestamp) }}
+              </span>
+            </div>
+
+            <p *ngIf="s.nota" class="segn-nota">{{ s.nota }}</p>
+            <p *ngIf="!s.nota" class="segn-nota segn-nota--empty">Nessuna nota aggiuntiva</p>
+
+            <div *ngIf="s.latitudine && s.longitudine" class="segn-gps-row">
+              <ion-icon name="location-outline" class="segn-gps-icon"></ion-icon>
+              <span class="segn-coords">{{ s.latitudine | number:'1.4-4' }}, {{ s.longitudine | number:'1.4-4' }}</span>
+              <span *ngIf="s.accuratezza" class="segn-acc"> ±{{ s.accuratezza | number:'1.0-0' }}m</span>
+              <button class="btn-mini-segn" (click)="apriPosizioneInMappa(s.latitudine, s.longitudine)">
+                <ion-icon name="navigate-outline"></ion-icon> Mappa
+              </button>
             </div>
           </div>
 
