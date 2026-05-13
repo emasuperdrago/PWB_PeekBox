@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +15,9 @@ import {
   person, add, filter, cubeOutline, archiveOutline, closeOutline,
   locationOutline, optionsOutline, logOutOutline, timeOutline,
   chevronForwardOutline, informationCircleOutline, arrowBackOutline,
-  shareOutline, shieldCheckmarkOutline
+  shareOutline, shieldCheckmarkOutline,
+  scanOutline, alertCircleOutline, checkmarkCircleOutline,
+  createOutline, openOutline, refreshOutline
 } from 'ionicons/icons';
 
 import { DatabaseService } from '../services/database';
@@ -50,6 +52,15 @@ export class HomePage {
   // Stato modals
   isFilterModalOpen = false;
 
+  // Scanner QR
+  @ViewChild('scanVideo', { static: false }) scanVideoRef?: ElementRef<HTMLVideoElement>;
+  isScanModalOpen = false;
+  scanResult: string | null = null;
+  scanError: string | null = null;
+  private scanStream: MediaStream | null = null;
+  private scanDetector: any = null;
+  private scanRafId: number | null = null;
+
   searchQuery = '';
 
   filtri = {
@@ -69,7 +80,9 @@ export class HomePage {
       trashOutline, cubeOutline, archiveOutline, closeOutline,
       locationOutline, optionsOutline, logOutOutline, timeOutline,
       chevronForwardOutline, informationCircleOutline, arrowBackOutline,
-      shareOutline, shieldCheckmarkOutline
+      shareOutline, shieldCheckmarkOutline,
+      scanOutline, alertCircleOutline, checkmarkCircleOutline,
+      createOutline, openOutline, refreshOutline
     });
   }
 
@@ -251,6 +264,157 @@ export class HomePage {
       ]
     });
     await alert.present();
+  }
+
+  // =====================================================
+  // SCANNER QR — Apertura modale + lettura camera
+  // =====================================================
+  async apriScanner() {
+    this.scanResult = null;
+    this.scanError = null;
+    this.isScanModalOpen = true;
+    // Aspetta il rendering del <video> dentro l'ion-modal
+    setTimeout(() => this.avviaCamera(), 350);
+  }
+
+  async avviaCamera() {
+    const videoEl = this.scanVideoRef?.nativeElement;
+    if (!videoEl) {
+      this.scanError = 'Impossibile inizializzare la camera.';
+      return;
+    }
+
+    // Verifica supporto getUserMedia
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      this.scanError = 'Camera non disponibile su questo dispositivo. Usa "Inserisci ID manualmente".';
+      return;
+    }
+
+    try {
+      this.scanStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+        audio: false
+      });
+      videoEl.srcObject = this.scanStream;
+      await videoEl.play();
+
+      // Inizializza BarcodeDetector se disponibile
+      const w = window as any;
+      if ('BarcodeDetector' in w) {
+        try {
+          this.scanDetector = new w.BarcodeDetector({ formats: ['qr_code'] });
+          this.scanLoop();
+        } catch {
+          this.scanDetector = null;
+          this.scanError = 'Lettura QR non supportata dal browser. Usa "Inserisci ID manualmente".';
+        }
+      } else {
+        this.scanError = 'Il tuo browser non supporta la scansione automatica. Usa "Inserisci ID manualmente".';
+      }
+    } catch (err: any) {
+      const msg = err?.name === 'NotAllowedError'
+        ? 'Permesso camera negato. Abilita la fotocamera nelle impostazioni del browser.'
+        : 'Impossibile accedere alla camera.';
+      this.scanError = msg;
+    }
+  }
+
+  private scanLoop() {
+    const videoEl = this.scanVideoRef?.nativeElement;
+    if (!videoEl || !this.scanDetector || !this.isScanModalOpen) return;
+
+    const tick = async () => {
+      if (!this.isScanModalOpen || this.scanResult) return;
+      try {
+        const codes = await this.scanDetector.detect(videoEl);
+        if (codes && codes.length > 0) {
+          this.gestisciRisultato(codes[0].rawValue || codes[0].value || '');
+          return;
+        }
+      } catch { /* ignora errori transitori */ }
+      this.scanRafId = requestAnimationFrame(tick);
+    };
+    this.scanRafId = requestAnimationFrame(tick);
+  }
+
+  private gestisciRisultato(valore: string) {
+    if (!valore) return;
+    this.scanResult = valore.trim();
+    this.fermaCamera();
+  }
+
+  private fermaCamera() {
+    if (this.scanRafId !== null) {
+      cancelAnimationFrame(this.scanRafId);
+      this.scanRafId = null;
+    }
+    if (this.scanStream) {
+      this.scanStream.getTracks().forEach(t => t.stop());
+      this.scanStream = null;
+    }
+    const videoEl = this.scanVideoRef?.nativeElement;
+    if (videoEl) videoEl.srcObject = null;
+  }
+
+  chiudiScanner() {
+    this.fermaCamera();
+    this.isScanModalOpen = false;
+    this.scanResult = null;
+    this.scanError = null;
+  }
+
+  riprendiScansione() {
+    this.scanResult = null;
+    this.scanError = null;
+    setTimeout(() => this.avviaCamera(), 200);
+  }
+
+  async inserisciManuale() {
+    const alert = await this.alertCtrl.create({
+      cssClass: 'peekbox-alert',
+      header: 'Inserisci ID box',
+      message: 'Digita l\'ID o l\'URL della box da aprire.',
+      inputs: [{ name: 'codice', type: 'text', placeholder: 'Es: 12 o https://...?box=12' }],
+      buttons: [
+        { text: 'Annulla', role: 'cancel' },
+        {
+          text: 'Apri',
+          handler: (data) => {
+            const v = (data?.codice || '').trim();
+            if (v) this.gestisciRisultato(v);
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  apriRisultato() {
+    if (!this.scanResult) return;
+    const v = this.scanResult;
+    // Prova ad estrarre l'ID box da un URL stile /scan?box=12
+    let boxId: string | null = null;
+    try {
+      if (v.includes('http')) {
+        const u = new URL(v);
+        boxId = u.searchParams.get('box');
+      }
+    } catch { /* not a URL */ }
+    if (!boxId && /^\d+$/.test(v)) boxId = v;
+
+    this.chiudiScanner();
+
+    if (boxId) {
+      this.router.navigate(['/dettaglio-box', boxId]);
+    } else {
+      // Codice non riconosciuto come box PeekBox: mostra alert con valore grezzo
+      this.alertCtrl.create({
+        cssClass: 'peekbox-alert',
+        header: 'Codice non riconosciuto',
+        message: `Il codice scansionato non è una box PeekBox valida:\n\n${v}`,
+        buttons: [{ text: 'OK', role: 'cancel' }]
+      }).then(a => a.present());
+    }
   }
 
   // =====================================================

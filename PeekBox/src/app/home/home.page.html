@@ -44,10 +44,13 @@
           (input)="onSearch()"
         />
       </div>
-      <button class="filter-pill-btn" (click)="isFilterModalOpen = true">
+      <button class="filter-pill-btn" (click)="isFilterModalOpen = true" data-testid="filter-btn">
         <ion-icon name="options-outline" style="font-size:1.2rem;"></ion-icon>
       </button>
-      <button class="inline-add-btn" routerLink="/crea-box">
+      <button class="filter-pill-btn filter-pill-btn--scan" (click)="apriScanner()" data-testid="open-scan-btn" title="Scansiona QR">
+        <ion-icon name="scan-outline" style="font-size:1.25rem;"></ion-icon>
+      </button>
+      <button class="inline-add-btn" routerLink="/crea-box" data-testid="add-box-btn">
         <ion-icon name="add"></ion-icon>
         <span>Box</span>
       </button>
@@ -202,6 +205,84 @@
           RESETTA TUTTI I FILTRI
         </button>
 
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- =====================================================
+       MODAL SCANNER QR — Scansione codici PeekBox
+  ====================================================== -->
+  <ion-modal [isOpen]="isScanModalOpen" (didDismiss)="chiudiScanner()" class="scanner-sheet" data-testid="scan-modal">
+    <ng-template>
+      <ion-header class="ion-no-border">
+        <ion-toolbar class="modal-toolbar">
+          <ion-title class="modal-title">Scansiona QR</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="chiudiScanner()" class="modal-close-btn" data-testid="close-scan-btn">
+              <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="modal-content">
+        <div class="scan-wrapper">
+          <!-- Stage video -->
+          <div class="scan-stage" [class.scan-stage--success]="scanResult">
+            <video #scanVideo class="scan-video" playsinline autoplay muted></video>
+
+            <!-- Overlay reticolo -->
+            <div class="scan-overlay" *ngIf="!scanResult && !scanError">
+              <div class="scan-frame">
+                <span class="corner corner--tl"></span>
+                <span class="corner corner--tr"></span>
+                <span class="corner corner--bl"></span>
+                <span class="corner corner--br"></span>
+                <div class="scan-line"></div>
+              </div>
+              <p class="scan-hint">
+                <ion-icon name="scan-outline"></ion-icon>
+                Inquadra il QR code della box
+              </p>
+            </div>
+
+            <!-- Stato errore (camera non disponibile o non supportata) -->
+            <div class="scan-status scan-status--error" *ngIf="scanError">
+              <ion-icon name="alert-circle-outline"></ion-icon>
+              <p>{{ scanError }}</p>
+            </div>
+
+            <!-- Stato successo -->
+            <div class="scan-status scan-status--success" *ngIf="scanResult" data-testid="scan-result">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <p class="scan-result-label">Codice rilevato</p>
+              <p class="scan-result-value">{{ scanResult }}</p>
+            </div>
+          </div>
+
+          <!-- Info & azioni -->
+          <div class="scan-info" *ngIf="!scanResult">
+            <p class="scan-info-text">
+              Posiziona il QR code della tua box all'interno del riquadro.
+              Il riconoscimento è automatico.
+            </p>
+            <button class="scan-manual-btn" (click)="inserisciManuale()" data-testid="scan-manual-btn">
+              <ion-icon name="create-outline"></ion-icon>
+              Inserisci ID manualmente
+            </button>
+          </div>
+
+          <div class="scan-actions" *ngIf="scanResult">
+            <button class="scan-action-btn scan-action-btn--primary" (click)="apriRisultato()" data-testid="open-scan-result-btn">
+              <ion-icon name="open-outline"></ion-icon>
+              Apri box
+            </button>
+            <button class="scan-action-btn" (click)="riprendiScansione()" data-testid="restart-scan-btn">
+              <ion-icon name="refresh-outline"></ion-icon>
+              Scansiona ancora
+            </button>
+          </div>
+        </div>
       </ion-content>
     </ng-template>
   </ion-modal>

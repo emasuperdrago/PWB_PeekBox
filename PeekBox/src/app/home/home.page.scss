@@ -222,6 +222,16 @@ $red:     #F87171;
   ion-icon { color: $blue !important; }
 }
 
+.filter-pill-btn--scan {
+  background: rgba(58,171,219,.16);
+  border-color: rgba(58,171,219,.45);
+  box-shadow: 0 2px 14px rgba(58,171,219,.25);
+  &:active {
+    background: rgba(58,171,219,.32);
+    border-color: $blue;
+  }
+}
+
 // ===== CHIPS =====
 .chips-row {
   display: flex;
@@ -1085,3 +1095,208 @@ ion-modal {
     color: $red;
   }
 }
+
+// =====================================================
+// MODAL SCANNER QR — tema PeekBox coerente
+// =====================================================
+.scanner-sheet {
+  --border-radius: 28px 28px 0 0;
+}
+
+.scan-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 18px 18px 28px;
+  min-height: 100%;
+  background: linear-gradient(180deg, #0A1A28 0%, #0D2A3A 60%, #091E2C 100%);
+}
+
+.scan-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 60vh;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #060F17;
+  border: 1.5px solid rgba(58,171,219,.28);
+  box-shadow: 0 12px 40px rgba(0,0,0,.45);
+}
+
+.scan-stage--success {
+  border-color: rgba(125,199,64,.6);
+  box-shadow: 0 12px 40px rgba(125,199,64,.25);
+}
+
+.scan-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.scan-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 18px;
+  background: radial-gradient(ellipse at center, transparent 38%, rgba(6,15,23,.75) 80%);
+  pointer-events: none;
+}
+
+.scan-frame {
+  position: relative;
+  width: 62%;
+  aspect-ratio: 1 / 1;
+  max-width: 240px;
+  border-radius: 20px;
+}
+
+.corner {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 3px solid $blue;
+  filter: drop-shadow(0 0 8px rgba(58,171,219,.6));
+}
+.corner--tl { top: -2px; left: -2px;  border-right: none; border-bottom: none; border-top-left-radius: 16px; }
+.corner--tr { top: -2px; right: -2px; border-left: none;  border-bottom: none; border-top-right-radius: 16px; }
+.corner--bl { bottom: -2px; left: -2px;  border-right: none; border-top: none; border-bottom-left-radius: 16px; }
+.corner--br { bottom: -2px; right: -2px; border-left: none;  border-top: none; border-bottom-right-radius: 16px; }
+
+.scan-line {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, $blue 50%, transparent);
+  box-shadow: 0 0 14px rgba(58,171,219,.85);
+  animation: scanSlide 2.2s ease-in-out infinite;
+}
+
+@keyframes scanSlide {
+  0%   { top: 8%; opacity: .2; }
+  50%  { top: 92%; opacity: 1; }
+  100% { top: 8%; opacity: .2; }
+}
+
+.scan-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Outfit', sans-serif;
+  font-size: .92rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.85);
+  margin: 0;
+  background: rgba(13,42,58,.7);
+  padding: 8px 16px;
+  border-radius: 50px;
+  border: 1px solid rgba(58,171,219,.28);
+  backdrop-filter: blur(10px);
+  ion-icon { color: $blue; font-size: 1.05rem; }
+}
+
+.scan-status {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  background: rgba(6,15,23,.86);
+  backdrop-filter: blur(8px);
+
+  ion-icon { font-size: 3.4rem; }
+  p {
+    margin: 0;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .95rem;
+    color: rgba(255,255,255,.78);
+    line-height: 1.5;
+  }
+}
+
+.scan-status--error ion-icon { color: $red; }
+.scan-status--success ion-icon { color: $green; }
+
+.scan-result-label {
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-size: .72rem !important;
+  color: $green !important;
+}
+
+.scan-result-value {
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: .88rem !important;
+  color: $white !important;
+  background: rgba(125,199,64,.1);
+  border: 1px solid rgba(125,199,64,.28);
+  border-radius: 12px;
+  padding: 10px 14px;
+  max-width: 90%;
+  word-break: break-all;
+}
+
+.scan-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scan-info-text {
+  margin: 0;
+  text-align: center;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .88rem;
+  line-height: 1.55;
+  color: rgba(255,255,255,.55);
+}
+
+.scan-manual-btn,
+.scan-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(58,171,219,.25);
+  font-family: 'Outfit', sans-serif;
+  font-size: .92rem;
+  font-weight: 700;
+  color: $white;
+  cursor: pointer;
+  transition: background .2s, transform .15s;
+
+  ion-icon { font-size: 1.1rem; color: $blue; }
+
+  &:active { transform: scale(.97); background: rgba(58,171,219,.14); }
+}
+
+.scan-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scan-action-btn--primary {
+  background: linear-gradient(135deg, $blue 0%, $blue-d 100%);
+  border-color: transparent;
+  box-shadow: 0 6px 22px rgba(58,171,219,.4);
+  ion-icon { color: $white; }
+  &:active { background: linear-gradient(135deg, $blue-d 0%, $blue-dk 100%); }
+}
+

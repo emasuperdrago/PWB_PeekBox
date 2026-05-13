@@ -189,8 +189,8 @@ $dark:    #0D2A3A;
   transition: all 0.25s ease;
 
   &.selected {
-    border-color: #a78bfa;
-    background: rgba(167,139,250,0.1);
+    border-color: $blue;
+    background: rgba(58,171,219,0.12);
   }
 }
 
@@ -218,7 +218,7 @@ $dark:    #0D2A3A;
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: #a78bfa;
+  background: $blue;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -246,9 +246,9 @@ $dark:    #0D2A3A;
   font-size: 11px;
   padding: 4px 10px;
   border-radius: 20px;
-  background: rgba(167,139,250,0.15);
-  border: 1px solid rgba(167,139,250,0.3);
-  color: #c4b5fd;
+  background: rgba(58,171,219,0.14);
+  border: 1px solid rgba(58,171,219,0.32);
+  color: #a8dff5;
   font-weight: 500;
 }
 
