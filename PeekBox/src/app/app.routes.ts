@@ -44,4 +44,14 @@ export const routes: Routes = [
     path: 'transit-zone',
     loadComponent: () => import('./transit-zone/transit-zone.page').then(m => m.TransitZonePage)
   },
+  // ── CONDIVISIONE ARCHIVIO — RBAC permessi granulari ─────────────────────
+  {
+    path: 'condivisione-archivio/:id',
+    loadComponent: () => import('./condivisione-archivio/condivisione-archivio.page').then(m => m.CondivisioneArchivioPage)
+  },
+  // ── GEOFENCING — Perimetro di sicurezza virtuale ─────────────────────────
+  {
+    path: 'geofence-armadio/:id',
+    loadComponent: () => import('./geofence-armadio/geofence-armadio.page').then(m => m.GeofenceArmadioPage)
+  },
 ];

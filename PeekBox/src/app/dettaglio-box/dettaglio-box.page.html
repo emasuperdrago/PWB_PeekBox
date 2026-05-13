@@ -73,6 +73,18 @@
             <span>Zona di Transito</span>
           </button>
 
+          <!-- Bottone Condivisione Archivio -->
+          <button class="btn-tracking btn-share" (click)="apriCondivisione()">
+            <ion-icon name="share-outline"></ion-icon>
+            <span>Condividi Archivio</span>
+          </button>
+
+          <!-- Bottone Geofence -->
+          <button class="btn-tracking btn-geofence" (click)="apriGeofence()">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <span>Perimetro Virtuale</span>
+          </button>
+
           <!-- Bottone Tracking GPS -->
           <button class="btn-tracking"
             *ngIf="boxCorrente?.moving_mode === 1 || tipoProfilo === 'business'"

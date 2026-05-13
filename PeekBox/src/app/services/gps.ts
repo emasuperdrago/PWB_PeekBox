@@ -66,4 +66,35 @@ export class GpsService {
     const waypointsParam = waypoints ? `&waypoints=${encodeURIComponent(waypoints)}` : '';
     return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}${waypointsParam}`;
   }
+
+  /**
+   * Calcola la distanza in metri tra due coordinate geografiche
+   * usando la formula di Haversine (equivalente lato client del backend).
+   */
+  calcolaDistanzaMetri(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371000;
+    const toRad = (deg: number) => deg * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLng = toRad(lng2 - lng1);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  /**
+   * Verifica lato client se una posizione è dentro un geofence.
+   * Utile per un controllo immediato prima della chiamata API.
+   */
+  isDentroGeofence(
+    posizioneAttuale: { latitudine: number; longitudine: number },
+    centroFence: { latitudine: number; longitudine: number },
+    raggioM: number
+  ): boolean {
+    const dist = this.calcolaDistanzaMetri(
+      centroFence.latitudine, centroFence.longitudine,
+      posizioneAttuale.latitudine, posizioneAttuale.longitudine
+    );
+    return dist <= raggioM;
+  }
 }

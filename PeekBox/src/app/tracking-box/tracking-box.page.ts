@@ -101,7 +101,7 @@ export class TrackingBoxPage implements OnInit {
     });
   }
 
-  /** Aggiunge manualmente un checkpoint con la posizione attuale */
+  /** Aggiunge manualmente un checkpoint con la posizione attuale e verifica geofence */
   async aggiungiCheckpointManuale() {
     try {
       const pos = await this.gpsService.getPosizione();
@@ -115,10 +115,31 @@ export class TrackingBoxPage implements OnInit {
           {
             text: 'Salva',
             handler: (data) => {
-              this.dbService.salvaCheckpoint(
+              // Usa checkpoint/sicuro per controllo geofence automatico
+              this.dbService.salvaCheckpointSicuro(
                 Number(this.boxId), pos.latitudine, pos.longitudine, pos.accuratezza, data.label || undefined
               ).subscribe({
-                next: () => this.caricaCheckpoints(),
+                next: async (res: any) => {
+                  this.caricaCheckpoints();
+                  // Se c'è un'eccezione di sicurezza, mostra l'alert geofence
+                  if (res.geofence_alert) {
+                    const alertGeofence = await this.alertCtrl.create({
+                      cssClass: 'peekbox-alert peekbox-alert--danger',
+                      header: '⚠️ Eccezione di Sicurezza',
+                      message: res.geofence_alert.messaggio,
+                      buttons: ['OK']
+                    });
+                    await alertGeofence.present();
+                  } else {
+                    const toast = await this.toastCtrl.create({
+                      message: '✅ Posizione registrata. Asset nel perimetro.',
+                      duration: 2000,
+                      color: 'success',
+                      position: 'bottom'
+                    });
+                    await toast.present();
+                  }
+                },
                 error: (err: any) => console.error('Errore salvataggio checkpoint:', err)
               });
             }

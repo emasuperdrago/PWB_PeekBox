@@ -628,6 +628,378 @@ app.delete('/api/tipologie/:id', verificaToken, (req, res) => {
     });
 });
 
+// ─────────────────────────────────────────────
+// CONDIVISIONI ARCHIVIO — RBAC (Role-Based Access Control)
+// ─────────────────────────────────────────────
+
+/**
+ * Helper: verifica che l'utente sia il proprietario dell'armadio
+ * oppure un ospite con almeno il ruolo indicato.
+ * Risolve con { isOwner, ruolo } oppure respinge con 403.
+ */
+function verificaAccessoArmadio(armadioId, userId, ruoloMinimo, res, cb) {
+  db.get('SELECT rif_utente FROM armadi WHERE id = ?', [armadioId], (err, armadio) => {
+    if (err || !armadio) return res.status(404).json({ error: "Armadio non trovato." });
+
+    if (String(armadio.rif_utente) === String(userId)) {
+      return cb({ isOwner: true, ruolo: 'owner' });
+    }
+
+    db.get(
+      'SELECT ruolo FROM condivisioni_armadio WHERE rif_armadio = ? AND rif_ospite = ?',
+      [armadioId, userId],
+      (e2, row) => {
+        if (e2 || !row) return res.status(403).json({ error: "Accesso negato." });
+        const livelli = ['viewer', 'editor'];
+        if (livelli.indexOf(row.ruolo) < livelli.indexOf(ruoloMinimo)) {
+          return res.status(403).json({ error: `Ruolo insufficiente. Richiesto: ${ruoloMinimo}.` });
+        }
+        cb({ isOwner: false, ruolo: row.ruolo });
+      }
+    );
+  });
+}
+
+/**
+ * Condividi un armadio con un altro utente (per email).
+ * Solo il proprietario può farlo.
+ * POST /api/condivisioni
+ * Body: { armadio_id, email_ospite, ruolo }
+ */
+app.post('/api/condivisioni', verificaToken, (req, res) => {
+  const { armadio_id, email_ospite, ruolo = 'viewer' } = req.body;
+  if (!armadio_id || !email_ospite) {
+    return res.status(400).json({ error: "armadio_id e email_ospite sono obbligatori." });
+  }
+  if (!['viewer', 'editor'].includes(ruolo)) {
+    return res.status(400).json({ error: "ruolo non valido. Usa 'viewer' o 'editor'." });
+  }
+
+  // Verifica proprietà
+  db.get('SELECT id FROM armadi WHERE id = ? AND rif_utente = ?', [armadio_id, req.user.id], (err, armadio) => {
+    if (err || !armadio) return res.status(403).json({ error: "Non sei il proprietario di questo archivio." });
+
+    // Trova l'ospite per email
+    db.get('SELECT id, username FROM utenti WHERE email = ?', [email_ospite], (e2, ospite) => {
+      if (e2 || !ospite) return res.status(404).json({ error: "Utente non trovato con quella email." });
+      if (ospite.id === req.user.id) return res.status(400).json({ error: "Non puoi condividere con te stesso." });
+
+      db.run(
+        `INSERT INTO condivisioni_armadio (rif_armadio, rif_proprietario, rif_ospite, ruolo)
+         VALUES (?, ?, ?, ?)
+         ON CONFLICT(rif_armadio, rif_ospite) DO UPDATE SET ruolo = excluded.ruolo`,
+        [armadio_id, req.user.id, ospite.id, ruolo],
+        function (e3) {
+          if (e3) return res.status(500).json({ error: e3.message });
+          res.status(201).json({
+            message: `Archivio condiviso con ${ospite.username} come ${ruolo}.`,
+            id: this.lastID,
+            ospite: { id: ospite.id, username: ospite.username },
+            ruolo
+          });
+        }
+      );
+    });
+  });
+});
+
+/**
+ * Elenca tutti gli accessi condivisi di un armadio (solo proprietario).
+ * GET /api/condivisioni/:armadioId
+ */
+app.get('/api/condivisioni/:armadioId', verificaToken, (req, res) => {
+  db.get('SELECT id FROM armadi WHERE id = ? AND rif_utente = ?', [req.params.armadioId, req.user.id], (err, row) => {
+    if (err || !row) return res.status(403).json({ error: "Non sei il proprietario." });
+
+    const sql = `
+      SELECT c.id, c.ruolo, c.creato_il,
+             u.id as ospite_id, u.username as ospite_username, u.email as ospite_email
+      FROM condivisioni_armadio c
+      JOIN utenti u ON u.id = c.rif_ospite
+      WHERE c.rif_armadio = ?
+      ORDER BY c.creato_il DESC
+    `;
+    db.all(sql, [req.params.armadioId], (e2, rows) => {
+      if (e2) return res.status(500).json({ error: e2.message });
+      res.json({ condivisioni: rows });
+    });
+  });
+});
+
+/**
+ * Elenca tutti gli archivi a cui l'utente ha accesso come ospite.
+ * GET /api/condivisioni/ricevute/:utenteId
+ */
+app.get('/api/condivisioni/ricevute/:utenteId', verificaToken, (req, res) => {
+  if (String(req.user.id) !== String(req.params.utenteId))
+    return res.status(403).json({ error: "Non autorizzato." });
+
+  const sql = `
+    SELECT c.id as condivisione_id, c.ruolo, c.creato_il,
+           a.id as armadio_id, a.nome as armadio_nome,
+           u.username as proprietario_username, u.email as proprietario_email
+    FROM condivisioni_armadio c
+    JOIN armadi a ON a.id = c.rif_armadio
+    JOIN utenti u ON u.id = c.rif_proprietario
+    WHERE c.rif_ospite = ?
+    ORDER BY c.creato_il DESC
+  `;
+  db.all(sql, [req.params.utenteId], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ archivi_condivisi: rows });
+  });
+});
+
+/**
+ * Revoca una condivisione (solo il proprietario).
+ * DELETE /api/condivisioni/:id
+ */
+app.delete('/api/condivisioni/:id', verificaToken, (req, res) => {
+  db.run(
+    'DELETE FROM condivisioni_armadio WHERE id = ? AND rif_proprietario = ?',
+    [req.params.id, req.user.id],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      if (this.changes === 0) return res.status(403).json({ error: "Condivisione non trovata o non autorizzato." });
+      res.json({ message: "Condivisione revocata." });
+    }
+  );
+});
+
+/**
+ * Accede alle box di un archivio condiviso (viewer o editor).
+ * GET /api/condivisioni/armadio/:armadioId/box
+ */
+app.get('/api/condivisioni/armadio/:armadioId/box', verificaToken, (req, res) => {
+  verificaAccessoArmadio(req.params.armadioId, req.user.id, 'viewer', res, ({ ruolo }) => {
+    const sql = `
+      SELECT box.*, COUNT(oggetti.id) as num_oggetti
+      FROM box
+      LEFT JOIN oggetti ON oggetti.rif_box = box.id
+      WHERE box.rif_armadio = ? AND box.data_eliminazione IS NULL
+      GROUP BY box.id
+    `;
+    db.all(sql, [req.params.armadioId], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ box: rows, ruolo_corrente: ruolo });
+    });
+  });
+});
+
+/**
+ * Accede agli oggetti di una box in un archivio condiviso (viewer o editor).
+ * GET /api/condivisioni/box/:boxId/oggetti
+ */
+app.get('/api/condivisioni/box/:boxId/oggetti', verificaToken, (req, res) => {
+  db.get('SELECT rif_armadio FROM box WHERE id = ?', [req.params.boxId], (err, box) => {
+    if (err || !box) return res.status(404).json({ error: "Box non trovata." });
+
+    verificaAccessoArmadio(box.rif_armadio, req.user.id, 'viewer', res, ({ ruolo }) => {
+      db.all('SELECT * FROM oggetti WHERE rif_box = ?', [req.params.boxId], (e2, rows) => {
+        if (e2) return res.status(500).json({ error: e2.message });
+        res.json({ oggetti: rows, ruolo_corrente: ruolo });
+      });
+    });
+  });
+});
+
+// ─────────────────────────────────────────────
+// GEOFENCING — Perimetro di Sicurezza Virtuale
+// ─────────────────────────────────────────────
+
+/**
+ * Calcolo distanza geodetica con formula di Haversine.
+ * Ritorna la distanza in metri tra due coordinate GPS.
+ */
+function haversineMetri(lat1, lng1, lat2, lng2) {
+  const R = 6371000; // raggio terrestre in metri
+  const toRad = (deg) => deg * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+/**
+ * Crea o aggiorna il geofence di un armadio (solo proprietario).
+ * POST /api/geofence
+ * Body: { armadio_id, latitudine, longitudine, raggio_m, attivo }
+ */
+app.post('/api/geofence', verificaToken, (req, res) => {
+  const { armadio_id, latitudine, longitudine, raggio_m = 100, attivo = 1 } = req.body;
+  if (!armadio_id || latitudine == null || longitudine == null) {
+    return res.status(400).json({ error: "armadio_id, latitudine e longitudine sono obbligatori." });
+  }
+
+  db.get('SELECT id FROM armadi WHERE id = ? AND rif_utente = ?', [armadio_id, req.user.id], (err, row) => {
+    if (err || !row) return res.status(403).json({ error: "Non sei il proprietario di questo archivio." });
+
+    db.run(
+      `INSERT INTO geofence (rif_armadio, latitudine, longitudine, raggio_m, attivo)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(rif_armadio) DO UPDATE SET
+         latitudine = excluded.latitudine,
+         longitudine = excluded.longitudine,
+         raggio_m = excluded.raggio_m,
+         attivo = excluded.attivo`,
+      [armadio_id, latitudine, longitudine, raggio_m, attivo ? 1 : 0],
+      function (e2) {
+        if (e2) return res.status(500).json({ error: e2.message });
+        res.status(201).json({
+          message: "Geofence impostato.",
+          id: this.lastID || null,
+          armadio_id, latitudine, longitudine, raggio_m, attivo: attivo ? 1 : 0
+        });
+      }
+    );
+  });
+});
+
+/**
+ * Legge il geofence di un armadio.
+ * GET /api/geofence/:armadioId
+ */
+app.get('/api/geofence/:armadioId', verificaToken, (req, res) => {
+  verificaAccessoArmadio(req.params.armadioId, req.user.id, 'viewer', res, () => {
+    db.get('SELECT * FROM geofence WHERE rif_armadio = ?', [req.params.armadioId], (err, row) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ geofence: row || null });
+    });
+  });
+});
+
+/**
+ * Elimina il geofence di un armadio (solo proprietario).
+ * DELETE /api/geofence/:armadioId
+ */
+app.delete('/api/geofence/:armadioId', verificaToken, (req, res) => {
+  db.get('SELECT id FROM armadi WHERE id = ? AND rif_utente = ?', [req.params.armadioId, req.user.id], (err, row) => {
+    if (err || !row) return res.status(403).json({ error: "Non sei il proprietario." });
+    db.run('DELETE FROM geofence WHERE rif_armadio = ?', [req.params.armadioId], function (e2) {
+      if (e2) return res.status(500).json({ error: e2.message });
+      res.json({ message: "Geofence rimosso." });
+    });
+  });
+});
+
+/**
+ * Verifica la posizione di un asset rispetto al geofence del suo armadio.
+ * Se l'asset risulta fuori dal perimetro, restituisce un'eccezione di sicurezza.
+ * POST /api/geofence/verifica
+ * Body: { box_id, latitudine, longitudine }
+ */
+app.post('/api/geofence/verifica', verificaToken, (req, res) => {
+  const { box_id, latitudine, longitudine } = req.body;
+  if (!box_id || latitudine == null || longitudine == null) {
+    return res.status(400).json({ error: "box_id, latitudine e longitudine sono obbligatori." });
+  }
+
+  // Recupera l'armadio della box e verifica accesso
+  const sqlBox = `
+    SELECT box.id, box.nome, box.rif_armadio, armadi.rif_utente
+    FROM box
+    JOIN armadi ON box.rif_armadio = armadi.id
+    WHERE box.id = ?
+  `;
+  db.get(sqlBox, [box_id], (err, box) => {
+    if (err || !box) return res.status(404).json({ error: "Box non trovata." });
+
+    // Accesso: proprietario o ospite con ruolo viewer+
+    verificaAccessoArmadio(box.rif_armadio, req.user.id, 'viewer', res, () => {
+      db.get('SELECT * FROM geofence WHERE rif_armadio = ? AND attivo = 1', [box.rif_armadio], (e2, fence) => {
+        if (e2) return res.status(500).json({ error: e2.message });
+
+        if (!fence) {
+          return res.json({ geofence_attivo: false, message: "Nessun geofence configurato per questo archivio." });
+        }
+
+        const distanza = haversineMetri(fence.latitudine, fence.longitudine, latitudine, longitudine);
+        const dentro = distanza <= fence.raggio_m;
+
+        const risultato = {
+          geofence_attivo: true,
+          box_id: box.id,
+          box_nome: box.nome,
+          distanza_m: Math.round(distanza),
+          raggio_m: fence.raggio_m,
+          dentro_perimetro: dentro,
+          posizione_rilevata: { latitudine, longitudine },
+          centro_geofence: { latitudine: fence.latitudine, longitudine: fence.longitudine }
+        };
+
+        if (!dentro) {
+          // ⚠️ ECCEZIONE DI SICUREZZA — asset fuori perimetro
+          risultato.alert = {
+            livello: 'SECURITY_EXCEPTION',
+            messaggio: `⚠️ ALERT: "${box.nome}" rilevata a ${Math.round(distanza)} m dal perimetro autorizzato (raggio: ${fence.raggio_m} m). Possibile movimentazione non autorizzata.`,
+            timestamp: new Date().toISOString()
+          };
+          return res.status(200).json(risultato);
+        }
+
+        res.json(risultato);
+      });
+    });
+  });
+});
+
+/**
+ * Verifica automatica geofence al momento della registrazione di un checkpoint GPS.
+ * Sostituisce POST /api/checkpoint con la logica di controllo integrata.
+ * POST /api/checkpoint/sicuro
+ * Body: { rif_box, latitudine, longitudine, accuratezza?, label? }
+ */
+app.post('/api/checkpoint/sicuro', verificaToken, (req, res) => {
+  const { rif_box, latitudine, longitudine, accuratezza, label } = req.body;
+  if (!rif_box || latitudine == null || longitudine == null)
+    return res.status(400).json({ error: "rif_box, latitudine e longitudine sono obbligatori." });
+
+  const sqlCheck = `
+    SELECT box.id, box.moving_mode, box.rif_armadio FROM box
+    JOIN armadi ON box.rif_armadio = armadi.id
+    WHERE box.id = ? AND armadi.rif_utente = ?
+  `;
+  db.get(sqlCheck, [rif_box, req.user.id], (err, boxRow) => {
+    if (err || !boxRow) return res.status(403).json({ error: "Box non trovata o non autorizzato." });
+
+    // Salva il checkpoint
+    const sqlInsert = `INSERT INTO checkpoint_gps (rif_box, rif_utente, latitudine, longitudine, accuratezza, label, timestamp)
+                       VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`;
+    db.run(sqlInsert, [rif_box, req.user.id, latitudine, longitudine, accuratezza || null, label || null], function(runErr) {
+      if (runErr) return res.status(500).json({ error: runErr.message });
+
+      const checkpointId = this.lastID;
+
+      // Controllo geofence se attivo per l'armadio
+      db.get('SELECT * FROM geofence WHERE rif_armadio = ? AND attivo = 1', [boxRow.rif_armadio], (e2, fence) => {
+        if (e2 || !fence) {
+          return res.status(201).json({ id: checkpointId, message: "Checkpoint salvato.", geofence_alert: null });
+        }
+
+        const distanza = haversineMetri(fence.latitudine, fence.longitudine, latitudine, longitudine);
+        const dentro = distanza <= fence.raggio_m;
+
+        const geofence_alert = dentro ? null : {
+          livello: 'SECURITY_EXCEPTION',
+          messaggio: `⚠️ Asset fuori perimetro: ${Math.round(distanza)} m (raggio autorizzato: ${fence.raggio_m} m).`,
+          distanza_m: Math.round(distanza),
+          raggio_m: fence.raggio_m,
+          timestamp: new Date().toISOString()
+        };
+
+        res.status(201).json({
+          id: checkpointId,
+          message: "Checkpoint salvato.",
+          dentro_perimetro: dentro,
+          geofence_alert
+        });
+      });
+    });
+  });
+});
+
 app.listen(PORT, () => {
     console.log(`🚀 SERVER ATTIVO: http://localhost:${PORT}`);
 });

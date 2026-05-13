@@ -14,7 +14,8 @@ import {
   trashOutline, star, starOutline, home, search, searchOutline,
   person, add, filter, cubeOutline, archiveOutline, closeOutline,
   locationOutline, optionsOutline, logOutOutline, timeOutline,
-  chevronForwardOutline, informationCircleOutline, arrowBackOutline
+  chevronForwardOutline, informationCircleOutline, arrowBackOutline,
+  shareOutline, shieldCheckmarkOutline
 } from 'ionicons/icons';
 
 import { DatabaseService } from '../services/database';
@@ -67,7 +68,8 @@ export class HomePage {
       add, filter, home, search, searchOutline, person, star, starOutline,
       trashOutline, cubeOutline, archiveOutline, closeOutline,
       locationOutline, optionsOutline, logOutOutline, timeOutline,
-      chevronForwardOutline, informationCircleOutline, arrowBackOutline
+      chevronForwardOutline, informationCircleOutline, arrowBackOutline,
+      shareOutline, shieldCheckmarkOutline
     });
   }
 
@@ -211,6 +213,22 @@ export class HomePage {
       ]
     });
     await alert.present();
+  }
+
+  apriCondivisione(armadio: any, event: Event) {
+    event.stopPropagation();
+    this.isFilterModalOpen = false;
+    this.router.navigate(['/condivisione-archivio', armadio.id], {
+      queryParams: { nome: armadio.nome }
+    });
+  }
+
+  apriGeofence(armadio: any, event: Event) {
+    event.stopPropagation();
+    this.isFilterModalOpen = false;
+    this.router.navigate(['/geofence-armadio', armadio.id], {
+      queryParams: { nome: armadio.nome }
+    });
   }
 
   async confermaEliminaTipologia(tipo: any, event: Event) {

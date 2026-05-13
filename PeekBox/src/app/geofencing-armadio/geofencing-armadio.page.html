@@ -1,0 +1,101 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Geofencing — {{ nomeArmadio }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- ── CONFIGURAZIONE PERIMETRO ─────────────────── -->
+  <h3><ion-icon name="location-outline"></ion-icon> Perimetro Virtuale</h3>
+
+  <ion-item>
+    <ion-label position="stacked">Latitudine centro</ion-label>
+    <ion-input type="number" [(ngModel)]="geo_lat" placeholder="es. 38.115688"></ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-label position="stacked">Longitudine centro</ion-label>
+    <ion-input type="number" [(ngModel)]="geo_lng" placeholder="es. 13.361267"></ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-label position="stacked">Raggio tolleranza (metri)</ion-label>
+    <ion-input type="number" [(ngModel)]="geo_raggio_m" min="10" max="5000"></ion-input>
+  </ion-item>
+
+  <ion-button expand="block" fill="outline" (click)="usaPosizioneCorrente()" class="ion-margin-top">
+    <ion-icon slot="start" name="navigate-outline"></ion-icon>
+    Usa posizione GPS corrente
+  </ion-button>
+
+  <div style="display: flex; gap: 8px; margin-top: 8px;">
+    <ion-button expand="block" (click)="salvaGeofencing()" style="flex:1" color="primary">
+      <ion-icon slot="start" name="location-outline"></ion-icon>
+      Salva perimetro
+    </ion-button>
+    <ion-button expand="block" fill="outline" (click)="disabilitaGeofencing()" style="flex:1" color="medium">
+      Disabilita
+    </ion-button>
+  </div>
+
+  <!-- ── VERIFICA ASSET ──────────────────────────── -->
+  <h3 class="ion-margin-top"><ion-icon name="navigate-outline"></ion-icon> Verifica posizione asset</h3>
+  <p style="color:var(--ion-color-medium); font-size:0.85rem;">
+    Inserisci le coordinate dell'asset (es. al momento della scansione QR) per verificare se è nel perimetro.
+  </p>
+
+  <ion-item>
+    <ion-label position="stacked">Lat asset</ion-label>
+    <ion-input type="number" [(ngModel)]="lat_asset" placeholder="38.115688"></ion-input>
+  </ion-item>
+  <ion-item>
+    <ion-label position="stacked">Lng asset</ion-label>
+    <ion-input type="number" [(ngModel)]="lng_asset" placeholder="13.361267"></ion-input>
+  </ion-item>
+
+  <ion-button expand="block" fill="outline" (click)="usaPosizoneAssetCorrente()" class="ion-margin-top">
+    <ion-icon slot="start" name="navigate-outline"></ion-icon>
+    Usa GPS dispositivo corrente
+  </ion-button>
+
+  <ion-button expand="block" (click)="verificaPosizoneAsset()" [disabled]="verificaInCorso" class="ion-margin-top" color="secondary">
+    <ion-icon slot="start" name="refresh-outline"></ion-icon>
+    Verifica
+  </ion-button>
+
+  <!-- Risultato verifica -->
+  <div *ngIf="risultatoVerifica" class="risultato-box"
+    [class.ok]="risultatoVerifica.dentro_perimetro"
+    [class.anomalia]="!risultatoVerifica.dentro_perimetro">
+    <ion-icon [name]="risultatoVerifica.dentro_perimetro ? 'checkmark-circle-outline' : 'warning-outline'"></ion-icon>
+    <span *ngIf="risultatoVerifica.dentro_perimetro">
+      ✅ Asset nel perimetro ({{ risultatoVerifica.distanza_m }} m dal centro)
+    </span>
+    <span *ngIf="!risultatoVerifica.dentro_perimetro">
+      ⚠️ FUORI dal perimetro! Distanza: {{ risultatoVerifica.distanza_m }} m (raggio: {{ risultatoVerifica.raggio_m }} m)
+    </span>
+  </div>
+
+  <!-- ── ALERT NON LETTI ────────────────────────── -->
+  <h3 class="ion-margin-top"><ion-icon name="warning-outline"></ion-icon> Alert non letti</h3>
+
+  <p *ngIf="alertGeofencing.length === 0" style="color:var(--ion-color-medium)">
+    Nessun alert in sospeso. ✅
+  </p>
+
+  <ion-list *ngIf="alertGeofencing.length > 0">
+    <ion-item *ngFor="let a of alertGeofencing">
+      <ion-icon name="warning-outline" slot="start" color="danger"></ion-icon>
+      <ion-label class="ion-text-wrap">
+        <h3>{{ a.messaggio }}</h3>
+        <p>{{ a.created_at | date:'dd/MM/yyyy HH:mm' }}</p>
+      </ion-label>
+      <ion-button fill="clear" slot="end" (click)="segnaLetto(a)">
+        <ion-icon name="eye-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </ion-list>
+
+</ion-content>

@@ -90,39 +90,7 @@ db.serialize(() => {
     FOREIGN KEY(rif_utente) REFERENCES utenti(id) ON DELETE CASCADE
   )`);
 
-  // ─────────────────────────────────────────────
-  // 7. CONDIVISIONI ARCHIVIO — N:M tra utenti e armadi (RBAC)
-  //    ruolo: 'viewer' (sola lettura) | 'editor' (co-gestione)
-  // ─────────────────────────────────────────────
-  db.run(`CREATE TABLE IF NOT EXISTS condivisioni_armadio (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    rif_armadio INTEGER NOT NULL,
-    rif_proprietario INTEGER NOT NULL,
-    rif_ospite INTEGER NOT NULL,
-    ruolo TEXT NOT NULL DEFAULT 'viewer',
-    creato_il TEXT NOT NULL DEFAULT (datetime('now')),
-    UNIQUE(rif_armadio, rif_ospite),
-    FOREIGN KEY(rif_armadio) REFERENCES armadi(id) ON DELETE CASCADE,
-    FOREIGN KEY(rif_proprietario) REFERENCES utenti(id) ON DELETE CASCADE,
-    FOREIGN KEY(rif_ospite) REFERENCES utenti(id) ON DELETE CASCADE
-  )`);
-
-  // ─────────────────────────────────────────────
-  // 8. GEOFENCE — Perimetro virtuale per armadi/strutture logistiche
-  //    raggio_m: raggio di tolleranza in metri (default 100 m)
-  // ─────────────────────────────────────────────
-  db.run(`CREATE TABLE IF NOT EXISTS geofence (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    rif_armadio INTEGER NOT NULL UNIQUE,
-    latitudine REAL NOT NULL,
-    longitudine REAL NOT NULL,
-    raggio_m REAL NOT NULL DEFAULT 100,
-    attivo INTEGER NOT NULL DEFAULT 1,
-    creato_il TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY(rif_armadio) REFERENCES armadi(id) ON DELETE CASCADE
-  )`);
-
-  console.log("✅ Schema tabelle SQLite pronto (v3 — Condivisioni + Geofence).");
+  console.log("✅ Schema tabelle SQLite pronto (v2 — GPS + Profili).");
   popolaDatiEsempio();
 });
 

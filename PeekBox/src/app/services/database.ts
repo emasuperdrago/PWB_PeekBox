@@ -160,6 +160,88 @@ export class DatabaseService {
     );
   }
 
+  // ─── CONDIVISIONI ARCHIVIO (RBAC) ─────────────────────────
+
+  /**
+   * Condividi un archivio con un utente tramite email.
+   * ruolo: 'viewer' | 'editor'
+   */
+  condividiArchivio(armadio_id: number, email_ospite: string, ruolo: 'viewer' | 'editor') {
+    return this.http.post(`${this.apiUrl}/condivisioni`,
+      { armadio_id, email_ospite, ruolo }, { headers: this.getAuthHeaders() });
+  }
+
+  /** Elenca le condivisioni attive di un archivio (proprietario). */
+  getCondivisioniArchivio(armadioId: number) {
+    return this.http.get(`${this.apiUrl}/condivisioni/${armadioId}`,
+      { headers: this.getAuthHeaders() });
+  }
+
+  /** Archiviazioni ricevute dall'utente come ospite. */
+  getArchividCondivisiConMe(utenteId: string) {
+    return this.http.get(`${this.apiUrl}/condivisioni/ricevute/${utenteId}`,
+      { headers: this.getAuthHeaders() });
+  }
+
+  /** Revoca una condivisione per id (solo proprietario). */
+  revocaCondivisione(condivisioneId: number) {
+    return this.http.delete(`${this.apiUrl}/condivisioni/${condivisioneId}`,
+      { headers: this.getAuthHeaders() });
+  }
+
+  /** Legge le box di un archivio condiviso (viewer+). */
+  getBoxArchivioCondiviso(armadioId: number) {
+    return this.http.get(`${this.apiUrl}/condivisioni/armadio/${armadioId}/box`,
+      { headers: this.getAuthHeaders() });
+  }
+
+  /** Legge gli oggetti di una box in un archivio condiviso (viewer+). */
+  getOggettiBoxCondivisa(boxId: number) {
+    return this.http.get(`${this.apiUrl}/condivisioni/box/${boxId}/oggetti`,
+      { headers: this.getAuthHeaders() });
+  }
+
+  // ─── GEOFENCING ───────────────────────────────────────────
+
+  /** Crea o aggiorna il geofence di un armadio. */
+  impostaGeofence(armadio_id: number, latitudine: number, longitudine: number, raggio_m: number = 100, attivo: boolean = true) {
+    return this.http.post(`${this.apiUrl}/geofence`,
+      { armadio_id, latitudine, longitudine, raggio_m, attivo },
+      { headers: this.getAuthHeaders() });
+  }
+
+  /** Legge il geofence di un armadio. */
+  getGeofence(armadioId: number) {
+    return this.http.get(`${this.apiUrl}/geofence/${armadioId}`,
+      { headers: this.getAuthHeaders() });
+  }
+
+  /** Elimina il geofence di un armadio. */
+  eliminaGeofence(armadioId: number) {
+    return this.http.delete(`${this.apiUrl}/geofence/${armadioId}`,
+      { headers: this.getAuthHeaders() });
+  }
+
+  /**
+   * Verifica se una posizione GPS è dentro il geofence della box.
+   * Se fuori perimetro, la risposta include geofence_alert con l'eccezione di sicurezza.
+   */
+  verificaGeofence(box_id: number, latitudine: number, longitudine: number) {
+    return this.http.post(`${this.apiUrl}/geofence/verifica`,
+      { box_id, latitudine, longitudine },
+      { headers: this.getAuthHeaders() });
+  }
+
+  /**
+   * Salva un checkpoint GPS con controllo geofence automatico integrato.
+   * Usa questo al posto di salvaCheckpoint quando il geofencing è abilitato.
+   */
+  salvaCheckpointSicuro(rif_box: number, latitudine: number, longitudine: number, accuratezza?: number, label?: string) {
+    return this.http.post(`${this.apiUrl}/checkpoint/sicuro`,
+      { rif_box, latitudine, longitudine, accuratezza, label },
+      { headers: this.getAuthHeaders() });
+  }
+
   // ─── EXPORT ───────────────────────────────────────────────
 
   /**

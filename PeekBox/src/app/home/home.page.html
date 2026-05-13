@@ -162,6 +162,14 @@
             >
               <ion-radio [value]="armadio.id" class="modal-radio"></ion-radio>
               <span class="modal-radio-label">{{ armadio.nome }}</span>
+              <ion-button fill="clear" color="primary" class="modal-action-btn" title="Condividi archivio"
+                (click)="apriCondivisione(armadio, $event)">
+                <ion-icon slot="icon-only" name="share-outline"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" color="tertiary" class="modal-action-btn" title="Geofence"
+                (click)="apriGeofence(armadio, $event)">
+                <ion-icon slot="icon-only" name="shield-checkmark-outline"></ion-icon>
+              </ion-button>
               <ion-button fill="clear" color="danger" class="modal-delete-btn" (click)="confermaEliminaArmadio(armadio, $event)">
                 <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
               </ion-button>

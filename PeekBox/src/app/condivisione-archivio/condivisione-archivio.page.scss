@@ -1,0 +1,50 @@
+.condivisione-page {
+  --background: var(--ion-color-light);
+
+  ion-card {
+    border-radius: 16px;
+    margin: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+
+  ion-card-title {
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    ion-icon { font-size: 1.2rem; }
+    ion-badge { margin-left: auto; }
+  }
+
+  .invite-card { border-top: 4px solid var(--ion-color-primary); }
+
+  .ruolo-info {
+    border-radius: 8px;
+    background: rgba(var(--ion-color-primary-rgb), 0.08);
+    padding: 10px 14px;
+    margin: 10px 0;
+    font-size: 0.85rem;
+    &.editor { background: rgba(var(--ion-color-success-rgb), 0.08); }
+    p { margin: 0; }
+  }
+
+  ion-button[expand="block"] { margin-top: 12px; }
+
+  .loading-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 20px;
+    color: var(--ion-color-medium);
+    font-size: 0.9rem;
+  }
+
+  .data-label { font-size: 0.75rem; color: var(--ion-color-medium); }
+
+  .ospiti-card { border-top: 4px solid var(--ion-color-tertiary); }
+  .received-card { border-top: 4px solid var(--ion-color-secondary); }
+}

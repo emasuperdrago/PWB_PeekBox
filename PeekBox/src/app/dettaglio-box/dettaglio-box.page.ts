@@ -16,7 +16,8 @@ import {
   add, camera, archiveOutline, addCircleOutline,
   trashOutline, imageOutline, cubeOutline, createOutline,
   qrCodeOutline, downloadOutline, locationOutline, navigateOutline,
-  swapHorizontalOutline, documentTextOutline, cloudDownloadOutline
+  swapHorizontalOutline, documentTextOutline, cloudDownloadOutline,
+  shareOutline, shieldCheckmarkOutline
 } from 'ionicons/icons';
 import { PhotoService } from '../services/photo';
 import { DatabaseService } from '../services/database';
@@ -77,7 +78,8 @@ export class DettaglioBoxPage implements OnInit {
       add, camera, archiveOutline, addCircleOutline, trashOutline,
       imageOutline, cubeOutline, createOutline, qrCodeOutline,
       downloadOutline, locationOutline, navigateOutline,
-      swapHorizontalOutline, documentTextOutline, cloudDownloadOutline
+      swapHorizontalOutline, documentTextOutline, cloudDownloadOutline,
+      shareOutline, shieldCheckmarkOutline
     });
   }
 
@@ -166,6 +168,28 @@ export class DettaglioBoxPage implements OnInit {
 
   apriTransitZone() {
     this.router.navigate(['/transit-zone']);
+  }
+
+  // ─── CONDIVISIONE ARCHIVIO ─────────────────────────────────
+
+  apriCondivisione() {
+    const armadioId = this.boxCorrente?.rif_armadio;
+    if (!armadioId) return;
+    this.mostraQR = false;
+    this.router.navigate(['/condivisione-archivio', armadioId], {
+      queryParams: { nome: this.nomeArmadio }
+    });
+  }
+
+  // ─── GEOFENCE ──────────────────────────────────────────────
+
+  apriGeofence() {
+    const armadioId = this.boxCorrente?.rif_armadio;
+    if (!armadioId) return;
+    this.mostraQR = false;
+    this.router.navigate(['/geofence-armadio', armadioId], {
+      queryParams: { nome: this.nomeArmadio }
+    });
   }
 
   // ─── EXPORT / STAMPA ───────────────────────────────────────
