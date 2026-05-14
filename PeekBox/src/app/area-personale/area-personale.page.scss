@@ -339,6 +339,17 @@ $red:     #F87171;
     border: 1px solid rgba(248,113,113,.20);
     .azione-icon { color: $red; }
   }
+  &--purple {
+    background: rgba(167,139,250,.12);
+    border: 1px solid rgba(167,139,250,.25);
+    .azione-icon { color: #A78BFA; }
+  }
+}
+
+.azione-row--admin {
+  border: 1px solid rgba(167,139,250,.15);
+  background: rgba(167,139,250,.04);
+  .azione-titolo { color: #C4B5FD; }
 }
 
 .azione-icon { font-size: 1.2rem; }

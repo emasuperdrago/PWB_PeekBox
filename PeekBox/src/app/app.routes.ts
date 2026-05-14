@@ -54,4 +54,9 @@ export const routes: Routes = [
     path: 'geofence-armadio/:id',
     loadComponent: () => import('./geofence-armadio/geofence-armadio.page').then(m => m.GeofenceArmadioPage)
   },
+  // ── ADMIN — Pannello di amministrazione ──────────────────────────────────
+  {
+    path: 'admin',
+    loadComponent: () => import('./admin/admin.page').then(m => m.AdminPage)
+  },
 ];

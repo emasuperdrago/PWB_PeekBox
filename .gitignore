@@ -7,3 +7,4 @@ PeekBox-Backend/node_modules/
 database.sqlite
 *.db
 *.sqlite
+.env

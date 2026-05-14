@@ -46,6 +46,17 @@ function verificaToken(req, res, next) {
     });
 }
 
+// --- MIDDLEWARE AUTENTICAZIONE ADMIN ---
+function verificaAdmin(req, res, next) {
+    verificaToken(req, res, () => {
+        db.get('SELECT is_admin FROM utenti WHERE id = ?', [req.user.id], (err, row) => {
+            if (err || !row || row.is_admin !== 1)
+                return res.status(403).json({ error: "Accesso riservato agli amministratori." });
+            next();
+        });
+    });
+}
+
 app.get('/', (req, res) => {
     res.send('🚀 Backend PeekBox v2 attivo — GPS + Profili!');
 });
@@ -80,7 +91,7 @@ app.post('/api/login', (req, res) => {
             res.json({
                 message: "Accesso eseguito!",
                 token,
-                user: { id: user.id, username: user.username, email: user.email, tipo_profilo: user.tipo_profilo }
+                user: { id: user.id, username: user.username, email: user.email, tipo_profilo: user.tipo_profilo, is_admin: user.is_admin === 1 }
             });
         } else {
             res.status(401).json({ error: "Credenziali non valide." });
@@ -1166,6 +1177,58 @@ app.get('/api/box/:id/segnalazioni', verificaToken, (req, res) => {
                 res.json({ segnalazioni: rows });
             }
         );
+    });
+});
+
+
+// ─────────────────────────────────────────────
+// AMMINISTRAZIONE
+// ─────────────────────────────────────────────
+
+// GET tutti gli utenti con conteggio armadi, box e oggetti
+app.get('/api/admin/utenti', verificaAdmin, (req, res) => {
+    const sql = `
+        SELECT
+            u.id,
+            u.username,
+            u.email,
+            u.tipo_profilo,
+            u.is_admin,
+            COUNT(DISTINCT a.id)  AS num_armadi,
+            COUNT(DISTINCT b.id)  AS num_box,
+            COALESCE(SUM(o_cnt.cnt), 0) AS num_oggetti
+        FROM utenti u
+        LEFT JOIN armadi a ON a.rif_utente = u.id
+        LEFT JOIN box b ON b.rif_armadio = a.id AND b.data_eliminazione IS NULL
+        LEFT JOIN (
+            SELECT rif_box, COUNT(*) AS cnt FROM oggetti GROUP BY rif_box
+        ) o_cnt ON o_cnt.rif_box = b.id
+        GROUP BY u.id
+        ORDER BY u.id ASC
+    `;
+    db.all(sql, [], (err, rows) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ utenti: rows });
+    });
+});
+
+// DELETE utente (cascade elimina tutto)
+app.delete('/api/admin/utenti/:id', verificaAdmin, (req, res) => {
+    const targetId = req.params.id;
+    if (String(targetId) === String(req.user.id))
+        return res.status(400).json({ error: "Non puoi eliminare il tuo stesso account." });
+    db.run('DELETE FROM utenti WHERE id = ?', [targetId], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        if (this.changes === 0) return res.status(404).json({ error: "Utente non trovato." });
+        res.json({ message: "Utente eliminato con successo." });
+    });
+});
+
+// GET verifica se l'utente corrente è admin (usato dal frontend al login)
+app.get('/api/admin/me', verificaToken, (req, res) => {
+    db.get('SELECT is_admin FROM utenti WHERE id = ?', [req.user.id], (err, row) => {
+        if (err || !row) return res.status(404).json({ error: "Utente non trovato." });
+        res.json({ is_admin: row.is_admin === 1 });
     });
 });
 

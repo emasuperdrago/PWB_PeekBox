@@ -296,4 +296,16 @@ export class DatabaseService {
       headers: this.getAuthHeaders()
     });
   }
+
+  // ─── ADMIN ────────────────────────────────────────────────
+
+  /** Lista tutti gli utenti con statistiche (solo admin) */
+  adminGetUtenti() {
+    return this.http.get(`${this.apiUrl}/admin/utenti`, { headers: this.getAuthHeaders() });
+  }
+
+  /** Elimina un utente per ID (solo admin) */
+  adminEliminaUtente(id: number) {
+    return this.http.delete(`${this.apiUrl}/admin/utenti/${id}`, { headers: this.getAuthHeaders() });
+  }
 }

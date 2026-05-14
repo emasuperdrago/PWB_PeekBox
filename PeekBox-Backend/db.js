@@ -12,19 +12,27 @@ const db = new sqlite3.Database(dbPath, (err) => {
 db.serialize(() => {
   db.run("PRAGMA foreign_keys = ON;");
 
-  // 1. Tabella UTENTI — con tipo_profilo ('personal' | 'business')
+  // 1. Tabella UTENTI — con tipo_profilo ('personal' | 'business') e is_admin
   db.run(`CREATE TABLE IF NOT EXISTS utenti (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    tipo_profilo TEXT NOT NULL DEFAULT 'personal'
+    tipo_profilo TEXT NOT NULL DEFAULT 'personal',
+    is_admin INTEGER NOT NULL DEFAULT 0
   )`);
 
   // Migrazione: aggiunge tipo_profilo se il database esiste già
   db.run(`ALTER TABLE utenti ADD COLUMN tipo_profilo TEXT NOT NULL DEFAULT 'personal'`, (err) => {
     if (err && !err.message.includes('duplicate column')) {
       console.error("Migrazione tipo_profilo:", err.message);
+    }
+  });
+
+  // Migrazione: aggiunge is_admin se il database esiste già
+  db.run(`ALTER TABLE utenti ADD COLUMN is_admin INTEGER NOT NULL DEFAULT 0`, (err) => {
+    if (err && !err.message.includes('duplicate column')) {
+      console.error("Migrazione is_admin:", err.message);
     }
   });
 

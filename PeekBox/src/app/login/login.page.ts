@@ -36,7 +36,9 @@ export class LoginPage implements OnInit {
         localStorage.setItem('token', res.token);
         localStorage.setItem('utente_id', String(res.user.id));
         localStorage.setItem('utente_nome', res.user.username);
+        localStorage.setItem('utente_email', res.user.email || '');
         localStorage.setItem('tipo_profilo', res.user.tipo_profilo || 'personal');
+        localStorage.setItem('is_admin', res.user.is_admin ? '1' : '0');
         this.router.navigate(['/home']);
       },
       error: async (err) => {

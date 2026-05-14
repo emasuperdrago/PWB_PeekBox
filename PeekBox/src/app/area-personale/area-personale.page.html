@@ -89,6 +89,23 @@
       <!-- Divider -->
       <div class="azione-divider"></div>
 
+      <!-- Pannello Admin (solo per admin) -->
+      <button *ngIf="isAdmin" class="azione-row azione-row--admin" (click)="vaiAdmin()">
+        <div class="azione-left">
+          <div class="azione-icon-wrap azione-icon-wrap--purple">
+            <ion-icon name="shield-checkmark-outline" class="azione-icon"></ion-icon>
+          </div>
+          <div class="azione-testo">
+            <span class="azione-titolo">Pannello Amministratore</span>
+            <span class="azione-sub">Gestione utenti e statistiche globali</span>
+          </div>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="azione-arrow"></ion-icon>
+      </button>
+
+      <!-- Divider (solo per admin) -->
+      <div *ngIf="isAdmin" class="azione-divider"></div>
+
       <!-- Logout -->
       <button class="azione-row azione-row--danger" (click)="confermaLogout()">
         <div class="azione-left">

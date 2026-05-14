@@ -11,7 +11,7 @@ import {
   archiveOutline, cubeOutline, timeOutline, logOutOutline,
   chevronForwardOutline, arrowBackOutline, trashOutline,
   informationCircleOutline, personCircleOutline, home, search,
-  closeOutline, checkmarkCircleOutline,
+  closeOutline, checkmarkCircleOutline, shieldCheckmarkOutline,
 } from 'ionicons/icons';
 
 import { DatabaseService } from '../services/database';
@@ -34,6 +34,7 @@ export class AreaPersonalePage implements OnInit {
   utenteId: string | null = null;
   nomeUtente: string = '';
   emailUtente: string = '';
+  isAdmin: boolean = false;
 
   // Statistiche
   totaleBox: number = 0;
@@ -56,7 +57,7 @@ export class AreaPersonalePage implements OnInit {
       archiveOutline, cubeOutline, timeOutline, logOutOutline,
       chevronForwardOutline, arrowBackOutline, trashOutline,
       informationCircleOutline, personCircleOutline, home, search,
-      closeOutline, checkmarkCircleOutline,
+      closeOutline, checkmarkCircleOutline, shieldCheckmarkOutline,
     });
   }
 
@@ -66,6 +67,7 @@ export class AreaPersonalePage implements OnInit {
     this.utenteId = localStorage.getItem('utente_id');
     this.nomeUtente = (localStorage.getItem('utente_nome') || '').toUpperCase();
     this.emailUtente = localStorage.getItem('utente_email') || '';
+    this.isAdmin = localStorage.getItem('is_admin') === '1';
 
     if (this.utenteId) {
       this.caricaStatistiche(this.utenteId);
@@ -178,5 +180,9 @@ export class AreaPersonalePage implements OnInit {
 
   vaiSearch() {
     this.router.navigateByUrl('/search');
+  }
+
+  vaiAdmin() {
+    this.router.navigateByUrl('/admin');
   }
 }
