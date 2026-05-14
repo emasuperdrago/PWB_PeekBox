@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule, Location } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BackButtonComponent } from '../components/back-button/back-button.component';
@@ -12,24 +12,22 @@ import { ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
   swapHorizontalOutline, archiveOutline, checkmarkCircleOutline,
-  closeCircleOutline, cubeOutline, trashOutline, refreshOutline,
-  downloadOutline, documentTextOutline
+  arrowForwardOutline, downloadOutline, documentTextOutline
 } from 'ionicons/icons';
 
 import { DatabaseService } from '../services/database';
 import { ExportService } from '../services/export';
 
 /**
- * TransitZonePage — Area di Transito (Drag & Drop)
- * ─────────────────────────────────────────────────
- * Permette all'utente di:
- *  1. Selezionare una box sorgente e una box destinazione
- *  2. Trascinare (drag & drop) gli oggetti dall'elenco sorgente
- *     alla zona di transito
- *  3. Confermare lo spostamento con un'unica chiamata API asincrona
- *  4. Stampare le etichette PDF e scaricare l'inventario (CSV/JSON)
+ * TransitZonePage — Riorganizza & Esporta (v2 — 2 colonne, spostamento diretto)
+ * ──────────────────────────────────────────────────────────────────────────────
+ * Logica semplificata: la Zona di Transito è stata rimossa.
+ * L'oggetto passa direttamente da Sorgente → Destinazione e, contestualmente,
+ * viene eseguita la chiamata AJAX al backend che aggiorna il DB:
+ *   UPDATE Oggetto SET rif_box = ? WHERE id_ogg = ?
  *
- * Compatibilità: Web + Ionic/Capacitor (touch events gestiti)
+ * Validazione bloccante: nessuno spostamento è consentito se boxDestinazioneId
+ * è null/undefined — sia tramite click (→) che tramite drag & drop.
  */
 @Component({
   selector: 'app-transit-zone',
@@ -37,7 +35,7 @@ import { ExportService } from '../services/export';
   styleUrls: ['./transit-zone.page.scss'],
   standalone: true,
   imports: [
-BackButtonComponent,     CommonModule, FormsModule,
+    BackButtonComponent, CommonModule, FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
     IonButton, IonIcon, IonSelect, IonSelectOption,
     IonSpinner, IonBadge
@@ -54,39 +52,31 @@ export class TransitZonePage implements OnInit, OnDestroy {
   boxSorgenteId: number | null = null;
   boxDestinazioneId: number | null = null;
 
-  // Oggetti nelle rispettive aree
+  // Oggetti nelle due colonne (niente transit intermedia)
   oggettiSorgente: any[] = [];
-  oggettiTransit: any[] = [];   // area buffer drag & drop
   oggettiDestinazione: any[] = [];
 
   // Stato UI
   isLoading = false;
   isSaving = false;
   draggedItem: any = null;
-  dragOverZone: 'sorgente' | 'transit' | 'destinazione' | null = null;
-
-  // Riferimento listeners touch (cleanup su destroy)
-  private touchListeners: { el: HTMLElement, type: string, fn: EventListener }[] = [];
+  dragOverZone: 'sorgente' | 'destinazione' | null = null;
 
   constructor(
     private dbService: DatabaseService,
     private exportService: ExportService,
     private toastCtrl: ToastController,
     private router: Router,
-    private route: ActivatedRoute   // ★ FIX: per leggere queryParams
+    private route: ActivatedRoute
   ) {
     addIcons({
       swapHorizontalOutline, archiveOutline, checkmarkCircleOutline,
-      closeCircleOutline, cubeOutline, trashOutline, refreshOutline,
-      downloadOutline, documentTextOutline
+      arrowForwardOutline, downloadOutline, documentTextOutline
     });
   }
 
   ngOnInit() {
     this.utenteId = localStorage.getItem('utente_id');
-    // ★ FIX B: leggi il queryParam PRIMA di caricare le box, poi
-    //          carica gli oggetti sorgente nel callback di caricaBox()
-    //          invece di affidarsi a un setTimeout fragile.
     const boxPreselezionata = this.route.snapshot.queryParamMap.get('boxSorgenteId');
     if (boxPreselezionata) {
       this.boxSorgenteId = Number(boxPreselezionata);
@@ -97,10 +87,7 @@ export class TransitZonePage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // Pulizia listener touch per evitare memory leak
-    for (const { el, type, fn } of this.touchListeners) {
-      el.removeEventListener(type, fn);
-    }
+    // Nessun listener touch manuale da rimuovere (gestione via template Angular)
   }
 
   // ─── CARICAMENTO DATI ──────────────────────────────────────
@@ -110,7 +97,6 @@ export class TransitZonePage implements OnInit, OnDestroy {
     this.dbService.getBox(this.utenteId).subscribe({
       next: (res: any) => {
         this.tutteLeBox = res.box || [];
-        // ★ FIX B: carica gli oggetti sorgente SOLO dopo che tutteLeBox è pronto
         if (preselezioneId && this.tutteLeBox.some(b => b.id === preselezioneId)) {
           this.caricaOggettiSorgente();
         }
@@ -125,7 +111,8 @@ export class TransitZonePage implements OnInit, OnDestroy {
 
   onBoxSorgenteChange() {
     this.oggettiSorgente = [];
-    this.oggettiTransit = [];
+    // Se la sorgente cambia, la destinazione attuale potrebbe ora coincidere:
+    // la filterizzazione del getter la esclude automaticamente.
     if (this.boxSorgenteId) {
       this.caricaOggettiSorgente();
     }
@@ -154,13 +141,81 @@ export class TransitZonePage implements OnInit, OnDestroy {
     if (!this.boxDestinazioneId) return;
     this.dbService.getOggettiPerBox(this.boxDestinazioneId).subscribe({
       next: (res: any) => { this.oggettiDestinazione = res.oggetti || []; },
-      error: (err: any) => console.error('Errore dest:', err)
+      error: (err: any) => console.error('Errore caricamento destinazione:', err)
+    });
+  }
+
+  // ─── VALIDAZIONE BLOCCANTE ────────────────────────────────
+
+  /**
+   * Verifica che la box destinazione sia selezionata e valida.
+   * Mostra un Toast di avviso e restituisce false se non lo è.
+   * Chiamare SEMPRE prima di qualsiasi spostamento (click o drop).
+   */
+  private async validaDestinazione(): Promise<boolean> {
+    if (!this.boxDestinazioneId || isNaN(Number(this.boxDestinazioneId))) {
+      await this.mostraToast(
+        '⚠️ Seleziona prima una box di destinazione valida!',
+        'warning'
+      );
+      return false;
+    }
+    return true;
+  }
+
+  // ─── SPOSTAMENTO DIRETTO + SALVATAGGIO IMMEDIATO ──────────
+
+  /**
+   * Spostamento tramite tasto → (click).
+   * 1. Valida la destinazione (bloccante).
+   * 2. Rimuove l'oggetto dalla sorgente locale.
+   * 3. Chiama il backend (AJAX).
+   * 4. In caso di successo aggiunge l'oggetto alla destinazione locale.
+   * 5. In caso di errore ripristina l'oggetto nella sorgente.
+   */
+  async spostaInDestinazione(ogg: any) {
+    if (!(await this.validaDestinazione())) return;
+    if (this.isSaving) return;
+
+    const idOgg = Number(ogg.id);
+    if (isNaN(idOgg) || idOgg <= 0) {
+      await this.mostraToast('❌ Oggetto con ID non valido.', 'danger');
+      return;
+    }
+
+    // Rimuovi subito dalla sorgente (ottimistico — rollback in errore)
+    const idx = this.oggettiSorgente.findIndex(o => o.id === ogg.id);
+    if (idx === -1) return;
+    this.oggettiSorgente.splice(idx, 1);
+
+    this.isSaving = true;
+    this.dbService.spostaOggetto(idOgg, Number(this.boxDestinazioneId)).subscribe({
+      next: async () => {
+        this.isSaving = false;
+        // Aggiunge alla lista destinazione con badge visivo temporaneo
+        const oggettoSpostato = { ...ogg, _appenaArrivato: true };
+        this.oggettiDestinazione.push(oggettoSpostato);
+        // Rimuove il badge dopo 3 secondi
+        setTimeout(() => { oggettoSpostato._appenaArrivato = false; }, 3000);
+        await this.mostraToast(`✅ "${ogg.nome}" spostato!`, 'success');
+      },
+      error: async (err: any) => {
+        this.isSaving = false;
+        // Rollback: reinserisce l'oggetto nella sorgente
+        this.oggettiSorgente.splice(idx, 0, ogg);
+        const serverMsg = err?.error?.error || err?.message || 'Errore sconosciuto';
+        console.error('[spostaInDestinazione] Errore:', err.status, serverMsg);
+        await this.mostraToast(
+          `❌ Spostamento fallito (${err.status}): ${serverMsg}`,
+          'danger'
+        );
+      }
     });
   }
 
   // ─── DRAG & DROP (Mouse — desktop) ────────────────────────
 
-  onDragStart(event: DragEvent, item: any, zona: 'sorgente' | 'transit' | 'destinazione') {
+  onDragStart(event: DragEvent, item: any, zona: 'sorgente' | 'destinazione') {
     this.draggedItem = { item, zona };
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
@@ -168,7 +223,7 @@ export class TransitZonePage implements OnInit, OnDestroy {
     }
   }
 
-  onDragOver(event: DragEvent, zona: 'sorgente' | 'transit' | 'destinazione') {
+  onDragOver(event: DragEvent, zona: 'sorgente' | 'destinazione') {
     event.preventDefault();
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     this.dragOverZone = zona;
@@ -178,40 +233,48 @@ export class TransitZonePage implements OnInit, OnDestroy {
     this.dragOverZone = null;
   }
 
-  onDrop(event: DragEvent, zonaTarget: 'sorgente' | 'transit' | 'destinazione') {
+  async onDrop(event: DragEvent, zonaTarget: 'sorgente' | 'destinazione') {
     event.preventDefault();
     this.dragOverZone = null;
     if (!this.draggedItem) return;
-    this.spostaItemTra(this.draggedItem.item, this.draggedItem.zona, zonaTarget);
+    if (this.draggedItem.zona === zonaTarget) { this.draggedItem = null; return; }
+
+    // Blocca se destinazione non valida
+    if (zonaTarget === 'destinazione' && !(await this.validaDestinazione())) {
+      this.draggedItem = null;
+      return;
+    }
+
+    await this.eseguiSpostamento(this.draggedItem.item, this.draggedItem.zona, zonaTarget);
     this.draggedItem = null;
   }
 
   // ─── TOUCH (mobile / Capacitor) ───────────────────────────
 
-  /**
-   * Gestione touch drag: al touchend confrontiamo le coordinate del
-   * dito con le bounding box delle zone per determinare la destinazione.
-   */
-  onTouchStart(event: TouchEvent, item: any, zona: 'sorgente' | 'transit' | 'destinazione') {
+  onTouchStart(event: TouchEvent, item: any, zona: 'sorgente' | 'destinazione') {
     this.draggedItem = { item, zona };
   }
 
-  onTouchEnd(event: TouchEvent, _zona: 'sorgente' | 'transit' | 'destinazione') {
+  async onTouchEnd(event: TouchEvent, _zona: 'sorgente' | 'destinazione') {
     if (!this.draggedItem) return;
     const touch = event.changedTouches[0];
     const zonaTarget = this.getZonaDalPunto(touch.clientX, touch.clientY);
+
     if (zonaTarget && zonaTarget !== this.draggedItem.zona) {
-      this.spostaItemTra(this.draggedItem.item, this.draggedItem.zona, zonaTarget);
+      if (zonaTarget === 'destinazione' && !(await this.validaDestinazione())) {
+        this.draggedItem = null;
+        return;
+      }
+      await this.eseguiSpostamento(this.draggedItem.item, this.draggedItem.zona, zonaTarget);
     }
+
     this.draggedItem = null;
     this.dragOverZone = null;
   }
 
-  /** Determina in quale zona si trova il punto (x, y) dello schermo. */
-  private getZonaDalPunto(x: number, y: number): 'sorgente' | 'transit' | 'destinazione' | null {
-    const zone: Array<{ id: string, zona: 'sorgente' | 'transit' | 'destinazione' }> = [
-      { id: 'zona-sorgente', zona: 'sorgente' },
-      { id: 'zona-transit', zona: 'transit' },
+  private getZonaDalPunto(x: number, y: number): 'sorgente' | 'destinazione' | null {
+    const zone: Array<{ id: string; zona: 'sorgente' | 'destinazione' }> = [
+      { id: 'zona-sorgente',     zona: 'sorgente' },
       { id: 'zona-destinazione', zona: 'destinazione' }
     ];
     for (const z of zone) {
@@ -225,99 +288,21 @@ export class TransitZonePage implements OnInit, OnDestroy {
     return null;
   }
 
-  // ─── LOGICA SPOSTAMENTO LOCALE ────────────────────────────
-
-  private spostaItemTra(
+  /**
+   * Spostamento comune usato sia dal drop che dal touch end.
+   * Per ora solo Sorgente → Destinazione è supportato (il drop inverso
+   * è ignorato per semplicità; si può estendere).
+   */
+  private async eseguiSpostamento(
     item: any,
-    zonaFrom: 'sorgente' | 'transit' | 'destinazione',
-    zonaTo: 'sorgente' | 'transit' | 'destinazione'
+    _zonaFrom: 'sorgente' | 'destinazione',
+    zonaTo: 'sorgente' | 'destinazione'
   ) {
-    if (zonaFrom === zonaTo) return;
-
-    const listaFrom = this.getListaPerZona(zonaFrom);
-    const listaTo   = this.getListaPerZona(zonaTo);
-
-    const idx = listaFrom.findIndex(o => o.id === item.id);
-    if (idx === -1) return;
-
-    listaFrom.splice(idx, 1);
-    listaTo.push(item);
-  }
-
-  private getListaPerZona(zona: 'sorgente' | 'transit' | 'destinazione'): any[] {
-    if (zona === 'sorgente') return this.oggettiSorgente;
-    if (zona === 'transit') return this.oggettiTransit;
-    return this.oggettiDestinazione;
-  }
-
-  /** Sposta rapidamente un oggetto con un click (doppio-click su mobile) */
-  spostaInTransit(item: any, zona: 'sorgente' | 'destinazione') {
-    this.spostaItemTra(item, zona, 'transit');
-  }
-
-  riportaInSorgente(item: any) {
-    this.spostaItemTra(item, 'transit', 'sorgente');
-  }
-
-  svuotaTransit() {
-    // Restituisce tutto alla sorgente
-    this.oggettiSorgente.push(...this.oggettiTransit);
-    this.oggettiTransit = [];
-  }
-
-  // ─── CONFERMA SPOSTAMENTO → DB ────────────────────────────
-
-  async confermaSpostamento() {
-    if (!this.boxDestinazioneId) {
-      await this.mostraToast('Seleziona una box di destinazione.', 'warning');
-      return;
+    if (zonaTo === 'destinazione') {
+      await this.spostaInDestinazione(item);
     }
-    if (this.oggettiTransit.length === 0) {
-      await this.mostraToast('Trascina almeno un oggetto nella zona di transito.', 'warning');
-      return;
-    }
-    // ★ FIX: blocca doppio-click durante il salvataggio (equivalente di preventDefault)
-    if (this.isSaving) return;
-
-    // ★ FIX A: valida gli ID prima di chiamare il service
-    const ids = this.oggettiTransit
-      .map(o => Number(o.id))
-      .filter(id => !isNaN(id) && id > 0);
-
-    if (ids.length !== this.oggettiTransit.length) {
-      console.error('[confermaSpostamento] Alcuni oggetti hanno ID non validi:', this.oggettiTransit);
-      await this.mostraToast('Errore: alcuni oggetti non hanno un ID valido.', 'danger');
-      return;
-    }
-
-    const destId = Number(this.boxDestinazioneId);
-    this.isSaving = true;
-
-    // ★ FIX: la navigazione/aggiornamento UI avviene SOLO nel blocco next(),
-    //        dopo che il DB ha confermato l'UPDATE — mai prima.
-    this.dbService.spostaOggetti(ids, destId).subscribe({
-      next: async (res: any) => {
-        this.isSaving = false;
-        this.oggettiTransit = [];
-        // Ricarica dal server — fonte di verità unica
-        this.caricaOggettiSorgente();
-        this.caricaOggettiDestinazione();
-        await this.mostraToast(
-          `✅ ${res.spostati} oggett${res.spostati === 1 ? 'o spostato' : 'i spostati'}!`,
-          'success'
-        );
-      },
-      error: async (err: any) => {
-        this.isSaving = false;
-        // ★ FIX C: log e display del messaggio preciso dal server
-        const serverMsg = err?.error?.error || err?.message || 'Errore sconosciuto';
-        console.error('[confermaSpostamento] Errore server:', err.status, serverMsg);
-        await this.mostraToast(
-          `❌ Spostamento fallito (${err.status}): ${serverMsg}`,
-          'danger'
-        );
-      }
-    });
+    // Se zonaTo === 'sorgente' (drag di ritorno): non fa nulla —
+    // gli oggetti in destinazione sono già persistiti sul DB.
   }
 
   // ─── EXPORT / STAMPA ──────────────────────────────────────
@@ -347,7 +332,12 @@ export class TransitZonePage implements OnInit, OnDestroy {
   // ─── UTILITY ──────────────────────────────────────────────
 
   private async mostraToast(message: string, color: string = 'primary') {
-    const toast = await this.toastCtrl.create({ message, duration: 2500, color, position: 'bottom' });
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 2500,
+      color,
+      position: 'bottom'
+    });
     await toast.present();
   }
 }

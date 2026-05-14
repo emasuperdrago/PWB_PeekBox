@@ -180,6 +180,32 @@ export class DatabaseService {
     );
   }
 
+
+  /**
+   * Sposta un SINGOLO oggetto in una box di destinazione.
+   * UPDATE Oggetto SET rif_box = ? WHERE id_ogg = ?
+   */
+  spostaOggetto(idOgg: number, boxDestinazioneId: number) {
+    const id   = Number(idOgg);
+    const dest = Number(boxDestinazioneId);
+
+    if (!id || isNaN(id) || id <= 0) {
+      console.error('[spostaOggetto] ID oggetto non valido:', idOgg);
+      throw new Error('ID oggetto non valido');
+    }
+    if (!dest || isNaN(dest) || dest <= 0) {
+      console.error('[spostaOggetto] ID box destinazione non valido:', boxDestinazioneId);
+      throw new Error('ID box destinazione non valido');
+    }
+
+    console.log(`[spostaOggetto] PUT — id_ogg: ${id} → box ${dest}`);
+    return this.http.put(
+      `${this.apiUrl}/oggetti/sposta`,
+      { oggetti_ids: [id], box_destinazione_id: dest },
+      { headers: this.getAuthHeaders() }
+    );
+  }
+
   // ─── TIPOLOGIE ────────────────────────────────────────────
 
   getTipologie(utenteId: string) {

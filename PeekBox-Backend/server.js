@@ -420,23 +420,6 @@ app.post('/api/oggetti', verificaToken, (req, res) => {
     });
 });
 
-app.put('/api/oggetti/:id', verificaToken, (req, res) => {
-    const { nome, descrizione, tipo, fragile, quantita, foto } = req.body;
-    db.run(`UPDATE oggetti SET nome = ?, descrizione = ?, tipo = ?, fragile = ?, quantita = ?, foto = ? WHERE id = ?`,
-        [nome, descrizione, tipo, fragile ? 1 : 0, quantita || 1, foto, req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: "Errore aggiornamento." });
-        res.json({ message: "Oggetto aggiornato!" });
-    });
-});
-
-app.delete('/api/oggetti/:id', verificaToken, (req, res) => {
-    db.run('DELETE FROM oggetti WHERE id = ?', [req.params.id], function(err) {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json({ message: "Oggetto eliminato!" });
-    });
-});
-
-// ─────────────────────────────────────────────
 // TRANSIT ZONE — Spostamento oggetti tra box
 // ─────────────────────────────────────────────
 
@@ -504,6 +487,23 @@ app.put('/api/oggetti/sposta', verificaToken, (req, res) => {
                 });
             });
         });
+    });
+});
+
+// ─────────────────────────────────────────────
+app.put('/api/oggetti/:id', verificaToken, (req, res) => {
+    const { nome, descrizione, tipo, fragile, quantita, foto } = req.body;
+    db.run(`UPDATE oggetti SET nome = ?, descrizione = ?, tipo = ?, fragile = ?, quantita = ?, foto = ? WHERE id = ?`,
+        [nome, descrizione, tipo, fragile ? 1 : 0, quantita || 1, foto, req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: "Errore aggiornamento." });
+        res.json({ message: "Oggetto aggiornato!" });
+    });
+});
+
+app.delete('/api/oggetti/:id', verificaToken, (req, res) => {
+    db.run('DELETE FROM oggetti WHERE id = ?', [req.params.id], function(err) {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json({ message: "Oggetto eliminato!" });
     });
 });
 

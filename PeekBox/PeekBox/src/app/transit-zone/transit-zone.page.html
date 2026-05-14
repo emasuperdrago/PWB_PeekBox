@@ -4,10 +4,10 @@
       <app-back-button fallbackRoute="/home"></app-back-button>
     </ion-buttons>
     <ion-title class="toolbar-title">
-      <div class="toolbar-title-name">Zona di Transito</div>
+      <div class="toolbar-title-name">Riorganizza &amp; Esporta</div>
       <div class="toolbar-title-sub">
         <ion-icon name="swap-horizontal-outline"></ion-icon>
-        Riorganizza &amp; Esporta
+        Sposta oggetti tra box
       </div>
     </ion-title>
   </ion-toolbar>
@@ -36,14 +36,9 @@
 
     <div class="selector-card">
       <p class="selector-label">📦 Box Sorgente</p>
-      <!--
-        ★ FIX BUG 1: in Ionic 8 standalone, [(ngModel)] + (ionChange) sullo stesso
-        ion-select crea un conflitto: ionChange scatta PRIMA che Angular scriva
-        il valore su boxSorgenteId. Fix: solo [value] + (ionChange) con $event.detail.value.
-      -->
       <ion-select
-        [value]="boxSorgenteId"
-        (ionChange)="onBoxSorgenteChange($event.detail.value)"
+        [(ngModel)]="boxSorgenteId"
+        (ionChange)="onBoxSorgenteChange()"
         placeholder="Seleziona sorgente"
         class="pb-select">
         <ion-select-option *ngFor="let b of tutteLeBox" [value]="b.id">
@@ -53,24 +48,24 @@
     </div>
 
     <div class="swap-icon">
-      <ion-icon name="swap-horizontal-outline"></ion-icon>
+      <ion-icon name="arrow-forward-outline"></ion-icon>
     </div>
 
-    <div class="selector-card">
+    <div class="selector-card" [class.selector-card--required]="!boxDestinazioneId && boxSorgenteId">
       <p class="selector-label">🎯 Box Destinazione</p>
-      <!--
-        ★ FIX BUG 1: stesso fix — [value] + (ionChange) con $event.detail.value.
-        Garantisce che boxDestinazioneId sia valorizzato prima di confermaSpostamento().
-      -->
       <ion-select
-        [value]="boxDestinazioneId"
-        (ionChange)="onBoxDestinazioneChange($event.detail.value)"
+        [(ngModel)]="boxDestinazioneId"
+        (ionChange)="onBoxDestinazioneChange()"
         placeholder="Seleziona destinazione"
         class="pb-select">
         <ion-select-option *ngFor="let b of boxDisponibiliDestinazione" [value]="b.id">
           {{ b.nome }}
         </ion-select-option>
       </ion-select>
+      <!-- Avviso inline se sorgente è scelta ma destinazione no -->
+      <p class="dest-warning" *ngIf="!boxDestinazioneId && boxSorgenteId">
+        ⚠️ Seleziona una box di destinazione per abilitare lo spostamento
+      </p>
     </div>
 
   </div>
@@ -81,15 +76,14 @@
     <p>Caricamento oggetti…</p>
   </div>
 
-  <!-- ── ISTRUZIONE DRAG ────────────────────────────────────-->
-  <p class="drag-hint" *ngIf="!isLoading && boxSorgenteId">
-    Trascina gli oggetti nella <strong>Zona di Transito</strong>, poi
-    confermali nella box di destinazione.
-    Su mobile tocca e tieni premuto per trascinare oppure usa il
-    <strong>tasto →</strong>.
+  <!-- ── ISTRUZIONE ─────────────────────────────────────────-->
+  <p class="drag-hint" *ngIf="!isLoading && boxSorgenteId && boxDestinazioneId">
+    Trascina gli oggetti nella colonna <strong>Destinazione</strong>, oppure usa il
+    <strong>tasto →</strong> per spostarli direttamente.
+    Ogni spostamento viene salvato immediatamente.
   </p>
 
-  <!-- ══ AREE DRAG & DROP ═══════════════════════════════════ -->
+  <!-- ══ LAYOUT 2 COLONNE ═══════════════════════════════════ -->
   <div class="dnd-layout" *ngIf="!isLoading">
 
     <!-- ─ COLONNA SORGENTE ─────────────────────────────────── -->
@@ -102,13 +96,18 @@
       (drop)="onDrop($event, 'sorgente')">
 
       <div class="col-header">
-        <span class="col-title">Sorgente</span>
+        <span class="col-title">SORGENTE</span>
         <ion-badge color="medium">{{ oggettiSorgente.length }}</ion-badge>
       </div>
 
-      <div *ngIf="oggettiSorgente.length === 0" class="col-empty">
+      <div *ngIf="!boxSorgenteId" class="col-empty">
         <ion-icon name="archive-outline"></ion-icon>
-        <p>Nessun oggetto</p>
+        <p>Seleziona una box sorgente</p>
+      </div>
+
+      <div *ngIf="boxSorgenteId && oggettiSorgente.length === 0 && !isLoading" class="col-empty">
+        <ion-icon name="archive-outline"></ion-icon>
+        <p>Nessun oggetto nella box</p>
       </div>
 
       <div
@@ -125,65 +124,15 @@
           <span *ngIf="ogg.fragile" class="tag-fragile">FRAGILE</span>
         </div>
 
-        <!-- Tasto rapido per spostare in transit (alternativa al drag su mobile) -->
-        <button class="item-move-btn" (click)="spostaInTransit(ogg, 'sorgente')" title="Sposta in transito">
+        <!-- Tasto spostamento diretto → destinazione -->
+        <button
+          class="item-move-btn"
+          (click)="spostaInDestinazione(ogg)"
+          [disabled]="isSaving"
+          title="Sposta in destinazione">
           →
         </button>
-      </div>
 
-    </div>
-
-    <!-- ─ COLONNA TRANSIT ZONE ─────────────────────────────── -->
-    <div
-      id="zona-transit"
-      class="dnd-column dnd-column--transit"
-      [class.dnd-over]="dragOverZone === 'transit'"
-      (dragover)="onDragOver($event, 'transit')"
-      (dragleave)="onDragLeave()"
-      (drop)="onDrop($event, 'transit')">
-
-      <div class="col-header">
-        <span class="col-title">⬡ Zona di Transito</span>
-        <ion-badge color="warning">{{ oggettiTransit.length }}</ion-badge>
-      </div>
-
-      <div *ngIf="oggettiTransit.length === 0" class="col-empty transit-empty">
-        <ion-icon name="swap-horizontal-outline"></ion-icon>
-        <p>Trascina qui gli oggetti<br>da spostare</p>
-      </div>
-
-      <div
-        class="dnd-item dnd-item--transit"
-        *ngFor="let ogg of oggettiTransit"
-        draggable="true"
-        (dragstart)="onDragStart($event, ogg, 'transit')"
-        (touchstart)="onTouchStart($event, ogg, 'transit')"
-        (touchend)="onTouchEnd($event, 'transit')">
-
-        <div class="item-info">
-          <p class="item-nome">{{ ogg.nome }}</p>
-          <p class="item-meta">{{ ogg.tipo }} · ×{{ ogg.quantita }}</p>
-          <span *ngIf="ogg.fragile" class="tag-fragile">FRAGILE</span>
-        </div>
-
-        <button class="item-move-btn item-move-btn--back" (click)="riportaInSorgente(ogg)" title="Rimanda alla sorgente">
-          ←
-        </button>
-      </div>
-
-      <!-- Azioni zona transit -->
-      <div class="transit-actions" *ngIf="oggettiTransit.length > 0">
-        <button class="btn-svuota" (click)="svuotaTransit()">
-          <ion-icon name="refresh-outline"></ion-icon> Svuota
-        </button>
-        <button
-          class="btn-conferma"
-          [disabled]="isSaving || !boxDestinazioneId"
-          (click)="confermaSpostamento()">
-          <ion-spinner *ngIf="isSaving" name="crescent" style="width:16px;height:16px;margin-right:6px;"></ion-spinner>
-          <ion-icon *ngIf="!isSaving" name="checkmark-circle-outline"></ion-icon>
-          {{ isSaving ? 'Salvataggio…' : 'Conferma spostamento' }}
-        </button>
       </div>
 
     </div>
@@ -198,32 +147,32 @@
       (drop)="onDrop($event, 'destinazione')">
 
       <div class="col-header">
-        <span class="col-title">Destinazione</span>
+        <span class="col-title">DESTINAZIONE</span>
         <ion-badge color="success">{{ oggettiDestinazione.length }}</ion-badge>
       </div>
 
       <div *ngIf="!boxDestinazioneId" class="col-empty">
         <ion-icon name="archive-outline"></ion-icon>
-        <p>Seleziona una box</p>
+        <p>Seleziona una box di destinazione</p>
       </div>
 
       <div *ngIf="boxDestinazioneId && oggettiDestinazione.length === 0" class="col-empty">
-        <p>Box vuota</p>
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <p>Box vuota – trascina qui gli oggetti</p>
       </div>
 
       <div
         class="dnd-item dnd-item--dest"
-        *ngFor="let ogg of oggettiDestinazione"
-        draggable="true"
-        (dragstart)="onDragStart($event, ogg, 'destinazione')"
-        (touchstart)="onTouchStart($event, ogg, 'destinazione')"
-        (touchend)="onTouchEnd($event, 'destinazione')">
+        *ngFor="let ogg of oggettiDestinazione">
 
         <div class="item-info">
           <p class="item-nome">{{ ogg.nome }}</p>
           <p class="item-meta">{{ ogg.tipo }} · ×{{ ogg.quantita }}</p>
           <span *ngIf="ogg.fragile" class="tag-fragile">FRAGILE</span>
         </div>
+
+        <!-- Badge "appena spostato" -->
+        <span *ngIf="ogg._appenaArrivato" class="tag-nuovo">✓ spostato</span>
 
       </div>
 
