@@ -1,217 +1,527 @@
 /*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
+ * App Global CSS — PeekBox Light & Bright Theme
+ * -----------------------------------------------
+ * Design System: Clean Grid / Light Mode
+ * Palette: Pearl Grey bg · White surfaces · Slate typography · Tech Blue & Emerald accent
  */
 
-/* Utilizzo di bootstrap*/
+/* Bootstrap */
 @import 'bootstrap/dist/css/bootstrap.min.css';
 
-/* Core CSS required for Ionic components to work properly */
+/* Ionic core */
 @import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
 
-/* Optional CSS utils that can be commented out */
+/* Ionic utilities */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
+/* Google Fonts — Outfit (display) + DM Sans (body) */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,400&display=swap');
 
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+/* ============================================================
+   DESIGN TOKENS — Light & Bright Palette
+   ============================================================ */
+:root {
+  /* --- Background strati --- */
+  --pb-bg-app:        #edf2f7;   /* sfondo globale: azzurro ghiaccio impercettibile */
+  --pb-bg-surface:    #ffffff;   /* card, modali, pannelli */
+  --pb-bg-subtle:     #f8f9fa;   /* hover leggero, sezioni secondarie */
+  --pb-bg-muted:      #e2e8f0;   /* separatori, bordi visibili */
 
-// ===== PEEKBOX — GLOBAL CUSTOM STYLES =====
+  /* --- Tipografia --- */
+  --pb-text-primary:  #2d3748;   /* testi principali — ardesia scuro */
+  --pb-text-secondary:#718096;   /* descrizioni, label secondarie */
+  --pb-text-hint:     #a0aec0;   /* placeholder, testi disabilitati */
+  --pb-text-on-accent:#ffffff;   /* testo sopra bottoni colorati */
 
-// Ion-select popover dark theme
-ion-popover.select-popover,
-ion-popover[trigger] {
-  --background: rgba(9,28,42,.98);
-  --border-radius: 16px;
-  --box-shadow: 0 16px 48px rgba(0,0,0,.55);
+  /* --- Accento Primario: Tech Blue --- */
+  --pb-blue:          #0056b3;
+  --pb-blue-light:    #3a86d9;
+  --pb-blue-dark:     #003d80;
+  --pb-blue-ghost:    rgba(0, 86, 179, 0.08);
+  --pb-blue-ghost-hover: rgba(0, 86, 179, 0.14);
 
-  &::part(content) {
-    border: 1px solid rgba(58,171,219,.2);
-    border-radius: 16px;
-    overflow: hidden;
-  }
+  /* --- Accento Secondario: Emerald (verde logo PeekBox) --- */
+  --pb-green:         #2ecc71;   /* verde fluo/smeraldo brand */
+  --pb-green-light:   #55d98d;
+  --pb-green-dark:    #1aab57;
+  --pb-green-ghost:   rgba(46, 204, 113, 0.10);
 
-  ion-list {
-    background: transparent !important;
-    padding: 6px !important;
-  }
+  /* --- Stato --- */
+  --pb-amber:         #f59e0b;
+  --pb-amber-ghost:   rgba(245, 158, 11, 0.10);
+  --pb-red:           #e53e3e;
+  --pb-red-ghost:     rgba(229, 62, 62, 0.08);
 
-  ion-item {
-    --background: transparent;
-    --background-hover: rgba(58,171,219,.1);
-    --color: rgba(255,255,255,.85);
-    --border-color: transparent;
-    border-radius: 10px;
-    margin: 2px 0;
-    font-family: 'Outfit', sans-serif;
-    font-size: .93rem;
-    font-weight: 500;
-  }
+  /* --- Card & Container --- */
+  --pb-radius-sm:     8px;
+  --pb-radius-md:     12px;
+  --pb-radius-lg:     16px;
+  --pb-radius-xl:     20px;
+  --pb-radius-pill:   999px;
 
-  ion-radio {
-    --color: rgba(255,255,255,.3);
-    --color-checked: #3AABDB;
-  }
+  --pb-shadow-xs:     0 1px 3px rgba(0, 0, 0, 0.06);
+  --pb-shadow-sm:     0 2px 8px rgba(0, 0, 0, 0.07);
+  --pb-shadow-md:     0 4px 15px rgba(0, 0, 0, 0.08);
+  --pb-shadow-lg:     0 8px 30px rgba(0, 0, 0, 0.10);
+  --pb-shadow-xl:     0 16px 48px rgba(0, 0, 0, 0.12);
 
-  ion-item.item-radio-checked {
-    --background: rgba(58,171,219,.15);
-    ion-label { color: #3AABDB !important; font-weight: 700; }
+  --pb-border:        1px solid #e2e8f0;
+  --pb-border-focus:  1px solid var(--pb-blue);
+
+  /* --- Tipografia --- */
+  --pb-font-display:  'Outfit', sans-serif;
+  --pb-font-body:     'DM Sans', sans-serif;
+
+  /* --- Spaziatura --- */
+  --pb-space-xs:      4px;
+  --pb-space-sm:      8px;
+  --pb-space-md:      16px;
+  --pb-space-lg:      24px;
+  --pb-space-xl:      32px;
+  --pb-space-2xl:     48px;
+
+  /* --- Ionic CSS Variables Override (Light Theme) --- */
+  --ion-background-color:         var(--pb-bg-app);
+  --ion-text-color:                var(--pb-text-primary);
+
+  --ion-color-primary:             var(--pb-blue);
+  --ion-color-primary-rgb:         0, 86, 179;
+  --ion-color-primary-contrast:    #ffffff;
+  --ion-color-primary-shade:       var(--pb-blue-dark);
+  --ion-color-primary-tint:        var(--pb-blue-light);
+
+  --ion-color-secondary:           var(--pb-green);
+  --ion-color-secondary-rgb:       46, 204, 113;
+  --ion-color-secondary-contrast:  #ffffff;
+  --ion-color-secondary-shade:     var(--pb-green-dark);
+  --ion-color-secondary-tint:      var(--pb-green-light);
+
+  --ion-color-success:             #27ae60;
+  --ion-color-warning:             var(--pb-amber);
+  --ion-color-danger:              var(--pb-red);
+
+  --ion-font-family:               var(--pb-font-body);
+  --ion-item-background:           var(--pb-bg-surface);
+  --ion-toolbar-background:        var(--pb-bg-surface);
+  --ion-tab-bar-background:        var(--pb-bg-surface);
+  --ion-card-background:           var(--pb-bg-surface);
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+body {
+  font-family: var(--pb-font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--pb-text-primary);
+  background-color: var(--pb-bg-app);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--pb-font-display);
+  font-weight: 700;
+  color: var(--pb-text-primary);
+  letter-spacing: -0.3px;
+}
+
+/* ============================================================
+   UTILITY CLASSES PEEKBOX
+   ============================================================ */
+
+/* Sfondo app */
+.pb-bg-app     { background-color: var(--pb-bg-app) !important; }
+.pb-bg-surface { background-color: var(--pb-bg-surface) !important; }
+
+/* ============================================================
+   CARD — Stile universale "floating"
+   ============================================================ */
+.pb-card,
+ion-card,
+.card {
+  background: var(--pb-bg-surface) !important;
+  border: none !important;
+  border-radius: var(--pb-radius-lg) !important;
+  box-shadow: var(--pb-shadow-md) !important;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--pb-shadow-lg) !important;
+    transform: translateY(-2px);
   }
 }
 
-// ===== ALERT PEEKBOX STYLE =====
-// Ionic renderizza l'alert nel light DOM: i selettori diretti funzionano in global.scss
+ion-card-header { padding: 16px 16px 8px; }
+ion-card-content { padding: 8px 16px 16px; }
+ion-card-title {
+  font-family: var(--pb-font-display) !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  color: var(--pb-text-primary) !important;
+}
+ion-card-subtitle {
+  font-size: 0.8rem !important;
+  color: var(--pb-text-secondary) !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
 
+/* ============================================================
+   TOOLBAR & HEADER
+   ============================================================ */
+ion-toolbar {
+  --background: var(--pb-bg-surface);
+  --color: var(--pb-text-primary);
+  --border-color: var(--pb-bg-muted);
+  box-shadow: var(--pb-shadow-sm);
+}
+
+ion-title {
+  font-family: var(--pb-font-display) !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  color: var(--pb-text-primary) !important;
+}
+
+/* ============================================================
+   ION-CONTENT
+   ============================================================ */
+ion-content {
+  --background: var(--pb-bg-app);
+  --color: var(--pb-text-primary);
+}
+
+/* ============================================================
+   BOTTONI
+   ============================================================ */
+
+/* Primary — Blue */
+ion-button[color="primary"],
+.btn-pb-primary {
+  --background:       var(--pb-blue);
+  --background-hover: var(--pb-blue-dark);
+  --background-activated: var(--pb-blue-dark);
+  --color:            #ffffff;
+  --border-radius:    var(--pb-radius-md);
+  --box-shadow:       0 4px 14px rgba(0, 86, 179, 0.30);
+  font-family: var(--pb-font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.2px;
+}
+
+/* Secondary — Emerald */
+ion-button[color="secondary"],
+.btn-pb-green {
+  --background:       var(--pb-green);
+  --background-hover: var(--pb-green-dark);
+  --background-activated: var(--pb-green-dark);
+  --color:            #ffffff;
+  --border-radius:    var(--pb-radius-md);
+  --box-shadow:       0 4px 14px rgba(46, 204, 113, 0.30);
+  font-family: var(--pb-font-display);
+  font-weight: 700;
+}
+
+/* Outline ghost */
+.btn-pb-outline {
+  background: transparent;
+  border: 1.5px solid var(--pb-blue);
+  color: var(--pb-blue);
+  border-radius: var(--pb-radius-md);
+  font-family: var(--pb-font-display);
+  font-weight: 700;
+  padding: 10px 18px;
+  transition: background 0.18s, color 0.18s;
+
+  &:hover {
+    background: var(--pb-blue-ghost);
+  }
+}
+
+/* ============================================================
+   FORM INPUTS
+   ============================================================ */
+ion-item {
+  --background:       var(--pb-bg-surface);
+  --background-hover: var(--pb-bg-subtle);
+  --color:            var(--pb-text-primary);
+  --border-color:     var(--pb-bg-muted);
+  --highlight-color-focused: var(--pb-blue);
+  --inner-border-width: 0 0 1px 0;
+  font-family: var(--pb-font-body);
+}
+
+ion-input {
+  --color:                var(--pb-text-primary);
+  --placeholder-color:    var(--pb-text-hint);
+  --placeholder-opacity:  1;
+  --background:           var(--pb-bg-surface);
+  font-family: var(--pb-font-body);
+}
+
+ion-searchbar {
+  --background:        var(--pb-bg-surface);
+  --color:             var(--pb-text-primary);
+  --placeholder-color: var(--pb-text-hint);
+  --border-radius:     var(--pb-radius-md);
+  --box-shadow:        var(--pb-shadow-sm);
+  --icon-color:        var(--pb-text-secondary);
+  font-family: var(--pb-font-body);
+}
+
+ion-select {
+  --color:             var(--pb-text-primary);
+  --placeholder-color: var(--pb-text-hint);
+  font-family: var(--pb-font-body);
+}
+
+/* ============================================================
+   TOGGLE / SWITCH (Verde smeraldo)
+   ============================================================ */
+ion-toggle {
+  --background:              var(--pb-bg-muted);
+  --background-checked:      var(--pb-green);
+  --handle-background:       #ffffff;
+  --handle-background-checked: #ffffff;
+  --handle-box-shadow:       0 2px 6px rgba(0,0,0,0.20);
+}
+
+ion-checkbox {
+  --background-checked:      var(--pb-blue);
+  --border-color-checked:    var(--pb-blue);
+  --checkmark-color:         #ffffff;
+  --border-radius:           6px;
+}
+
+ion-radio {
+  --color-checked: var(--pb-blue);
+  --color:         var(--pb-bg-muted);
+}
+
+/* ============================================================
+   CHIP / BADGE
+   ============================================================ */
+ion-chip {
+  --background: var(--pb-blue-ghost);
+  --color:      var(--pb-blue);
+  border-radius: var(--pb-radius-pill);
+  font-family: var(--pb-font-display);
+  font-weight: 600;
+  font-size: 0.8rem;
+
+  &.chip-active,
+  &.selected {
+    --background: var(--pb-blue);
+    --color:      #ffffff;
+  }
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+ion-modal {
+  --background:    var(--pb-bg-surface);
+  --border-radius: var(--pb-radius-xl);
+  --box-shadow:    var(--pb-shadow-xl);
+}
+
+ion-modal ion-toolbar {
+  --background: var(--pb-bg-surface);
+  --border-color: var(--pb-bg-muted);
+}
+
+ion-modal ion-content {
+  --background: var(--pb-bg-surface);
+}
+
+/* ============================================================
+   ALERT
+   ============================================================ */
 ion-alert {
-  --background: #0D2A3A;
-  --border-radius: 20px;
-  --box-shadow: 0 24px 64px rgba(0,0,0,.75);
-  --backdrop-opacity: 0.7;
-  --min-width: 300px;
+  --background:      var(--pb-bg-surface);
+  --border-radius:   var(--pb-radius-xl);
+  --box-shadow:      var(--pb-shadow-xl);
+  --backdrop-opacity: 0.35;
+  --min-width:       300px;
 }
 
 ion-alert .alert-wrapper {
-  background: #0D2A3A !important;
-  border: 1px solid rgba(58,171,219,.25) !important;
-  border-radius: 20px !important;
-  overflow: hidden !important;
+  background: var(--pb-bg-surface) !important;
+  border: var(--pb-border) !important;
+  border-radius: var(--pb-radius-xl) !important;
 }
 
-ion-alert .alert-head {
-  background: #0D2A3A !important;
-  padding: 22px 22px 8px !important;
-}
+ion-alert .alert-head { background: var(--pb-bg-surface) !important; padding: 22px 22px 8px !important; }
 
 ion-alert .alert-title {
-  color: #ffffff !important;
-  font-family: 'Outfit', sans-serif !important;
-  font-size: 1.1rem !important;
-  font-weight: 900 !important;
-  letter-spacing: -0.3px !important;
+  color: var(--pb-text-primary) !important;
+  font-family: var(--pb-font-display) !important;
+  font-weight: 800 !important;
+  font-size: 1.05rem !important;
 }
 
 ion-alert .alert-message {
-  color: rgba(255,255,255,.6) !important;
-  font-family: 'DM Sans', sans-serif !important;
-  font-size: .88rem !important;
+  color: var(--pb-text-secondary) !important;
+  font-family: var(--pb-font-body) !important;
+  font-size: 0.88rem !important;
   line-height: 1.55 !important;
   padding: 4px 22px 18px !important;
-  background: #0D2A3A !important;
+  background: var(--pb-bg-surface) !important;
 }
 
-// Input dentro alert (Nuovo Spazio, Nuova Categoria)
-ion-alert .alert-input-group {
-  background: #0D2A3A !important;
-  padding: 0 18px 14px !important;
-}
+ion-alert .alert-input-group { background: var(--pb-bg-surface) !important; padding: 0 18px 14px !important; }
 
 ion-alert .alert-input {
-  background: rgba(255,255,255,.07) !important;
-  color: #ffffff !important;
-  border: 1px solid rgba(58,171,219,.35) !important;
-  border-radius: 12px !important;
+  background: var(--pb-bg-subtle) !important;
+  color: var(--pb-text-primary) !important;
+  border: 1px solid var(--pb-bg-muted) !important;
+  border-radius: var(--pb-radius-md) !important;
   padding: 11px 14px !important;
-  font-family: 'DM Sans', sans-serif !important;
-  font-size: .92rem !important;
-  margin: 0 !important;
-  caret-color: #3AABDB !important;
+  font-family: var(--pb-font-body) !important;
+  font-size: 0.92rem !important;
+  caret-color: var(--pb-blue) !important;
+
+  &:focus { border-color: var(--pb-blue) !important; box-shadow: 0 0 0 3px var(--pb-blue-ghost) !important; }
 }
 
-ion-alert .alert-input::placeholder {
-  color: rgba(255,255,255,.28) !important;
-}
+ion-alert .alert-input::placeholder { color: var(--pb-text-hint) !important; }
 
-// Gruppo bottoni
 ion-alert .alert-button-group {
-  background: #091C2A !important;
-  border-top: 1px solid rgba(58,171,219,.12) !important;
+  background: var(--pb-bg-subtle) !important;
+  border-top: var(--pb-border) !important;
   padding: 10px 12px 12px !important;
   display: flex !important;
   gap: 8px !important;
-  flex-wrap: nowrap !important;
 }
 
-// Bottone base
 ion-alert .alert-button {
-  background: rgba(255,255,255,.06) !important;
-  color: rgba(255,255,255,.5) !important;
-  font-family: 'Outfit', sans-serif !important;
-  font-size: .88rem !important;
+  background: var(--pb-bg-muted) !important;
+  color: var(--pb-text-secondary) !important;
+  font-family: var(--pb-font-display) !important;
   font-weight: 700 !important;
-  border-radius: 12px !important;
+  border-radius: var(--pb-radius-md) !important;
   flex: 1 !important;
   min-height: 42px !important;
   border: none !important;
 }
 
 ion-alert .alert-button .alert-button-inner {
-  color: rgba(255,255,255,.5) !important;
-  font-family: 'Outfit', sans-serif !important;
+  color: var(--pb-text-secondary) !important;
+  font-family: var(--pb-font-display) !important;
   font-weight: 700 !important;
   justify-content: center !important;
 }
 
-// Bottone cancel
-ion-alert .alert-button.alert-button-role-cancel,
-ion-alert .alert-button[data-role="cancel"] {
-  background: rgba(255,255,255,.05) !important;
-  color: rgba(255,255,255,.4) !important;
-}
-
-ion-alert .alert-button.alert-button-role-cancel .alert-button-inner {
-  color: rgba(255,255,255,.4) !important;
-}
-
-// Bottone conferma (OK, Aggiungi, ecc.) — ultimo non-cancel non-destructive
 ion-alert .alert-button:not(.alert-button-role-cancel):not(.alert-button-role-destructive) {
-  background: linear-gradient(135deg, #3AABDB 0%, #1A7FA8 100%) !important;
-  box-shadow: 0 4px 14px rgba(58,171,219,.35) !important;
+  background: var(--pb-blue) !important;
+  box-shadow: 0 4px 14px rgba(0, 86, 179, 0.30) !important;
 }
 
 ion-alert .alert-button:not(.alert-button-role-cancel):not(.alert-button-role-destructive) .alert-button-inner {
   color: #ffffff !important;
 }
 
-// Bottone distruttivo (Elimina)
 ion-alert .alert-button.alert-button-role-destructive {
-  background: rgba(220,60,60,.14) !important;
-  border: 1px solid rgba(220,60,60,.25) !important;
+  background: var(--pb-red-ghost) !important;
+  border: 1px solid rgba(229, 62, 62, 0.25) !important;
 }
 
-ion-alert .alert-button.alert-button-role-destructive .alert-button-inner {
-  color: #f87171 !important;
-}
+ion-alert .alert-button.alert-button-role-destructive .alert-button-inner { color: var(--pb-red) !important; }
 
-// ===== TOAST PEEKBOX STYLE =====
+/* ============================================================
+   TOAST
+   ============================================================ */
 ion-toast {
-  --background: #091C2A;
-  --color: rgba(255,255,255,.9);
-  --border-radius: 14px;
-  --box-shadow: 0 8px 32px rgba(0,0,0,.5);
-  --border: 1px solid rgba(58,171,219,.2);
-  font-family: 'Outfit', sans-serif;
+  --background:    var(--pb-bg-surface);
+  --color:         var(--pb-text-primary);
+  --border-radius: var(--pb-radius-md);
+  --box-shadow:    var(--pb-shadow-lg);
+  --border:        var(--pb-border);
+  font-family: var(--pb-font-display);
+  font-weight: 600;
+
+  &.toast-success  { --background: #f0fff4; --color: #276749; --border: 1px solid #c6f6d5; }
+  &.toast-error    { --background: #fff5f5; --color: #9b2c2c; --border: 1px solid #fed7d7; }
+  &.toast-warning  { --background: #fffbeb; --color: #744210; --border: 1px solid #fef3c7; }
+}
+
+/* ============================================================
+   POPOVER (Select dropdown)
+   ============================================================ */
+ion-popover.select-popover,
+ion-popover[trigger] {
+  --background:      var(--pb-bg-surface);
+  --border-radius:   var(--pb-radius-lg);
+  --box-shadow:      var(--pb-shadow-xl);
+
+  &::part(content) {
+    border: var(--pb-border);
+    border-radius: var(--pb-radius-lg);
+    overflow: hidden;
+  }
+
+  ion-list { background: transparent !important; padding: 6px !important; }
+
+  ion-item {
+    --background:       transparent;
+    --background-hover: var(--pb-blue-ghost);
+    --color:            var(--pb-text-primary);
+    --border-color:     transparent;
+    border-radius: var(--pb-radius-sm);
+    margin: 2px 0;
+    font-family: var(--pb-font-body);
+    font-size: 0.92rem;
+  }
+
+  ion-radio { --color: var(--pb-bg-muted); --color-checked: var(--pb-blue); }
+
+  ion-item.item-radio-checked {
+    --background: var(--pb-blue-ghost);
+    ion-label { color: var(--pb-blue) !important; font-weight: 700; }
+  }
+}
+
+/* ============================================================
+   FOOTER / TAB BAR
+   ============================================================ */
+ion-tab-bar {
+  --background: var(--pb-bg-surface);
+  --border:     1px solid var(--pb-bg-muted) !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
+}
+
+ion-tab-button {
+  --color:         var(--pb-text-hint);
+  --color-selected: var(--pb-blue);
+  --background:    transparent;
+  font-family: var(--pb-font-display);
+  font-size: 0.7rem;
   font-weight: 600;
 }
+
+/* ============================================================
+   SCROLLBAR (webkit)
+   ============================================================ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--pb-bg-muted); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--pb-text-hint); }
+
+/* ============================================================
+   DISABILITA DARK MODE di sistema (override completo al light)
+   ============================================================ */
+/* Commenta la riga qui sotto se vuoi ri-abilitare il dark mode */
+/* @import '@ionic/angular/css/palettes/dark.system.css'; */
