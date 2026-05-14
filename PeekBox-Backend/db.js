@@ -115,6 +115,16 @@ db.serialize(() => {
     FOREIGN KEY(rif_ospite) REFERENCES utenti(id) ON DELETE CASCADE
   )`);
 
+  // Migrazione: aggiunge stato se il database esiste già
+  db.run(`ALTER TABLE condivisioni_armadio ADD COLUMN stato TEXT NOT NULL DEFAULT 'in_attesa'`, (err) => {
+    if (err && !err.message.includes('duplicate column')) {
+      console.error('Migrazione stato condivisioni:', err.message);
+    } else if (!err) {
+      // Retrocompatibilità: le condivisioni precedenti sono già accettate
+      db.run(`UPDATE condivisioni_armadio SET stato = 'accettata' WHERE stato = 'in_attesa'`);
+    }
+  });
+
   // ─────────────────────────────────────────────
   // 8. GEOFENCE — Perimetro virtuale per armadi/strutture logistiche
   //    raggio_m: raggio di tolleranza in metri (default 100 m)

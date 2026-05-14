@@ -1,3 +1,8 @@
+// ============================================================
+// FILE: PeekBox/src/app/app.routes.ts — SOSTITUZIONE COMPLETA
+// Aggiunge la rotta per /box-ricevute
+// ============================================================
+
 import { Routes } from '@angular/router';
 
 export const routes: Routes = [
@@ -34,12 +39,17 @@ export const routes: Routes = [
     path: 'area-personale',
     loadComponent: () => import('./area-personale/area-personale.page').then(m => m.AreaPersonalePage)
   },
+  // ── ★ NUOVO: Box Ricevute — gestione condivisioni in_attesa ─────────────
+  {
+    path: 'box-ricevute',
+    loadComponent: () => import('./box-ricevute/box-ricevute.page').then(m => m.BoxRicevutePage)
+  },
   // ── TRACKING GPS ────────────────────────────────────────────────────────
   {
     path: 'tracking-box/:id',
     loadComponent: () => import('./tracking-box/tracking-box.page').then(m => m.TrackingBoxPage)
   },
-  // ── TRANSIT ZONE — Drag & Drop riorganizzazione + Export ────────────────
+  // ── TRANSIT ZONE ────────────────────────────────────────────────────────
   {
     path: 'transit-zone',
     loadComponent: () => import('./transit-zone/transit-zone.page').then(m => m.TransitZonePage)
@@ -49,12 +59,12 @@ export const routes: Routes = [
     path: 'condivisione-archivio/:id',
     loadComponent: () => import('./condivisione-archivio/condivisione-archivio.page').then(m => m.CondivisioneArchivioPage)
   },
-  // ── GEOFENCING — Perimetro di sicurezza virtuale ─────────────────────────
+  // ── GEOFENCING ──────────────────────────────────────────────────────────
   {
     path: 'geofence-armadio/:id',
     loadComponent: () => import('./geofence-armadio/geofence-armadio.page').then(m => m.GeofenceArmadioPage)
   },
-  // ── ADMIN — Pannello di amministrazione ──────────────────────────────────
+  // ── ADMIN ────────────────────────────────────────────────────────────────
   {
     path: 'admin',
     loadComponent: () => import('./admin/admin.page').then(m => m.AdminPage)

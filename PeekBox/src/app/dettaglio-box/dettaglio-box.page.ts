@@ -70,6 +70,11 @@ export class DettaglioBoxPage implements OnInit {
     nome: '', descrizione: '', tipo: '', fragile: false, quantita: 1, foto: null
   };
 
+  // ★ NUOVO: modalità condivisa (sola lettura / editor)
+  isBoxCondivisa: boolean = false;
+  ruoloCondivisione: string = 'viewer';
+  isSolaLettura: boolean = false;
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -96,9 +101,14 @@ export class DettaglioBoxPage implements OnInit {
     this.utenteId = localStorage.getItem('utente_id');
     this.tipoProfilo = localStorage.getItem('tipo_profilo') || 'personal';
 
+    // ★ FIX: rileva modalità condivisa dai queryParams
+    this.isBoxCondivisa = this.route.snapshot.queryParamMap.get('condivisa') === 'true';
+    this.ruoloCondivisione = this.route.snapshot.queryParamMap.get('ruolo') || 'viewer';
+    this.isSolaLettura = this.isBoxCondivisa && this.ruoloCondivisione !== 'editor';
+
     if (this.boxId && this.utenteId) {
       this.caricaInfoBox();
-      this.caricaOggettiDalServer();
+      this.caricaOggetti(); // ★ FIX: usa il metodo unificato
       this.caricaTipologieDalServer();
       // Genera QR con URL pubblico Smart QR
       this.generaQrCodeUrl();
@@ -160,12 +170,42 @@ export class DettaglioBoxPage implements OnInit {
     });
   }
 
-  caricaOggettiDalServer() {
+  caricaOggetti() {
     if (!this.boxId) return;
-    this.dbService.getOggettiPerBox(Number(this.boxId)).subscribe({
-      next: (res: any) => { this.oggetti = res.oggetti || []; },
-      error: (err: any) => console.error('Errore oggetti:', err)
-    });
+    const boxIdNum = Number(this.boxId);
+
+    if (this.isBoxCondivisa) {
+      // ★ FIX: usa endpoint RBAC — verifica ruolo + stato='accettata' lato server
+      this.dbService.getOggettiBoxCondivisa(boxIdNum).subscribe({
+        next: (res: any) => {
+          this.oggetti = res.oggetti || [];
+          if (res.ruolo_corrente) {
+            this.ruoloCondivisione = res.ruolo_corrente;
+            this.isSolaLettura = res.ruolo_corrente !== 'editor';
+          }
+        },
+        error: async (err: any) => {
+          console.error('Errore oggetti box condivisa:', err);
+          const toast = await this.toastCtrl.create({
+            message: '⚠️ Non hai i permessi per questa box o la condivisione non è ancora accettata.',
+            duration: 4000,
+            color: 'warning',
+            position: 'bottom'
+          });
+          await toast.present();
+        }
+      });
+    } else {
+      // Box propria — comportamento originale
+      this.dbService.getOggettiPerBox(boxIdNum).subscribe({
+        next: (res: any) => { this.oggetti = res.oggetti || []; },
+        error: (err: any) => console.error('Errore oggetti:', err)
+      });
+    }
+  }
+
+  caricaOggettiDalServer() {
+    this.caricaOggetti();
   }
 
   // ─── SEGNALAZIONI ──────────────────────────────────────────

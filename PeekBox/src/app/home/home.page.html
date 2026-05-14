@@ -82,7 +82,7 @@
   </div>
 
   <div *ngIf="boxFiltrate.length > 0" class="box-grid">
-    <div *ngFor="let box of boxFiltrate; let i = index" class="box-card" [routerLink]="['/dettaglio-box', box.id]">
+    <div *ngFor="let box of boxFiltrate; let i = index" class="box-card" (click)="apriBox(box)">
 
       <!-- Immagine di sfondo — normale o fragile -->
       <div class="card-img-wrap">

@@ -426,6 +426,20 @@ export class HomePage {
     this.router.navigateByUrl('/area-personale');
   }
 
+  /**
+   * ★ FIX: apre la box passando i queryParam corretti per le box condivise.
+   * Le box condivise ricevono condivisa=true e ruolo per la modalità sola lettura.
+   */
+  apriBox(box: any) {
+    if (box.ruolo_condivisione) {
+      this.router.navigate(['/dettaglio-box', box.id], {
+        queryParams: { condivisa: 'true', ruolo: box.ruolo_condivisione }
+      });
+    } else {
+      this.router.navigate(['/dettaglio-box', box.id]);
+    }
+  }
+
 
   /** Chiede conferma e poi esegue il logout */
   async confermaLogout() {

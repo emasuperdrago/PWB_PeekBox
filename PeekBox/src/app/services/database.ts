@@ -199,9 +199,10 @@ export class DatabaseService {
       { headers: this.getAuthHeaders() });
   }
 
-  /** Archiviazioni ricevute dall'utente come ospite. */
+  /** Archivi condivisi con me (tutte, incluse accettate). */
   getArchividCondivisiConMe(utenteId: string) {
-    return this.http.get(`${this.apiUrl}/condivisioni/ricevute/${utenteId}`,
+    return this.http.get<{ archivi_condivisi: any[] }>(
+      `${this.apiUrl}/condivisioni/ricevute/${utenteId}`,
       { headers: this.getAuthHeaders() });
   }
 
@@ -219,7 +220,37 @@ export class DatabaseService {
 
   /** Legge gli oggetti di una box in un archivio condiviso (viewer+). */
   getOggettiBoxCondivisa(boxId: number) {
-    return this.http.get(`${this.apiUrl}/condivisioni/box/${boxId}/oggetti`,
+    return this.http.get<{ oggetti: any[]; ruolo_corrente: string }>(
+      `${this.apiUrl}/condivisioni/box/${boxId}/oggetti`,
+      { headers: this.getAuthHeaders() });
+  }
+
+  /** Conta le condivisioni in_attesa — usata dal pop-up al login. */
+  getCondivisioniPending(utenteId: string) {
+    return this.http.get<{ pending: number }>(
+      `${this.apiUrl}/condivisioni/pending/${utenteId}`,
+      { headers: this.getAuthHeaders() });
+  }
+
+  /** Lista dettagliata condivisioni in_attesa — schermata "Box Ricevute". */
+  getCondivisioniInAttesa(utenteId: string) {
+    return this.http.get<{ richieste: any[] }>(
+      `${this.apiUrl}/condivisioni/in-attesa/${utenteId}`,
+      { headers: this.getAuthHeaders() });
+  }
+
+  /** Accetta una condivisione in_attesa (ospite). */
+  accettaCondivisione(condivisioneId: number) {
+    return this.http.patch(
+      `${this.apiUrl}/condivisioni/${condivisioneId}/accetta`,
+      {},
+      { headers: this.getAuthHeaders() });
+  }
+
+  /** Rifiuta ed elimina una condivisione (ospite). */
+  rifiutaCondivisione(condivisioneId: number) {
+    return this.http.delete(
+      `${this.apiUrl}/condivisioni/${condivisioneId}/rifiuta`,
       { headers: this.getAuthHeaders() });
   }
 

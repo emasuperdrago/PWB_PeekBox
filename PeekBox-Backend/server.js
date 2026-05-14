@@ -757,17 +757,18 @@ app.post('/api/condivisioni', verificaToken, (req, res) => {
       if (ospite.id === req.user.id) return res.status(400).json({ error: "Non puoi condividere con te stesso." });
 
       db.run(
-        `INSERT INTO condivisioni_armadio (rif_armadio, rif_proprietario, rif_ospite, ruolo)
-         VALUES (?, ?, ?, ?)
-         ON CONFLICT(rif_armadio, rif_ospite) DO UPDATE SET ruolo = excluded.ruolo`,
+        `INSERT INTO condivisioni_armadio (rif_armadio, rif_proprietario, rif_ospite, ruolo, stato)
+         VALUES (?, ?, ?, ?, 'in_attesa')
+         ON CONFLICT(rif_armadio, rif_ospite) DO UPDATE SET ruolo = excluded.ruolo, stato = 'in_attesa'`,
         [armadio_id, req.user.id, ospite.id, ruolo],
         function (e3) {
           if (e3) return res.status(500).json({ error: e3.message });
           res.status(201).json({
-            message: `Archivio condiviso con ${ospite.username} come ${ruolo}.`,
+            message: `Richiesta di condivisione inviata a ${ospite.username}.`,
             id: this.lastID,
             ospite: { id: ospite.id, username: ospite.username },
-            ruolo
+            ruolo,
+            stato: 'in_attesa'
           });
         }
       );
@@ -807,7 +808,7 @@ app.get('/api/condivisioni/ricevute/:utenteId', verificaToken, (req, res) => {
     return res.status(403).json({ error: "Non autorizzato." });
 
   const sql = `
-    SELECT c.id as condivisione_id, c.ruolo, c.creato_il,
+    SELECT c.id as condivisione_id, c.ruolo, c.stato, c.creato_il,
            a.id as armadio_id, a.nome as armadio_nome,
            u.username as proprietario_username, u.email as proprietario_email
     FROM condivisioni_armadio c
@@ -820,6 +821,78 @@ app.get('/api/condivisioni/ricevute/:utenteId', verificaToken, (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ archivi_condivisi: rows });
   });
+});
+
+/**
+ * Conta le condivisioni in_attesa (pop-up login).
+ * GET /api/condivisioni/pending/:utenteId
+ */
+app.get('/api/condivisioni/pending/:utenteId', verificaToken, (req, res) => {
+  if (String(req.user.id) !== String(req.params.utenteId))
+    return res.status(403).json({ error: "Non autorizzato." });
+  db.get(
+    `SELECT COUNT(*) as pending FROM condivisioni_armadio WHERE rif_ospite = ? AND stato = 'in_attesa'`,
+    [req.params.utenteId],
+    (err, row) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ pending: row ? row.pending : 0 });
+    }
+  );
+});
+
+/**
+ * Lista condivisioni in_attesa (schermata "Box Ricevute").
+ * GET /api/condivisioni/in-attesa/:utenteId
+ */
+app.get('/api/condivisioni/in-attesa/:utenteId', verificaToken, (req, res) => {
+  if (String(req.user.id) !== String(req.params.utenteId))
+    return res.status(403).json({ error: "Non autorizzato." });
+  const sql = `
+    SELECT c.id as condivisione_id, c.ruolo, c.stato, c.creato_il,
+           a.id as armadio_id, a.nome as armadio_nome,
+           u.username as proprietario_username, u.email as proprietario_email
+    FROM condivisioni_armadio c
+    JOIN armadi a ON a.id = c.rif_armadio
+    JOIN utenti u ON u.id = c.rif_proprietario
+    WHERE c.rif_ospite = ? AND c.stato = 'in_attesa'
+    ORDER BY c.creato_il DESC
+  `;
+  db.all(sql, [req.params.utenteId], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ richieste: rows });
+  });
+});
+
+/**
+ * Accetta una condivisione (ospite).
+ * PATCH /api/condivisioni/:id/accetta
+ */
+app.patch('/api/condivisioni/:id/accetta', verificaToken, (req, res) => {
+  db.run(
+    `UPDATE condivisioni_armadio SET stato = 'accettata' WHERE id = ? AND rif_ospite = ? AND stato = 'in_attesa'`,
+    [req.params.id, req.user.id],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      if (this.changes === 0) return res.status(404).json({ error: "Condivisione non trovata o già gestita." });
+      res.json({ message: "Condivisione accettata." });
+    }
+  );
+});
+
+/**
+ * Rifiuta ed elimina una condivisione (ospite).
+ * DELETE /api/condivisioni/:id/rifiuta
+ */
+app.delete('/api/condivisioni/:id/rifiuta', verificaToken, (req, res) => {
+  db.run(
+    `DELETE FROM condivisioni_armadio WHERE id = ? AND rif_ospite = ?`,
+    [req.params.id, req.user.id],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      if (this.changes === 0) return res.status(404).json({ error: "Condivisione non trovata o non autorizzato." });
+      res.json({ message: "Condivisione rifiutata ed eliminata." });
+    }
+  );
 });
 
 /**
@@ -859,19 +932,25 @@ app.get('/api/condivisioni/armadio/:armadioId/box', verificaToken, (req, res) =>
 });
 
 /**
- * Accede agli oggetti di una box in un archivio condiviso (viewer o editor).
+ * Accede agli oggetti di una box condivisa — FIX: verifica stato='accettata'.
  * GET /api/condivisioni/box/:boxId/oggetti
  */
 app.get('/api/condivisioni/box/:boxId/oggetti', verificaToken, (req, res) => {
   db.get('SELECT rif_armadio FROM box WHERE id = ?', [req.params.boxId], (err, box) => {
     if (err || !box) return res.status(404).json({ error: "Box non trovata." });
 
-    verificaAccessoArmadio(box.rif_armadio, req.user.id, 'viewer', res, ({ ruolo }) => {
-      db.all('SELECT * FROM oggetti WHERE rif_box = ?', [req.params.boxId], (e2, rows) => {
-        if (e2) return res.status(500).json({ error: e2.message });
-        res.json({ oggetti: rows, ruolo_corrente: ruolo });
-      });
-    });
+    db.get(
+      `SELECT ruolo FROM condivisioni_armadio WHERE rif_armadio = ? AND rif_ospite = ? AND stato = 'accettata'`,
+      [box.rif_armadio, req.user.id],
+      (e2, condivisione) => {
+        if (e2 || !condivisione)
+          return res.status(403).json({ error: "Accesso non autorizzato o condivisione non ancora accettata." });
+        db.all('SELECT * FROM oggetti WHERE rif_box = ?', [req.params.boxId], (e3, rows) => {
+          if (e3) return res.status(500).json({ error: e3.message });
+          res.json({ oggetti: rows, ruolo_corrente: condivisione.ruolo });
+        });
+      }
+    );
   });
 });
 
