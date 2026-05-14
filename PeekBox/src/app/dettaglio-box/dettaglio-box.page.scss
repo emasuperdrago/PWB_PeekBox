@@ -19,7 +19,6 @@ $mid:     #4A7A94;
 // ===== CONTENT =====
 .detail-content {
   --background: #{$dark};
-  --padding-top: 0;
   --padding-bottom: 32px;
 }
 
@@ -199,111 +198,105 @@ $mid:     #4A7A94;
 }
 
 // ===== GRIGLIA OGGETTI =====
-.oggetti-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 16px;
-  animation: rise .6s cubic-bezier(.22,1,.36,1) both;
+// ===== LISTA OGGETTI COMPATTA =====
+
+.oggetti-list {
+  padding: 8px 12px 24px;
+  background: transparent;
+  animation: rise .5s cubic-bezier(.22,1,.36,1) both;
 }
 
-.oggetto-card {
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.09);
-  border-radius: 16px;
+.oggetto-item {
+  --background: rgba(255,255,255,.05);
+  --background-activated: rgba(58,171,219,.08);
+  --border-radius: 14px;
+  --padding-start: 10px;
+  --padding-end: 8px;
+  --inner-padding-end: 0;
+  --min-height: 62px;
+  margin-bottom: 7px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
   overflow: hidden;
-  cursor: pointer;
-  transition: transform .2s, border-color .2s;
+  transition: border-color .18s;
+
   &:active {
-    transform: scale(.96);
-    border-color: rgba(58,171,219,.35);
+    border-color: rgba(58,171,219,.3);
   }
 }
 
-.card-foto {
+// Thumbnail 48×48
+.ogg-thumb {
   position: relative;
-  aspect-ratio: 1 / 1;
-  background: rgba(255,255,255,.04);
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-right: 12px;
 }
 
-.foto-img {
+.ogg-thumb-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.foto-placeholder {
+.ogg-thumb-placeholder {
   width: 100%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: rgba(255,255,255,.06);
   ion-icon {
-    font-size: 2rem;
-    color: rgba(255,255,255,.15);
+    font-size: 1.4rem;
+    color: rgba(255,255,255,.2);
   }
 }
 
-.badge-qty {
+// Pallino rosso "fragile" sovrapposto alla thumbnail
+.ogg-fragile-dot {
   position: absolute;
-  top: 6px;
-  left: 6px;
-  background: rgba(9,28,42,.75);
-  color: $white;
-  font-family: 'Outfit', sans-serif;
-  font-size: .62rem;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 20px;
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(255,255,255,.12);
+  top: 3px;
+  right: 3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #E05555;
+  border: 1.5px solid rgba(9,28,42,.8);
 }
 
-.badge-fragile {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: rgba(220, 60, 60, .8);
-  color: $white;
-  font-family: 'Outfit', sans-serif;
-  font-size: .5rem;
-  font-weight: 800;
-  letter-spacing: .5px;
-  padding: 2px 5px;
-  border-radius: 20px;
-}
-
-.card-info {
-  padding: 7px 7px 7px 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  background: rgba(255,255,255,.02);
-  border-top: 1px solid rgba(255,255,255,.06);
-}
-
-.card-testi {
+// Testi
+.ogg-label {
   flex: 1;
   overflow: hidden;
 }
 
-.card-nome {
-  font-size: .75rem;
-  font-weight: 800;
-  color: rgba(255,255,255,.88);
-  margin: 0 0 1px;
+.ogg-nome {
+  font-family: 'Outfit', sans-serif;
+  font-size: .88rem;
+  font-weight: 700;
+  color: rgba(255,255,255,.9);
+  margin: 0 0 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  letter-spacing: -.2px;
+  letter-spacing: -.1px;
 }
 
-.card-tipo {
-  font-size: .58rem;
-  color: rgba(255,255,255,.35);
+.ogg-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0;
+}
+
+.ogg-tipo {
+  font-size: .7rem;
+  font-weight: 500;
+  color: rgba(255,255,255,.35);
   text-transform: uppercase;
   letter-spacing: .5px;
   white-space: nowrap;
@@ -311,35 +304,44 @@ $mid:     #4A7A94;
   text-overflow: ellipsis;
 }
 
-.card-actions {
+.ogg-qty {
+  font-size: .7rem;
+  font-weight: 700;
+  color: $blue;
+  white-space: nowrap;
+}
+
+// Bottoni azione
+.ogg-actions {
   display: flex;
-  gap: 2px;
+  gap: 4px;
   flex-shrink: 0;
+  padding-left: 6px;
 }
 
 .btn-action {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   border: none;
-  border-radius: 8px;
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all .15s;
-  ion-icon { font-size: .95rem; }
+  ion-icon { font-size: 1rem; }
 }
 
 .btn-edit {
   background: rgba(58,171,219,.12);
   color: $blue;
-  &:active { background: rgba(58,171,219,.25); }
+  &:active { background: rgba(58,171,219,.28); }
 }
 
 .btn-delete {
   background: rgba(220,60,60,.1);
   color: #E05555;
-  &:active { background: rgba(220,60,60,.22); }
+  &:active { background: rgba(220,60,60,.25); }
 }
 
 // ===== MODALI =====

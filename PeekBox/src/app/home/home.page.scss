@@ -473,6 +473,21 @@ $red:     #F87171;
   width: fit-content;
 }
 
+.card-shared-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 4px;
+  padding: 2px 7px;
+  background: rgba(125,199,64,.18);
+  border: 1px solid rgba(125,199,64,.35);
+  border-radius: 50px;
+  font-size: .6rem;
+  font-weight: 700;
+  color: #a8e07a;
+  ion-icon { font-size: .65rem; }
+}
+
 // ===== EMPTY STATE =====
 .empty-state {
   display: flex;

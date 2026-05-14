@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonButtons,
-  IonBackButton, IonButton, IonIcon, IonSelect, IonSelectOption,
+  IonButton, IonIcon, IonSelect, IonSelectOption,
   IonToggle, AlertController
 } from '@ionic/angular/standalone';
-import { RouterModule } from '@angular/router';
-import { Router } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
+import { BackButtonComponent } from '../components/back-button/back-button.component';
 import { addIcons } from 'ionicons';
 import {
   arrowBackOutline, cubeOutline, locationOutline, documentTextOutline,
@@ -21,9 +21,9 @@ import { DatabaseService } from '../services/database';
   styleUrls: ['./crea-box.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, FormsModule, RouterModule,
+BackButtonComponent,     CommonModule, FormsModule, RouterModule,
     IonContent, IonHeader, IonTitle, IonToolbar, IonButtons,
-    IonBackButton, IonButton, IonIcon, IonSelect, IonSelectOption,
+    IonButton, IonIcon, IonSelect, IonSelectOption,
     IonToggle
   ]
 })

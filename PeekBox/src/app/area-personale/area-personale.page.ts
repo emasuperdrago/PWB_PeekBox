@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe, Location } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
@@ -51,6 +51,7 @@ export class AreaPersonalePage implements OnInit {
     private alertCtrl: AlertController,
     private dbService: DatabaseService,
     private router: Router,
+    private location: Location,
     private datePipe: DatePipe
   ) {
     addIcons({
@@ -115,7 +116,15 @@ export class AreaPersonalePage implements OnInit {
   }
 
   tornaAlProfilo() {
-    this.vistaCorrente = 'profilo';
+    if (this.vistaCorrente !== 'profilo') {
+      this.vistaCorrente = 'profilo';
+    } else {
+      if (window.history.length > 1) {
+        this.location.back();
+      } else {
+        this.router.navigateByUrl('/home');
+      }
+    }
   }
 
   // =====================================================

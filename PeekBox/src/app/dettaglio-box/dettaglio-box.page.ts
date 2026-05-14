@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   AlertController, ToastController,
   IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
-  IonBackButton, IonButton, IonIcon, IonCard, IonCardHeader,
+  IonButton, IonIcon, IonCard, IonCardHeader,
   IonCardTitle, IonCardContent, IonList, IonItem, IonLabel,
   IonBadge, IonModal, IonInput, IonTextarea, IonSelect,
   IonSelectOption, IonGrid, IonRow, IonCol, IonToggle
 } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
+import { BackButtonComponent } from '../components/back-button/back-button.component';
 
 import { addIcons } from 'ionicons';
 import {
@@ -33,9 +34,9 @@ import { QRCodeComponent } from 'angularx-qrcode';
   styleUrls: ['./dettaglio-box.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, FormsModule, QRCodeComponent,
+    CommonModule, FormsModule, QRCodeComponent, BackButtonComponent,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
-    IonBackButton, IonButton, IonIcon, IonCard, IonCardHeader,
+    IonButton, IonIcon, IonCard, IonCardHeader,
     IonCardTitle, IonCardContent, IonList, IonItem, IonLabel,
     IonBadge, IonModal, IonInput, IonTextarea, IonSelect,
     IonSelectOption, IonGrid, IonRow, IonCol, IonToggle
@@ -72,6 +73,7 @@ export class DettaglioBoxPage implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
     private alertCtrl: AlertController,
     private toastCtrl: ToastController,
     public photoService: PhotoService,
@@ -335,6 +337,16 @@ export class DettaglioBoxPage implements OnInit {
       ]
     });
     await alert.present();
+  }
+
+  // ─── NAVIGAZIONE ───────────────────────────────────────────
+
+  goBack() {
+    if (window.history.length > 1) {
+      this.location.back();
+    } else {
+      this.router.navigateByUrl('/home');
+    }
   }
 
   // ─── UI UTILITY ────────────────────────────────────────────

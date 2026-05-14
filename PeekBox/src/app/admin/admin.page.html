@@ -7,6 +7,9 @@
 
 <!-- ===== LOGO FISSO ===== -->
 <div class="fixed-logo-wrapper">
+  <button class="topbar-back-btn" (click)="vaiProfilo()" aria-label="Indietro">
+    <ion-icon name="arrow-back-outline"></ion-icon>
+  </button>
   <div class="topbar-logo-left">
     <img src="assets/icon/logoTitolo1.png" alt="PeekBox" class="topbar-logo-img" />
     <span class="logo-txt">
@@ -115,20 +118,4 @@
 </ion-content>
 
 
-<!-- ===== FOOTER NAVBAR ===== -->
-<ion-footer class="admin-footer">
-  <div class="navbar">
-    <div class="nav-item" (click)="vaiHome()">
-      <ion-icon name="home" class="nav-icon"></ion-icon>
-      <span class="nav-label">Home</span>
-    </div>
-    <div class="nav-item" (click)="vaiSearch()">
-      <ion-icon name="search" class="nav-icon"></ion-icon>
-      <span class="nav-label">Cerca</span>
-    </div>
-    <div class="nav-item" (click)="vaiProfilo()">
-      <div class="nav-profilo-avatar">{{ inizialeAdmin() }}</div>
-      <span class="nav-label">Profilo</span>
-    </div>
-  </div>
-</ion-footer>
+<!-- bottom bar rimossa: la pagina Admin usa solo il back button in topbar -->

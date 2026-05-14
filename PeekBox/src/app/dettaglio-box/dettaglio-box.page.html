@@ -2,7 +2,7 @@
   <ion-toolbar class="detail-toolbar">
 
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/home" class="back-btn"></ion-back-button>
+      <app-back-button fallbackRoute="/home"></app-back-button>
     </ion-buttons>
 
     <ion-title class="toolbar-title">
@@ -29,7 +29,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="detail-content">
+<ion-content class="detail-content">
 
   <!-- MODAL QR CODE -->
   <ion-modal [isOpen]="mostraQR" (didDismiss)="mostraQR = false">
@@ -123,39 +123,48 @@
     <p class="empty-sub">Aggiungi il primo oggetto con il tasto <strong>+</strong></p>
   </div>
 
-  <!-- GRIGLIA OGGETTI -->
-  <div *ngIf="oggetti.length > 0" class="oggetti-grid">
-    <div class="oggetto-card" *ngFor="let ogg of oggetti; let i = index" (click)="apriDettaglio(ogg)">
+  <!-- LISTA OGGETTI COMPATTA -->
+  <ion-list *ngIf="oggetti.length > 0" class="oggetti-list" lines="none">
+    <ion-item
+      *ngFor="let ogg of oggetti; let i = index"
+      class="oggetto-item"
+      (click)="apriDettaglio(ogg)"
+      detail="false"
+      button>
 
-      <div class="card-foto">
-        <img *ngIf="ogg.foto" [src]="ogg.foto" class="foto-img" />
-        <div *ngIf="!ogg.foto" class="foto-placeholder">
+      <!-- Thumbnail / Avatar -->
+      <div slot="start" class="ogg-thumb">
+        <img *ngIf="ogg.foto" [src]="ogg.foto" class="ogg-thumb-img" />
+        <div *ngIf="!ogg.foto" class="ogg-thumb-placeholder">
           <ion-icon name="image-outline"></ion-icon>
         </div>
-        <span class="badge-qty">×{{ ogg.quantita }}</span>
-        <span *ngIf="ogg.fragile" class="badge-fragile">FRAGILE</span>
+        <span *ngIf="ogg.fragile" class="ogg-fragile-dot" title="Fragile"></span>
       </div>
 
-      <div class="card-info">
-        <div class="card-testi">
-          <p class="card-nome">{{ ogg.nome }}</p>
-          <p class="card-tipo">{{ ogg.tipo }}</p>
-        </div>
-        <div class="card-actions">
-          <button class="btn-action btn-edit" (click)="apriModifica(i, $event)">
-            <ion-icon name="create-outline"></ion-icon>
-          </button>
-          <button class="btn-action btn-delete" (click)="confermaEliminaOggetto(i, $event)">
-            <ion-icon name="trash-outline"></ion-icon>
-          </button>
-        </div>
+      <!-- Testi -->
+      <ion-label class="ogg-label">
+        <p class="ogg-nome">{{ ogg.nome }}</p>
+        <p class="ogg-meta">
+          <span class="ogg-tipo">{{ ogg.tipo }}</span>
+          <span *ngIf="ogg.quantita > 1" class="ogg-qty">× {{ ogg.quantita }}</span>
+        </p>
+      </ion-label>
+
+      <!-- Azioni -->
+      <div slot="end" class="ogg-actions">
+        <button class="btn-action btn-edit" (click)="apriModifica(i, $event)" aria-label="Modifica">
+          <ion-icon name="create-outline"></ion-icon>
+        </button>
+        <button class="btn-action btn-delete" (click)="confermaEliminaOggetto(i, $event)" aria-label="Elimina">
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
       </div>
 
-    </div>
-  </div>
+    </ion-item>
+  </ion-list>
 
   <!-- MODAL AGGIUNGI / MODIFICA -->
-  <ion-modal [isOpen]="isModalOpen">
+  <ion-modal [isOpen]="isModalOpen" (didDismiss)="setOpen(false)">
     <ng-template>
       <ion-header class="ion-no-border">
         <ion-toolbar class="modal-toolbar">
@@ -249,7 +258,7 @@
   </ion-modal>
 
   <!-- MODAL DETTAGLIO OGGETTO -->
-  <ion-modal [isOpen]="isDettaglioOpen">
+  <ion-modal [isOpen]="isDettaglioOpen" (didDismiss)="chiudiDettaglio()">
     <ng-template>
       <ion-header class="ion-no-border">
         <ion-toolbar class="modal-toolbar">

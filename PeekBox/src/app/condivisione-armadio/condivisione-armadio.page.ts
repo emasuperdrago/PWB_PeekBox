@@ -1,9 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { BackButtonComponent } from '../components/back-button/back-button.component';
 import {
-  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton,
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
   IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton,
   IonIcon, IonList, IonBadge, AlertController, ToastController
 } from '@ionic/angular/standalone';
@@ -17,8 +18,8 @@ import { DatabaseService } from '../services/database';
   styleUrls: ['./condivisione-armadio.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
-    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons, IonBackButton,
+BackButtonComponent,     CommonModule, FormsModule,
+    IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
     IonItem, IonLabel, IonInput, IonSelect, IonSelectOption, IonButton,
     IonIcon, IonList, IonBadge
   ]

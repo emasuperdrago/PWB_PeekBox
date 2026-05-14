@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
-  IonButton, IonIcon, IonFooter,
+  IonButton, IonIcon,
 } from '@ionic/angular/standalone';
 import { AlertController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -23,7 +23,7 @@ import { DatabaseService } from '../services/database';
   imports: [
     CommonModule, RouterModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
-    IonButton, IonIcon, IonFooter,
+    IonButton, IonIcon,
   ],
 })
 export class AdminPage implements OnInit {

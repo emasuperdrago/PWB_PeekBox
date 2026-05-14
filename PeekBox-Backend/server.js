@@ -118,7 +118,24 @@ app.put('/api/utenti/:id/profilo', verificaToken, (req, res) => {
 app.get('/api/armadi/:utenteId', verificaToken, (req, res) => {
     if (String(req.user.id) !== String(req.params.utenteId))
         return res.status(403).json({ error: "Non autorizzato." });
-    db.all('SELECT * FROM armadi WHERE rif_utente = ?', [req.params.utenteId], (err, rows) => {
+
+    // Archivi propri + archivi condivisi con me
+    const sql = `
+        SELECT a.*, NULL as ruolo_condivisione, u.username as proprietario_username
+        FROM armadi a
+        JOIN utenti u ON u.id = a.rif_utente
+        WHERE a.rif_utente = ?
+
+        UNION
+
+        SELECT a.*, c.ruolo as ruolo_condivisione, u.username as proprietario_username
+        FROM armadi a
+        JOIN condivisioni_armadio c ON c.rif_armadio = a.id
+        JOIN utenti u ON u.id = a.rif_utente
+        WHERE c.rif_ospite = ?
+        ORDER BY a.id ASC
+    `;
+    db.all(sql, [req.params.utenteId, req.params.utenteId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ armadi: rows });
     });
@@ -161,18 +178,39 @@ app.get('/api/box/singola/:id', verificaToken, (req, res) => {
 });
 
 app.get('/api/box/:utenteId', verificaToken, (req, res) => {
+    if (String(req.user.id) !== String(req.params.utenteId))
+        return res.status(403).json({ error: "Non autorizzato." });
+
+    // Box proprie + box degli archivi condivisi con me (viewer o editor)
     const sql = `
-        SELECT box.*, GROUP_CONCAT(DISTINCT oggetti.tipo) as categorie_presenti,
+        SELECT box.*,
+               GROUP_CONCAT(DISTINCT oggetti.tipo) as categorie_presenti,
                MAX(oggetti.fragile) as contiene_fragili,
-               COUNT(oggetti.id) as num_oggetti
+               COUNT(oggetti.id) as num_oggetti,
+               NULL as ruolo_condivisione
         FROM box
         JOIN armadi ON box.rif_armadio = armadi.id
         LEFT JOIN oggetti ON oggetti.rif_box = box.id
         WHERE armadi.rif_utente = ?
           AND box.data_eliminazione IS NULL
         GROUP BY box.id
+
+        UNION
+
+        SELECT box.*,
+               GROUP_CONCAT(DISTINCT oggetti.tipo) as categorie_presenti,
+               MAX(oggetti.fragile) as contiene_fragili,
+               COUNT(oggetti.id) as num_oggetti,
+               c.ruolo as ruolo_condivisione
+        FROM box
+        JOIN armadi ON box.rif_armadio = armadi.id
+        JOIN condivisioni_armadio c ON c.rif_armadio = armadi.id
+        LEFT JOIN oggetti ON oggetti.rif_box = box.id
+        WHERE c.rif_ospite = ?
+          AND box.data_eliminazione IS NULL
+        GROUP BY box.id
     `;
-    db.all(sql, [req.params.utenteId], (err, rows) => {
+    db.all(sql, [req.params.utenteId, req.params.utenteId], (err, rows) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json({ box: rows });
     });
