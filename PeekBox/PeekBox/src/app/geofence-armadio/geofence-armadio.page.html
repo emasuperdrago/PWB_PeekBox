@@ -1,0 +1,111 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <app-back-button fallbackRoute="/home"></app-back-button>
+    </ion-buttons>
+    <ion-title>Geofence — {{ armadioNome }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="geofence-page">
+
+  <!-- ── STATO GEOFENCE ─────────────────────────────────── -->
+  <div class="status-banner" [class.active]="hasGeofence && attivo" [class.inactive]="hasGeofence && !attivo">
+    <ion-icon [name]="hasGeofence ? 'shield-checkmark-outline' : 'warning-outline'"></ion-icon>
+    <span *ngIf="!hasGeofence">Nessun geofence configurato</span>
+    <span *ngIf="hasGeofence && attivo">Perimetro virtuale attivo — {{ raggioLabel }}</span>
+    <span *ngIf="hasGeofence && !attivo">Perimetro virtuale disattivato</span>
+  </div>
+
+  <div *ngIf="isLoading" class="loading-wrap">
+    <ion-spinner name="dots"></ion-spinner>
+  </div>
+
+  <!-- ── CONFIGURAZIONE ─────────────────────────────────── -->
+  <ion-card class="config-card" *ngIf="!isLoading">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="location-outline"></ion-icon>
+        Configura perimetro virtuale
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+
+      <!-- Acquisizione GPS -->
+      <ion-button expand="block" fill="outline" (click)="usaPosizioneCorrcome()" [disabled]="isGettingGps">
+        <ion-spinner *ngIf="isGettingGps" name="crescent" slot="start"></ion-spinner>
+        <ion-icon *ngIf="!isGettingGps" name="navigate-outline" slot="start"></ion-icon>
+        Usa posizione GPS corrente come centro
+      </ion-button>
+
+      <!-- Coordinate manuali -->
+      <ion-item lines="inset">
+        <ion-label position="stacked">Latitudine</ion-label>
+        <ion-input type="number" step="0.000001" placeholder="es. 45.464203" [(ngModel)]="latitudine"></ion-input>
+      </ion-item>
+      <ion-item lines="inset">
+        <ion-label position="stacked">Longitudine</ion-label>
+        <ion-input type="number" step="0.000001" placeholder="es. 9.189982" [(ngModel)]="longitudine"></ion-input>
+      </ion-item>
+
+      <!-- Raggio -->
+      <div class="raggio-section">
+        <p class="raggio-label">Raggio di tolleranza: <strong>{{ raggioLabel }}</strong></p>
+        <ion-range
+          min="10" max="5000" step="10"
+          [(ngModel)]="raggioM"
+          color="primary">
+          <ion-label slot="start">10 m</ion-label>
+          <ion-label slot="end">5 km</ion-label>
+        </ion-range>
+      </div>
+
+      <!-- Attivo toggle -->
+      <ion-item lines="none">
+        <ion-icon name="shield-checkmark-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>Geofence attivo</ion-label>
+        <ion-toggle [(ngModel)]="attivo" color="success"></ion-toggle>
+      </ion-item>
+
+      <!-- Coordinate attuali preview -->
+      <div class="coords-preview" *ngIf="latitudine !== null && longitudine !== null">
+        <p>📍 {{ latitudine | number:'1.6-6' }}, {{ longitudine | number:'1.6-6' }}</p>
+        <ion-button fill="clear" size="small" (click)="apriInMappa()">
+          <ion-icon name="location-outline" slot="start"></ion-icon>
+          Visualizza su mappa
+        </ion-button>
+      </div>
+
+      <!-- Azioni -->
+      <ion-button expand="block" (click)="salvaGeofence()" [disabled]="isSaving || latitudine === null">
+        <ion-spinner *ngIf="isSaving" name="crescent" slot="start"></ion-spinner>
+        <ion-icon *ngIf="!isSaving" name="save-outline" slot="start"></ion-icon>
+        {{ hasGeofence ? 'Aggiorna Geofence' : 'Imposta Geofence' }}
+      </ion-button>
+
+      <ion-button expand="block" fill="outline" color="danger" *ngIf="hasGeofence" (click)="confermaElimina()">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Rimuovi Geofence
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- ── INFO FUNZIONAMENTO ─────────────────────────────── -->
+  <ion-card class="info-card" *ngIf="!isLoading">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        Come funziona
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <p>Ogni volta che un asset viene scansionato (QR Code), il sistema rileva la sua posizione GPS e la confronta con il perimetro definito.</p>
+      <ul>
+        <li>✅ <strong>Dentro il perimetro</strong>: nessuna azione richiesta.</li>
+        <li>⚠️ <strong>Fuori dal perimetro</strong>: viene generata un'<strong>eccezione di sicurezza</strong> con alert in tempo reale all'amministratore.</li>
+      </ul>
+      <p class="formula-note">Il calcolo usa la formula di <strong>Haversine</strong> per la distanza geodetica precisa tra coordinate GPS.</p>
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>

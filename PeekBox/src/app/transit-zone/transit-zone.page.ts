@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BackButtonComponent } from '../components/back-button/back-button.component';
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButtons,
@@ -72,7 +72,8 @@ export class TransitZonePage implements OnInit, OnDestroy {
     private dbService: DatabaseService,
     private exportService: ExportService,
     private toastCtrl: ToastController,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute   // ★ FIX: per leggere queryParams
   ) {
     addIcons({
       swapHorizontalOutline, archiveOutline, checkmarkCircleOutline,
@@ -83,8 +84,15 @@ export class TransitZonePage implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.utenteId = localStorage.getItem('utente_id');
+    // ★ FIX B: leggi il queryParam PRIMA di caricare le box, poi
+    //          carica gli oggetti sorgente nel callback di caricaBox()
+    //          invece di affidarsi a un setTimeout fragile.
+    const boxPreselezionata = this.route.snapshot.queryParamMap.get('boxSorgenteId');
+    if (boxPreselezionata) {
+      this.boxSorgenteId = Number(boxPreselezionata);
+    }
     if (this.utenteId) {
-      this.caricaBox();
+      this.caricaBox(this.boxSorgenteId ?? undefined);
     }
   }
 
@@ -97,10 +105,16 @@ export class TransitZonePage implements OnInit, OnDestroy {
 
   // ─── CARICAMENTO DATI ──────────────────────────────────────
 
-  caricaBox() {
+  caricaBox(preselezioneId?: number) {
     if (!this.utenteId) return;
     this.dbService.getBox(this.utenteId).subscribe({
-      next: (res: any) => { this.tutteLeBox = res.box || []; },
+      next: (res: any) => {
+        this.tutteLeBox = res.box || [];
+        // ★ FIX B: carica gli oggetti sorgente SOLO dopo che tutteLeBox è pronto
+        if (preselezioneId && this.tutteLeBox.some(b => b.id === preselezioneId)) {
+          this.caricaOggettiSorgente();
+        }
+      },
       error: (err: any) => console.error('Errore caricamento box:', err)
     });
   }
@@ -262,21 +276,46 @@ export class TransitZonePage implements OnInit, OnDestroy {
       await this.mostraToast('Trascina almeno un oggetto nella zona di transito.', 'warning');
       return;
     }
+    // ★ FIX: blocca doppio-click durante il salvataggio (equivalente di preventDefault)
+    if (this.isSaving) return;
 
-    const ids = this.oggettiTransit.map(o => o.id);
+    // ★ FIX A: valida gli ID prima di chiamare il service
+    const ids = this.oggettiTransit
+      .map(o => Number(o.id))
+      .filter(id => !isNaN(id) && id > 0);
+
+    if (ids.length !== this.oggettiTransit.length) {
+      console.error('[confermaSpostamento] Alcuni oggetti hanno ID non validi:', this.oggettiTransit);
+      await this.mostraToast('Errore: alcuni oggetti non hanno un ID valido.', 'danger');
+      return;
+    }
+
+    const destId = Number(this.boxDestinazioneId);
     this.isSaving = true;
 
-    this.dbService.spostaOggetti(ids, this.boxDestinazioneId).subscribe({
+    // ★ FIX: la navigazione/aggiornamento UI avviene SOLO nel blocco next(),
+    //        dopo che il DB ha confermato l'UPDATE — mai prima.
+    this.dbService.spostaOggetti(ids, destId).subscribe({
       next: async (res: any) => {
         this.isSaving = false;
-        // Aggiorna liste locali: gli oggetti transit diventano parte della destinazione
-        this.oggettiDestinazione.push(...this.oggettiTransit);
         this.oggettiTransit = [];
-        await this.mostraToast(`✅ ${res.spostati} oggett${res.spostati === 1 ? 'o spostato' : 'i spostati'}!`, 'success');
+        // Ricarica dal server — fonte di verità unica
+        this.caricaOggettiSorgente();
+        this.caricaOggettiDestinazione();
+        await this.mostraToast(
+          `✅ ${res.spostati} oggett${res.spostati === 1 ? 'o spostato' : 'i spostati'}!`,
+          'success'
+        );
       },
-      error: async () => {
+      error: async (err: any) => {
         this.isSaving = false;
-        await this.mostraToast('Errore durante lo spostamento. Riprova.', 'danger');
+        // ★ FIX C: log e display del messaggio preciso dal server
+        const serverMsg = err?.error?.error || err?.message || 'Errore sconosciuto';
+        console.error('[confermaSpostamento] Errore server:', err.status, serverMsg);
+        await this.mostraToast(
+          `❌ Spostamento fallito (${err.status}): ${serverMsg}`,
+          'danger'
+        );
       }
     });
   }

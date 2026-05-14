@@ -1,0 +1,101 @@
+<ion-content [fullscreen]="true" class="login-content">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-logo" routerLink="/benvenuto" style="cursor:pointer;">
+      <img src="assets/icon/logoTitolo1.png" alt="PeekBox" class="topbar-logo-img" />
+      <span class="logo-txt">
+        <span class="pk">Peek</span><span class="bx">Box</span>
+      </span>
+    </div>
+    <button class="btn-nav" routerLink="/login">
+      Accedi
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- CARD REGISTRAZIONE -->
+  <div class="login-wrapper">
+    <div class="login-card">
+
+      <div class="badge">
+        <span class="badge-dot"></span>
+        Inizia gratuitamente
+      </div>
+
+      <h1 class="login-title">
+        Crea il tuo nuovo<br>
+        <span class="title-accent">account.</span>
+      </h1>
+      <p class="login-sub">Scegli come vuoi usare PeekBox.</p>
+
+      <!-- SELEZIONE TIPO PROFILO -->
+      <div class="profilo-selector">
+        <div class="profilo-card" [class.selected]="tipoProfilo === 'personal'" (click)="selezionaProfilo('personal')">
+          <div class="profilo-icon">🏠</div>
+          <div class="profilo-info">
+            <span class="profilo-nome">Uso Personale</span>
+            <span class="profilo-desc">Casa, garage, traslochi</span>
+          </div>
+          <div class="profilo-check" [class.visible]="tipoProfilo === 'personal'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="profilo-card" [class.selected]="tipoProfilo === 'business'" (click)="selezionaProfilo('business')">
+          <div class="profilo-icon">🏢</div>
+          <div class="profilo-info">
+            <span class="profilo-nome">Business & Logistica</span>
+            <span class="profilo-desc">Aziende, artigiani, flotte</span>
+          </div>
+          <div class="profilo-check" [class.visible]="tipoProfilo === 'business'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- BADGE BUSINESS FEATURES -->
+      <div class="business-features" *ngIf="tipoProfilo === 'business'">
+        <span class="feat-tag">📍 Tracking GPS</span>
+        <span class="feat-tag">🗺️ Mappa Asset</span>
+        <span class="feat-tag">📊 Dashboard</span>
+      </div>
+
+      <!-- FORM -->
+      <div class="field-group">
+        <label class="field-label">Nome Profilo</label>
+        <ion-input type="text" [(ngModel)]="nomeProfilo" fill="outline" placeholder="Es. MarcoRossi" class="custom-input"></ion-input>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Email</label>
+        <ion-input type="email" [(ngModel)]="email" fill="outline" placeholder="nome@esempio.it" class="custom-input"></ion-input>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <ion-input type="password" [(ngModel)]="password" fill="outline" placeholder="Scegli una password" class="custom-input">
+          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+        </ion-input>
+      </div>
+
+      <div class="cta-row">
+        <button
+          class="btn-primary"
+          [disabled]="!nomeProfilo || !email || !email.includes('@') || !password"
+          (click)="registrati()">
+          <span>Crea Account {{ tipoProfilo === 'business' ? 'Business' : 'Personale' }}</span>
+          <div class="shimmer"></div>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</ion-content>

@@ -1,0 +1,217 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Put style rules here that you want to apply globally. These styles are for
+ * the entire app and not just one component. Additionally, this file can be
+ * used as an entry point to import other CSS/Sass files to be included in the
+ * output CSS.
+ * For more information on global stylesheets, visit the documentation:
+ * https://ionicframework.com/docs/layout/global-stylesheets
+ */
+
+/* Utilizzo di bootstrap*/
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* Core CSS required for Ionic components to work properly */
+@import "@ionic/angular/css/core.css";
+
+/* Basic CSS for apps built with Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Optional CSS utils that can be commented out */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/**
+ * Ionic Dark Mode
+ * -----------------------------------------------------
+ * For more info, please see:
+ * https://ionicframework.com/docs/theming/dark-mode
+ */
+
+/* @import "@ionic/angular/css/palettes/dark.always.css"; */
+/* @import "@ionic/angular/css/palettes/dark.class.css"; */
+@import '@ionic/angular/css/palettes/dark.system.css';
+
+// ===== PEEKBOX — GLOBAL CUSTOM STYLES =====
+
+// Ion-select popover dark theme
+ion-popover.select-popover,
+ion-popover[trigger] {
+  --background: rgba(9,28,42,.98);
+  --border-radius: 16px;
+  --box-shadow: 0 16px 48px rgba(0,0,0,.55);
+
+  &::part(content) {
+    border: 1px solid rgba(58,171,219,.2);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  ion-list {
+    background: transparent !important;
+    padding: 6px !important;
+  }
+
+  ion-item {
+    --background: transparent;
+    --background-hover: rgba(58,171,219,.1);
+    --color: rgba(255,255,255,.85);
+    --border-color: transparent;
+    border-radius: 10px;
+    margin: 2px 0;
+    font-family: 'Outfit', sans-serif;
+    font-size: .93rem;
+    font-weight: 500;
+  }
+
+  ion-radio {
+    --color: rgba(255,255,255,.3);
+    --color-checked: #3AABDB;
+  }
+
+  ion-item.item-radio-checked {
+    --background: rgba(58,171,219,.15);
+    ion-label { color: #3AABDB !important; font-weight: 700; }
+  }
+}
+
+// ===== ALERT PEEKBOX STYLE =====
+// Ionic renderizza l'alert nel light DOM: i selettori diretti funzionano in global.scss
+
+ion-alert {
+  --background: #0D2A3A;
+  --border-radius: 20px;
+  --box-shadow: 0 24px 64px rgba(0,0,0,.75);
+  --backdrop-opacity: 0.7;
+  --min-width: 300px;
+}
+
+ion-alert .alert-wrapper {
+  background: #0D2A3A !important;
+  border: 1px solid rgba(58,171,219,.25) !important;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+ion-alert .alert-head {
+  background: #0D2A3A !important;
+  padding: 22px 22px 8px !important;
+}
+
+ion-alert .alert-title {
+  color: #ffffff !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: 1.1rem !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.3px !important;
+}
+
+ion-alert .alert-message {
+  color: rgba(255,255,255,.6) !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: .88rem !important;
+  line-height: 1.55 !important;
+  padding: 4px 22px 18px !important;
+  background: #0D2A3A !important;
+}
+
+// Input dentro alert (Nuovo Spazio, Nuova Categoria)
+ion-alert .alert-input-group {
+  background: #0D2A3A !important;
+  padding: 0 18px 14px !important;
+}
+
+ion-alert .alert-input {
+  background: rgba(255,255,255,.07) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(58,171,219,.35) !important;
+  border-radius: 12px !important;
+  padding: 11px 14px !important;
+  font-family: 'DM Sans', sans-serif !important;
+  font-size: .92rem !important;
+  margin: 0 !important;
+  caret-color: #3AABDB !important;
+}
+
+ion-alert .alert-input::placeholder {
+  color: rgba(255,255,255,.28) !important;
+}
+
+// Gruppo bottoni
+ion-alert .alert-button-group {
+  background: #091C2A !important;
+  border-top: 1px solid rgba(58,171,219,.12) !important;
+  padding: 10px 12px 12px !important;
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+// Bottone base
+ion-alert .alert-button {
+  background: rgba(255,255,255,.06) !important;
+  color: rgba(255,255,255,.5) !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-size: .88rem !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  flex: 1 !important;
+  min-height: 42px !important;
+  border: none !important;
+}
+
+ion-alert .alert-button .alert-button-inner {
+  color: rgba(255,255,255,.5) !important;
+  font-family: 'Outfit', sans-serif !important;
+  font-weight: 700 !important;
+  justify-content: center !important;
+}
+
+// Bottone cancel
+ion-alert .alert-button.alert-button-role-cancel,
+ion-alert .alert-button[data-role="cancel"] {
+  background: rgba(255,255,255,.05) !important;
+  color: rgba(255,255,255,.4) !important;
+}
+
+ion-alert .alert-button.alert-button-role-cancel .alert-button-inner {
+  color: rgba(255,255,255,.4) !important;
+}
+
+// Bottone conferma (OK, Aggiungi, ecc.) — ultimo non-cancel non-destructive
+ion-alert .alert-button:not(.alert-button-role-cancel):not(.alert-button-role-destructive) {
+  background: linear-gradient(135deg, #3AABDB 0%, #1A7FA8 100%) !important;
+  box-shadow: 0 4px 14px rgba(58,171,219,.35) !important;
+}
+
+ion-alert .alert-button:not(.alert-button-role-cancel):not(.alert-button-role-destructive) .alert-button-inner {
+  color: #ffffff !important;
+}
+
+// Bottone distruttivo (Elimina)
+ion-alert .alert-button.alert-button-role-destructive {
+  background: rgba(220,60,60,.14) !important;
+  border: 1px solid rgba(220,60,60,.25) !important;
+}
+
+ion-alert .alert-button.alert-button-role-destructive .alert-button-inner {
+  color: #f87171 !important;
+}
+
+// ===== TOAST PEEKBOX STYLE =====
+ion-toast {
+  --background: #091C2A;
+  --color: rgba(255,255,255,.9);
+  --border-radius: 14px;
+  --box-shadow: 0 8px 32px rgba(0,0,0,.5);
+  --border: 1px solid rgba(58,171,219,.2);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+}

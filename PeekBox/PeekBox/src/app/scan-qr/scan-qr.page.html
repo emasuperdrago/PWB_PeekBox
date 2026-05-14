@@ -1,0 +1,117 @@
+<div class="fixed-bg">
+  <div class="fixed-bg-glow-top"></div>
+  <div class="fixed-bg-glow-mid"></div>
+  <div class="fixed-bg-dots"></div>
+</div>
+
+<div class="fixed-logo-wrapper">
+  <div class="topbar-logo-left">
+    <img src="assets/icon/logoTitolo1.png" alt="PeekBox" class="topbar-logo-img" />
+    <span class="logo-txt">
+      <span class="pk">Peek</span><span class="bx">Box</span>
+    </span>
+  </div>
+  <a routerLink="/home" class="topbar-back-btn">
+    <ion-icon name="arrow-back-outline" style="font-size:1.1rem;"></ion-icon>
+    <span>Home</span>
+  </a>
+</div>
+
+<ion-content class="scan-content">
+  <div class="scan-hero">
+    <div class="hero-icon-wrap">
+      <ion-icon name="qr-code-outline" class="hero-icon"></ion-icon>
+    </div>
+    <h1 class="scan-title">Scansiona QR</h1>
+    <p class="scan-subtitle">Punta la fotocamera sul codice QR di una box</p>
+  </div>
+
+  <div class="scanner-section">
+    <div *ngIf="stato === 'idle'" class="idle-container">
+      <button class="btn-start-scan" (click)="iniziaScansione()">
+        <ion-icon name="camera-outline"></ion-icon>
+        Avvia Fotocamera
+      </button>
+    </div>
+
+    <div [hidden]="stato !== 'scanning'" class="video-container">
+      <div class="scanner-frame">
+        <div class="corner tl"></div><div class="corner tr"></div>
+        <div class="corner bl"></div><div class="corner br"></div>
+        <div class="scan-line"></div>
+      </div>
+      <video #videoEl autoplay playsinline muted class="video-feed"></video>
+      <canvas #canvasEl hidden></canvas>
+      <button class="btn-stop-scan" (click)="fermaScanner()">
+        <ion-icon name="stop-circle-outline"></ion-icon>
+        Interrompi
+      </button>
+    </div>
+
+    <div *ngIf="stato === 'trovata'" class="result-container success">
+      <ion-icon name="checkmark-circle" class="status-icon"></ion-icon>
+      <h3>Box Trovata!</h3>
+      <p class="box-nome">{{ risultatoNome }}</p>
+      <button class="btn-action" (click)="vaiADettaglio()">
+        Visualizza Dettagli
+        <ion-icon name="arrow-forward-outline"></ion-icon>
+      </button>
+      <button class="btn-reset" (click)="reset()">Nuova Scansione</button>
+    </div>
+
+    <div *ngIf="stato === 'errore'" class="result-container error">
+      <ion-icon name="alert-circle-outline" class="status-icon"></ion-icon>
+      <h3>Errore</h3>
+      <p>{{ messaggioErrore }}</p>
+      <button class="btn-reset" (click)="reset()">Riprova</button>
+    </div>
+  </div>
+
+  <div class="manual-input-section">
+    <div class="section-divider"><span>Oppure inserisci ID</span></div>
+    <div class="input-row">
+      <input type="number" [(ngModel)]="inputManuale" placeholder="ID Box (es. 42)" class="manual-input" />
+      <button class="btn-go" (click)="cercaManualmente()" [disabled]="!inputManuale">
+        Vai
+      </button>
+    </div>
+  </div>
+
+  <div class="history-section" *ngIf="cronologia.length > 0">
+    <div class="history-header">
+      <span class="history-title">Scansioni Recenti</span>
+      <button class="btn-clear" (click)="svuotaCronologia()">Cancella</button>
+    </div>
+    <div class="history-list">
+      <div *ngFor="let item of cronologia" class="history-item" (click)="apriBoxDaCronologia(item)">
+        <div class="history-item-icon"><ion-icon name="cube-outline"></ion-icon></div>
+        <div class="history-item-info">
+          <div class="history-item-nome">{{ item.nome }}</div>
+          <div class="history-item-time">{{ item.ora }}</div>
+        </div>
+        <ion-icon name="chevron-forward-outline" class="history-item-arrow"></ion-icon>
+      </div>
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="home-footer">
+  <div class="navbar">
+    <div class="nav-item" routerLink="/home">
+      <ion-icon name="home" class="nav-icon"></ion-icon>
+      <span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item nav-item--active">
+      <ion-icon name="qr-code" class="nav-icon"></ion-icon>
+      <span class="nav-label">Scan</span>
+    </div>
+    <div class="nav-item" routerLink="/search">
+      <ion-icon name="search" class="nav-icon"></ion-icon>
+      <span class="nav-label">Cerca</span>
+    </div>
+    <div class="nav-item" routerLink="/area-personale">
+      <ion-icon name="person" class="nav-icon"></ion-icon>
+      <span class="nav-label">Profilo</span>
+    </div>
+  </div>
+</ion-footer>
