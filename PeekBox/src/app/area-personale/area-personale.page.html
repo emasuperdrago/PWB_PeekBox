@@ -1,27 +1,21 @@
-<!-- area-personale.page.html — PeekBox Profile v6 Glassmorphism -->
+<!-- area-personale.page.html — PeekBox Profile v7 -->
 <ion-content [fullscreen]="true" class="ap-content">
+  <div class="ap-shell">
 
-  <!-- Sfondo orbs -->
-  <div class="ap-bg">
-    <div class="ap-bg__orb ap-bg__orb--1"></div>
-    <div class="ap-bg__orb ap-bg__orb--2"></div>
-  </div>
+    <!-- ═══ VISTA: PROFILO ══════════════════════════════════════════ -->
+    <ng-container *ngIf="vistaCorrente === 'profilo'">
 
-  <!-- ═══ VISTA: PROFILO ══════════════════════════════════════════════ -->
-  <ng-container *ngIf="vistaCorrente === 'profilo'">
-    <div class="ap-wrap">
-
-      <!-- Avatar hero -->
-      <div class="ap-hero">
-        <div class="ap-avatar-ring">
-          <div class="ap-avatar">
-            <span class="ap-initial">{{ iniziale() }}</span>
+      <!-- Hero Avatar -->
+      <div class="hero">
+        <div class="hero__avatar-wrap">
+          <div class="hero__avatar">
+            <span class="hero__initial">{{ iniziale() }}</span>
           </div>
-          <div class="ap-avatar-glow"></div>
+          <div class="hero__glow"></div>
         </div>
-        <h1 class="ap-name">{{ nomeUtente }}</h1>
-        <p class="ap-email">{{ emailUtente }}</p>
-        <span class="ap-admin-badge" *ngIf="isAdmin">
+        <h1 class="hero__name">{{ nomeUtente }}</h1>
+        <p class="hero__email">{{ emailUtente }}</p>
+        <span class="hero__badge" *ngIf="isAdmin">
           <ion-icon name="shield-checkmark-outline"></ion-icon>
           Amministratore
         </span>
@@ -29,148 +23,142 @@
 
       <!-- Stats -->
       <div class="ap-stats">
-        <div class="ap-stat ap-stat--blue">
-          <div class="ap-stat-ico"><ion-icon name="archive-outline"></ion-icon></div>
-          <span class="ap-stat-n">{{ totaleBox }}</span>
-          <span class="ap-stat-l">Box Totali</span>
-        </div>
-        <div class="ap-stat ap-stat--green">
-          <div class="ap-stat-ico"><ion-icon name="cube-outline"></ion-icon></div>
-          <span class="ap-stat-n">{{ totaleArticoli }}</span>
-          <span class="ap-stat-l">Oggetti</span>
-        </div>
-      </div>
-
-      <!-- Bento azioni -->
-      <div class="ap-bento">
-
-        <button class="ap-card" routerLink="/crea-box">
-          <div class="ap-card-ico ap-card-ico--blue">
+        <div class="ap-stat">
+          <div class="ap-stat__ico ap-stat__ico--blue">
             <ion-icon name="archive-outline"></ion-icon>
           </div>
-          <div class="ap-card-text">
-            <span class="ap-card-title">Nuova Box</span>
-            <span class="ap-card-sub">Crea e cataloga un contenitore</span>
+          <span class="ap-stat__n">{{ totaleBox }}</span>
+          <span class="ap-stat__l">Box Totali</span>
+        </div>
+        <div class="ap-stat">
+          <div class="ap-stat__ico ap-stat__ico--green">
+            <ion-icon name="cube-outline"></ion-icon>
           </div>
-          <ion-icon name="chevron-forward-outline" class="ap-card-arr"></ion-icon>
+          <span class="ap-stat__n">{{ totaleArticoli }}</span>
+          <span class="ap-stat__l">Oggetti</span>
+        </div>
+      </div>
+
+      <!-- Bento Azioni -->
+      <div class="bento">
+
+        <button class="bento-card" routerLink="/crea-box">
+          <div class="bento-card__ico bento-card__ico--blue">
+            <ion-icon name="archive-outline"></ion-icon>
+          </div>
+          <div class="bento-card__txt">
+            <span class="bento-card__title">Nuova Box</span>
+            <span class="bento-card__sub">Crea e cataloga un contenitore</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="bento-card__arr"></ion-icon>
         </button>
 
-        <button class="ap-card" (click)="apriBoxEliminate()">
-          <div class="ap-card-ico ap-card-ico--amber">
+        <button class="bento-card" (click)="apriBoxEliminate()">
+          <div class="bento-card__ico bento-card__ico--amber">
             <ion-icon name="time-outline"></ion-icon>
           </div>
-          <div class="ap-card-text">
-            <span class="ap-card-title">Box Eliminate</span>
-            <span class="ap-card-sub">Ripristina entro 30 giorni</span>
+          <div class="bento-card__txt">
+            <span class="bento-card__title">Box Eliminate</span>
+            <span class="bento-card__sub">Ripristina entro 30 giorni</span>
           </div>
-          <ion-icon name="chevron-forward-outline" class="ap-card-arr"></ion-icon>
+          <ion-icon name="chevron-forward-outline" class="bento-card__arr"></ion-icon>
         </button>
 
-        <button class="ap-card" routerLink="/box-ricevute">
-          <div class="ap-card-ico ap-card-ico--green">
+        <button class="bento-card" routerLink="/box-ricevute">
+          <div class="bento-card__ico bento-card__ico--green">
             <ion-icon name="checkmark-circle-outline"></ion-icon>
           </div>
-          <div class="ap-card-text">
-            <span class="ap-card-title">Box Ricevute</span>
-            <span class="ap-card-sub">Gestisci le box condivise con te</span>
+          <div class="bento-card__txt">
+            <span class="bento-card__title">Box Ricevute</span>
+            <span class="bento-card__sub">Gestisci le box condivise con te</span>
           </div>
-          <ion-icon name="chevron-forward-outline" class="ap-card-arr"></ion-icon>
+          <ion-icon name="chevron-forward-outline" class="bento-card__arr"></ion-icon>
         </button>
 
-        <button class="ap-card" *ngIf="isAdmin" (click)="vaiAdmin()">
-          <div class="ap-card-ico ap-card-ico--purple">
+        <button class="bento-card" *ngIf="isAdmin" (click)="vaiAdmin()">
+          <div class="bento-card__ico bento-card__ico--purple">
             <ion-icon name="shield-checkmark-outline"></ion-icon>
           </div>
-          <div class="ap-card-text">
-            <span class="ap-card-title">Pannello Admin</span>
-            <span class="ap-card-sub">Utenti e statistiche globali</span>
+          <div class="bento-card__txt">
+            <span class="bento-card__title">Pannello Admin</span>
+            <span class="bento-card__sub">Utenti e statistiche globali</span>
           </div>
-          <ion-icon name="chevron-forward-outline" class="ap-card-arr"></ion-icon>
+          <ion-icon name="chevron-forward-outline" class="bento-card__arr"></ion-icon>
         </button>
 
-        <button class="ap-card ap-card--danger" (click)="confermaLogout()">
-          <div class="ap-card-ico ap-card-ico--red">
+        <button class="bento-card bento-card--danger" (click)="confermaLogout()">
+          <div class="bento-card__ico bento-card__ico--red">
             <ion-icon name="log-out-outline"></ion-icon>
           </div>
-          <div class="ap-card-text">
-            <span class="ap-card-title">Logout</span>
-            <span class="ap-card-sub">Esci in modo sicuro dal tuo account</span>
+          <div class="bento-card__txt">
+            <span class="bento-card__title">Logout</span>
+            <span class="bento-card__sub">Esci in modo sicuro</span>
           </div>
-          <ion-icon name="chevron-forward-outline" class="ap-card-arr"></ion-icon>
+          <ion-icon name="chevron-forward-outline" class="bento-card__arr"></ion-icon>
         </button>
 
       </div>
 
-      <div style="height: 130px;"></div>
-    </div>
-  </ng-container>
+    </ng-container>
 
-  <!-- ═══ VISTA: BOX ELIMINATE ════════════════════════════════════════ -->
-  <ng-container *ngIf="vistaCorrente === 'box-eliminate'">
-    <div class="ap-wrap">
+    <!-- ═══ VISTA: BOX ELIMINATE ════════════════════════════════════ -->
+    <ng-container *ngIf="vistaCorrente === 'box-eliminate'">
 
-      <div class="ap-sub-hd">
-        <button class="ap-back-btn" (click)="tornaAlProfilo()">
+      <div class="subpage-head">
+        <button class="back-btn" (click)="tornaAlProfilo()">
           <ion-icon name="arrow-back-outline"></ion-icon>
         </button>
-        <h2 class="ap-sub-title">Box Eliminate</h2>
+        <h2 class="subpage-title">Box Eliminate</h2>
       </div>
 
-      <div class="ap-loading" *ngIf="isLoadingEliminate">
-        <p>Caricamento…</p>
-      </div>
+      <div class="ap-loading" *ngIf="isLoadingEliminate"><p>Caricamento…</p></div>
 
       <div class="ap-empty" *ngIf="!isLoadingEliminate && boxEliminate.length === 0">
-        <span class="ap-empty-ico">🗑️</span>
-        <p class="ap-empty-title">Nessuna box eliminata di recente</p>
-        <p class="ap-empty-sub">Le box rimangono qui per 30 giorni.</p>
+        <span>🗑️</span>
+        <p>Nessuna box eliminata di recente</p>
+        <small>Le box rimangono qui per 30 giorni.</small>
       </div>
 
-      <div class="ap-elim-list" *ngIf="!isLoadingEliminate && boxEliminate.length > 0">
-        <div class="ap-elim-card" *ngFor="let box of boxEliminate">
-          <div class="ap-elim-body">
-            <h3 class="ap-elim-name">{{ box.nome }}</h3>
-            <p class="ap-elim-date">
-              Eliminata il {{ box.data_eliminazione | date:'dd/MM/yyyy' }}
-            </p>
-            <div class="ap-elim-track">
-              <div class="ap-elim-fill"
-                   [style.width.%]="percentualeScadenza(box.data_eliminazione)">
-              </div>
+      <div class="elim-list" *ngIf="!isLoadingEliminate && boxEliminate.length > 0">
+        <div class="elim-card" *ngFor="let box of boxEliminate">
+          <div class="elim-card__body">
+            <h3 class="elim-card__name">{{ box.nome }}</h3>
+            <p class="elim-card__date">Eliminata il {{ box.data_eliminazione | date:'dd/MM/yyyy' }}</p>
+            <div class="elim-track">
+              <div class="elim-track__fill" [style.width.%]="percentualeScadenza(box.data_eliminazione)"></div>
             </div>
           </div>
-          <span class="ap-elim-badge" [class]="badgeClass(box.data_eliminazione)">
+          <span class="elim-badge" [class]="badgeClass(box.data_eliminazione)">
             {{ giorniRimasti(box.data_eliminazione) }}g
           </span>
         </div>
       </div>
 
-      <div style="height: 130px;"></div>
-    </div>
-  </ng-container>
+    </ng-container>
 
+    <div class="spacer-nav"></div>
+  </div>
 </ion-content>
 
-<!-- ═══ FLOATING BOTTOM BAR ════════════════════════════════════════════ -->
-<div class="floating-navbar">
-  <div class="fn-glow"></div>
-  <button class="fn-btn" (click)="vaiHome()">
+<!-- ═══ FLOATING NAV BAR ═══════════════════════════════════════════════ -->
+<nav class="fnav">
+  <button class="fnav__btn" (click)="vaiHome()">
     <ion-icon name="home-outline"></ion-icon>
     <span>Home</span>
   </button>
-  <button class="fn-btn" (click)="vaiSearch()">
+  <button class="fnav__btn" (click)="vaiSearch()">
     <ion-icon name="search-outline"></ion-icon>
     <span>Cerca</span>
   </button>
-  <button class="fn-btn fn-btn--cta" routerLink="/crea-box">
+  <button class="fnav__cta" routerLink="/crea-box">
     <ion-icon name="add-outline"></ion-icon>
   </button>
-  <button class="fn-btn" routerLink="/box-ricevute">
+  <button class="fnav__btn" routerLink="/box-ricevute">
     <ion-icon name="archive-outline"></ion-icon>
     <span>Ricevute</span>
   </button>
-  <button class="fn-btn fn-btn--active">
+  <button class="fnav__btn fnav__btn--on">
     <ion-icon name="person"></ion-icon>
     <span>Profilo</span>
   </button>
-</div>
+</nav>
