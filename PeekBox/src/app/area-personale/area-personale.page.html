@@ -1,15 +1,15 @@
-<!-- area-personale.page.html — PeekBox Profile v5 -->
+<!-- area-personale.page.html — PeekBox Profile v6 Glassmorphism -->
 <ion-content [fullscreen]="true" class="ap-content">
 
-  <div class="ap-bg"></div>
+  <!-- Sfondo orbs -->
+  <div class="ap-bg">
+    <div class="ap-bg__orb ap-bg__orb--1"></div>
+    <div class="ap-bg__orb ap-bg__orb--2"></div>
+  </div>
 
-  <!-- ═══ VISTA: PROFILO ══════════════════════════════════════════ -->
+  <!-- ═══ VISTA: PROFILO ══════════════════════════════════════════════ -->
   <ng-container *ngIf="vistaCorrente === 'profilo'">
     <div class="ap-wrap">
-
-      <button class="ap-back-btn" (click)="tornaAlProfilo()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </button>
 
       <!-- Avatar hero -->
       <div class="ap-hero">
@@ -44,7 +44,7 @@
       <!-- Bento azioni -->
       <div class="ap-bento">
 
-        <button class="ap-card" routerLink="/nuova-box">
+        <button class="ap-card" routerLink="/crea-box">
           <div class="ap-card-ico ap-card-ico--blue">
             <ion-icon name="archive-outline"></ion-icon>
           </div>
@@ -61,7 +61,7 @@
           </div>
           <div class="ap-card-text">
             <span class="ap-card-title">Box Eliminate</span>
-            <span class="ap-card-sub">Ripristina entro 30 giorni dall'eliminazione</span>
+            <span class="ap-card-sub">Ripristina entro 30 giorni</span>
           </div>
           <ion-icon name="chevron-forward-outline" class="ap-card-arr"></ion-icon>
         </button>
@@ -101,11 +101,11 @@
 
       </div>
 
-      <div style="height: 110px;"></div>
+      <div style="height: 130px;"></div>
     </div>
   </ng-container>
 
-  <!-- ═══ VISTA: BOX ELIMINATE ════════════════════════════════════ -->
+  <!-- ═══ VISTA: BOX ELIMINATE ════════════════════════════════════════ -->
   <ng-container *ngIf="vistaCorrente === 'box-eliminate'">
     <div class="ap-wrap">
 
@@ -116,19 +116,16 @@
         <h2 class="ap-sub-title">Box Eliminate</h2>
       </div>
 
-      <!-- Loading -->
       <div class="ap-loading" *ngIf="isLoadingEliminate">
         <p>Caricamento…</p>
       </div>
 
-      <!-- Empty -->
       <div class="ap-empty" *ngIf="!isLoadingEliminate && boxEliminate.length === 0">
         <span class="ap-empty-ico">🗑️</span>
         <p class="ap-empty-title">Nessuna box eliminata di recente</p>
         <p class="ap-empty-sub">Le box rimangono qui per 30 giorni.</p>
       </div>
 
-      <!-- Lista -->
       <div class="ap-elim-list" *ngIf="!isLoadingEliminate && boxEliminate.length > 0">
         <div class="ap-elim-card" *ngFor="let box of boxEliminate">
           <div class="ap-elim-body">
@@ -148,24 +145,25 @@
         </div>
       </div>
 
-      <div style="height: 110px;"></div>
+      <div style="height: 130px;"></div>
     </div>
   </ng-container>
 
 </ion-content>
 
-<!-- ═══ FLOATING NAVBAR ════════════════════════════════════════════ -->
+<!-- ═══ FLOATING BOTTOM BAR ════════════════════════════════════════════ -->
 <div class="floating-navbar">
+  <div class="fn-glow"></div>
   <button class="fn-btn" (click)="vaiHome()">
-    <ion-icon name="home"></ion-icon>
+    <ion-icon name="home-outline"></ion-icon>
     <span>Home</span>
   </button>
   <button class="fn-btn" (click)="vaiSearch()">
     <ion-icon name="search-outline"></ion-icon>
     <span>Cerca</span>
   </button>
-  <button class="fn-btn fn-btn--cta" routerLink="/nuova-box">
-    <ion-icon name="add"></ion-icon>
+  <button class="fn-btn fn-btn--cta" routerLink="/crea-box">
+    <ion-icon name="add-outline"></ion-icon>
   </button>
   <button class="fn-btn" routerLink="/box-ricevute">
     <ion-icon name="archive-outline"></ion-icon>

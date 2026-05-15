@@ -1,8 +1,12 @@
-<!-- home.page.html — PeekBox Desktop Glassmorphism v5 -->
+<!-- home.page.html — PeekBox Desktop Glassmorphism v6 -->
 <ion-content [fullscreen]="true" class="home-content">
 
-  <!-- Sfondo radiale -->
-  <div class="home-bg"></div>
+  <!-- Sfondo radiale animato -->
+  <div class="home-bg">
+    <div class="home-bg__orb home-bg__orb--1"></div>
+    <div class="home-bg__orb home-bg__orb--2"></div>
+    <div class="home-bg__orb home-bg__orb--3"></div>
+  </div>
 
   <div class="home-wrap">
 
@@ -137,16 +141,17 @@
       <div class="empty-ico">📦</div>
       <p class="empty-title">Nessuna box trovata</p>
       <p class="empty-sub">Crea la tua prima box oppure cambia i filtri.</p>
-      <button class="btn-new" routerLink="/nuova-box">+ Nuova Box</button>
+      <button class="btn-new" routerLink="/crea-box">+ Nuova Box</button>
     </div>
 
-    <div style="height: 110px;"></div>
+    <div style="height: 130px;"></div>
   </div><!-- /home-wrap -->
 
 </ion-content>
 
-<!-- ═══ FLOATING NAVBAR ══════════════════════════════════════ -->
+<!-- ═══ FLOATING BOTTOM BAR ══════════════════════════════════════════ -->
 <div class="floating-navbar">
+  <div class="fn-glow"></div>
   <button class="fn-btn fn-btn--active" routerLink="/home">
     <ion-icon name="home"></ion-icon>
     <span>Home</span>
@@ -155,15 +160,15 @@
     <ion-icon name="scan-outline"></ion-icon>
     <span>Scanner</span>
   </button>
-  <button class="fn-btn fn-btn--cta" routerLink="/nuova-box">
-    <ion-icon name="add"></ion-icon>
+  <button class="fn-btn fn-btn--cta" routerLink="/crea-box">
+    <ion-icon name="add-outline"></ion-icon>
   </button>
   <button class="fn-btn" routerLink="/box-ricevute">
     <ion-icon name="archive-outline"></ion-icon>
     <span>Ricevute</span>
   </button>
   <button class="fn-btn" (click)="apriAreaPersonale()">
-    <ion-icon name="person"></ion-icon>
+    <ion-icon name="person-outline"></ion-icon>
     <span>Profilo</span>
   </button>
 </div>
