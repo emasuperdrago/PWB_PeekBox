@@ -1,43 +1,76 @@
 /*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
+ * App Global CSS — PeekBox
+ * ORDINE CRITICO: Ionic PRIMA, Bootstrap DOPO.
+ * Bootstrap reimposta html/body{height:auto} che rompe ion-content.
+ * Mettendolo dopo, i fix Ionic prendono precedenza per ordine di cascata.
  */
 
-/* Utilizzo di bootstrap*/
-@import 'bootstrap/dist/css/bootstrap.min.css';
-
-/* Core CSS required for Ionic components to work properly */
+/* ① Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
 
-/* Basic CSS for apps built with Ionic */
+/* ② Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
 
-/* Optional CSS utils that can be commented out */
+/* ③ Optional Ionic utils */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
+/* ④ Dark mode palette (commentato per ora) */
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
-@import '@ionic/angular/css/palettes/dark.system.css';
+/* @import '@ionic/angular/css/palettes/dark.system.css'; */
+
+/* ⑤ Bootstrap DOPO Ionic — così non sovrascrive la catena di altezza */
+@import 'bootstrap/dist/css/bootstrap.min.css';
+
+/* ═══════════════════════════════════════════════════════════════════
+   FIX ALTEZZA — Ripristina la catena height:100% che Bootstrap rompe.
+   Necessario perché Bootstrap.reboot imposta html,body { height: auto }.
+   ═══════════════════════════════════════════════════════════════════ */
+html,
+body {
+  height: 100% !important;
+  min-height: 100% !important;
+  overflow: hidden !important;
+}
+
+ion-app {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  min-height: 100% !important;
+}
+
+ion-router-outlet {
+  position: relative !important;
+  flex: 1 1 auto !important;
+  height: 100% !important;
+}
+
+.ion-page {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  contain: layout size style !important;
+}
+
+ion-content {
+  --overflow: auto;
+  flex: 1 1 auto !important;
+}
+
+/* box-sizing uniforme */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 
 // ===== PEEKBOX — GLOBAL CUSTOM STYLES =====
 
@@ -83,8 +116,6 @@ ion-popover[trigger] {
 }
 
 // ===== ALERT PEEKBOX STYLE =====
-// Ionic renderizza l'alert nel light DOM: i selettori diretti funzionano in global.scss
-
 ion-alert {
   --background: #0D2A3A;
   --border-radius: 20px;
@@ -122,7 +153,6 @@ ion-alert .alert-message {
   background: #0D2A3A !important;
 }
 
-// Input dentro alert (Nuovo Spazio, Nuova Categoria)
 ion-alert .alert-input-group {
   background: #0D2A3A !important;
   padding: 0 18px 14px !important;
@@ -144,7 +174,6 @@ ion-alert .alert-input::placeholder {
   color: rgba(255,255,255,.28) !important;
 }
 
-// Gruppo bottoni
 ion-alert .alert-button-group {
   background: #091C2A !important;
   border-top: 1px solid rgba(58,171,219,.12) !important;
@@ -154,7 +183,6 @@ ion-alert .alert-button-group {
   flex-wrap: nowrap !important;
 }
 
-// Bottone base
 ion-alert .alert-button {
   background: rgba(255,255,255,.06) !important;
   color: rgba(255,255,255,.5) !important;
@@ -174,7 +202,6 @@ ion-alert .alert-button .alert-button-inner {
   justify-content: center !important;
 }
 
-// Bottone cancel
 ion-alert .alert-button.alert-button-role-cancel,
 ion-alert .alert-button[data-role="cancel"] {
   background: rgba(255,255,255,.05) !important;
@@ -185,7 +212,6 @@ ion-alert .alert-button.alert-button-role-cancel .alert-button-inner {
   color: rgba(255,255,255,.4) !important;
 }
 
-// Bottone conferma (OK, Aggiungi, ecc.) — ultimo non-cancel non-destructive
 ion-alert .alert-button:not(.alert-button-role-cancel):not(.alert-button-role-destructive) {
   background: linear-gradient(135deg, #3AABDB 0%, #1A7FA8 100%) !important;
   box-shadow: 0 4px 14px rgba(58,171,219,.35) !important;
@@ -195,7 +221,6 @@ ion-alert .alert-button:not(.alert-button-role-cancel):not(.alert-button-role-de
   color: #ffffff !important;
 }
 
-// Bottone distruttivo (Elimina)
 ion-alert .alert-button.alert-button-role-destructive {
   background: rgba(220,60,60,.14) !important;
   border: 1px solid rgba(220,60,60,.25) !important;
