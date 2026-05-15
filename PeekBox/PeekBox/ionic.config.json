@@ -1,7 +1,0 @@
-{
-  "name": "PeekBox",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "angular-standalone"
-}
