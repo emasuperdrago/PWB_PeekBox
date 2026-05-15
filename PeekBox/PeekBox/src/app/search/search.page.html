@@ -1,0 +1,104 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-title style="font-size: 2.3rem; font-weight: 900; letter-spacing: 1px;" class="ion-text-center brand-title">
+      <span class="pk">Peek</span><span class="bx">Box</span>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding search-content">
+
+  <h2 class="fw-bold search-page-title">Cerca Oggetti</h2>
+
+  <!-- BARRA DI RICERCA -->
+  <ion-searchbar
+    [(ngModel)]="termineDiRicerca"
+    (ionInput)="cercaOggetti($event)"
+    (ionClear)="pulisciRicerca()"
+    placeholder="Cerca un oggetto..."
+    debounce="400"
+    animated="true"
+    data-testid="search-input">
+  </ion-searchbar>
+
+  <!-- STATO: CARICAMENTO -->
+  <div *ngIf="cercando" class="spinner-wrap">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Ricerca in corso...</p>
+  </div>
+
+  <!-- STATO: SCHERMATA INIZIALE -->
+  <div *ngIf="!haCercato && !cercando" class="stato-iniziale">
+    <ion-icon name="search-outline" style="font-size: 80px;"></ion-icon>
+    <p style="font-size: 1rem; margin-top: 12px;">
+      Digita almeno 2 caratteri per cercare tra i tuoi oggetti
+    </p>
+  </div>
+
+  <!-- STATO: NESSUN RISULTATO -->
+  <div *ngIf="haCercato && !cercando && risultati.length === 0" class="stato-iniziale">
+    <ion-icon name="archive-outline" style="font-size: 80px;"></ion-icon>
+    <p style="font-size: 1rem; margin-top: 12px;">
+      Nessun oggetto trovato per <strong>"{{ termineDiRicerca }}"</strong>
+    </p>
+  </div>
+
+  <!-- RISULTATI -->
+  <ion-list *ngIf="!cercando && risultati.length > 0" lines="none" style="background: transparent;">
+
+    <p class="risultati-count">
+      {{ risultati.length }} risultat{{ risultati.length === 1 ? 'o' : 'i' }} trovat{{ risultati.length === 1 ? 'o' : 'i' }}
+    </p>
+
+    <ion-item
+      *ngFor="let r of risultati"
+      [routerLink]="['/dettaglio-box', r.rif_box]"
+      class="risultato-item"
+      data-testid="search-result-item">
+
+      <!-- Foto o placeholder -->
+      <div slot="start" class="foto-risultato">
+        <img *ngIf="r.foto" [src]="r.foto" />
+        <ion-icon *ngIf="!r.foto" name="cube-outline"></ion-icon>
+      </div>
+
+      <ion-label>
+        <h2>{{ r.nome }}</h2>
+        <p>
+          <ion-icon name="archive-outline" style="vertical-align: middle; margin-right: 3px;"></ion-icon>
+          {{ r.nome_armadio }} &nbsp;›&nbsp; {{ r.nome_box }}
+        </p>
+        <p *ngIf="r.descrizione" style="font-size: 0.8rem; margin-top: 2px; opacity: .75;">
+          {{ r.descrizione }}
+        </p>
+      </ion-label>
+
+      <div slot="end" style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+        <ion-badge color="primary">x{{ r.quantita }}</ion-badge>
+        <ion-badge color="medium" style="font-size: 0.75rem;">{{ r.tipo }}</ion-badge>
+        <ion-badge *ngIf="r.fragile" color="danger" style="font-size: 0.75rem;">FRAGILE</ion-badge>
+      </div>
+
+    </ion-item>
+  </ion-list>
+
+</ion-content>
+
+<ion-footer class="search-footer">
+  <ion-toolbar>
+    <div class="d-flex justify-content-around align-items-center w-100 py-2">
+      <div class="d-flex flex-column align-items-center nav-item" routerLink="/home" style="cursor: pointer;">
+        <ion-icon name="home"></ion-icon>
+        <span>Home</span>
+      </div>
+      <div class="d-flex flex-column align-items-center nav-item nav-item--active" style="cursor: pointer;">
+        <ion-icon name="search"></ion-icon>
+        <span>Cerca</span>
+      </div>
+      <div class="d-flex flex-column align-items-center nav-item" routerLink="/area-personale" style="cursor: pointer;">
+        <ion-icon name="person"></ion-icon>
+        <span>Profilo</span>
+      </div>
+    </div>
+  </ion-toolbar>
+</ion-footer>

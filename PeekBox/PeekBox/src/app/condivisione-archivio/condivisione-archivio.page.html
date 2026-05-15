@@ -1,0 +1,124 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <app-back-button fallbackRoute="/home"></app-back-button>
+    </ion-buttons>
+    <ion-title>Condivisione Archivio</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="condivisione-page">
+
+  <!-- ── INVITA NUOVO OSPITE ─────────────────────────────── -->
+  <ion-card class="invite-card">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="person-add-outline"></ion-icon>
+        Invita utente — <strong>{{ armadioNome }}</strong>
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-item lines="inset">
+        <ion-label position="stacked">Email dell'utente</ion-label>
+        <ion-input
+          type="email"
+          placeholder="utente@email.com"
+          [(ngModel)]="emailOspite">
+        </ion-input>
+      </ion-item>
+
+      <ion-item lines="inset">
+        <ion-label>Ruolo</ion-label>
+        <ion-select [(ngModel)]="ruoloSelezionato" interface="popover">
+          <ion-select-option value="viewer">
+            👁️ Visualizzatore — solo lettura
+          </ion-select-option>
+          <ion-select-option value="editor">
+            ✏️ Editor — co-gestione completa
+          </ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <div class="ruolo-info" [class.editor]="ruoloSelezionato === 'editor'">
+        <p *ngIf="ruoloSelezionato === 'viewer'">
+          🔍 Il visualizzatore può <strong>consultare</strong> box e oggetti, ma non può modificarli né eliminarli.
+        </p>
+        <p *ngIf="ruoloSelezionato === 'editor'">
+          ⚡ L'editor può <strong>aggiungere, modificare ed eliminare</strong> box e oggetti all'interno dell'archivio.
+        </p>
+      </div>
+
+      <ion-button expand="block" (click)="invitaOspite()" [disabled]="isInviting">
+        <ion-spinner *ngIf="isInviting" name="crescent" slot="start"></ion-spinner>
+        <ion-icon *ngIf="!isInviting" name="share-outline" slot="start"></ion-icon>
+        Condividi
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- ── LISTA OSPITI CORRENTI ──────────────────────────── -->
+  <ion-card class="ospiti-card">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="people-outline"></ion-icon>
+        Accessi attivi
+        <ion-badge color="medium" *ngIf="condivisioni.length > 0">{{ condivisioni.length }}</ion-badge>
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <div *ngIf="isLoading" class="loading-wrap">
+        <ion-spinner name="dots"></ion-spinner>
+      </div>
+
+      <div *ngIf="!isLoading && condivisioni.length === 0" class="empty-state">
+        <p>Nessun accesso condiviso. Invita il primo utente sopra.</p>
+      </div>
+
+      <ion-list *ngIf="!isLoading && condivisioni.length > 0" lines="full">
+        <ion-item *ngFor="let c of condivisioni">
+          <ion-icon
+            [name]="c.ruolo === 'editor' ? 'create-outline' : 'eye-outline'"
+            slot="start"
+            [color]="c.ruolo === 'editor' ? 'success' : 'primary'">
+          </ion-icon>
+          <ion-label>
+            <h2>{{ c.ospite_username }}</h2>
+            <p>{{ c.ospite_email }}</p>
+            <p class="data-label">Dal {{ formatData(c.creato_il) }}</p>
+          </ion-label>
+          <ion-badge [color]="ruoloBadgeColor(c.ruolo)" slot="end">
+            {{ ruoloLabel(c.ruolo) }}
+          </ion-badge>
+          <ion-button fill="clear" color="danger" slot="end" (click)="confermaRevoca(c)">
+            <ion-icon name="trash-outline"></ion-icon>
+          </ion-button>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- ── ARCHIVI CONDIVISI CON ME ───────────────────────── -->
+  <ion-card class="received-card" *ngIf="archividCondivisiConMe.length > 0">
+    <ion-card-header>
+      <ion-card-title>
+        <ion-icon name="share-outline"></ion-icon>
+        Archivi a cui hai accesso
+      </ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      <ion-list lines="full">
+        <ion-item *ngFor="let a of archividCondivisiConMe">
+          <ion-icon name="eye-outline" slot="start" color="primary"></ion-icon>
+          <ion-label>
+            <h2>{{ a.armadio_nome }}</h2>
+            <p>Proprietario: {{ a.proprietario_username }}</p>
+          </ion-label>
+          <ion-badge [color]="ruoloBadgeColor(a.ruolo)" slot="end">
+            {{ ruoloLabel(a.ruolo) }}
+          </ion-badge>
+        </ion-item>
+      </ion-list>
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>

@@ -1,0 +1,416 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap');
+
+$blue:    #3AABDB;
+$blue-d:  #1A7FA8;
+$blue-dk: #15425C;
+$green:   #7DC740;
+$dark:    #0D2A3A;
+$surf:    #F4FBFF;
+$white:   #FFFFFF;
+$mid:     #4A7A94;
+
+:host { display: block; font-family: 'Outfit', sans-serif; -webkit-font-smoothing: antialiased; }
+
+// ===== HEADER =====
+.crea-header {
+  --background: transparent;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+}
+
+.crea-toolbar {
+  --background: transparent;
+  --border-width: 0;
+  --padding-start: 16px;
+  --padding-end: 20px;
+}
+
+.back-btn {
+  --color: #{$white};
+  --background: rgba(255,255,255,.15);
+  --background-activated: rgba(255,255,255,.25);
+  --border-radius: 12px;
+  width: 38px; height: 38px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 12px;
+  margin-right: 8px;
+}
+
+.topbar-logo-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar-logo-img {
+  width: 32px; height: 32px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 10px rgba(58,171,219,.6));
+}
+
+.logo-txt {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  letter-spacing: -.5px;
+  .pk { color: $white; }
+  .bx { color: $green; }
+}
+
+// ===== CONTENT =====
+.crea-content {
+  --background: #{$surf};
+  --padding-bottom: 0;
+}
+
+// ===== HERO BANNER =====
+.hero-banner {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 0 0 32px 32px;
+  background: linear-gradient(140deg, #091C2A 0%, #0D2A3A 55%, #0E3347 100%);
+
+  &::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(58,171,219,.09) 1.5px, transparent 1.5px);
+    background-size: 28px 28px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(125,199,64,.14), transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+.hero-text {
+  position: absolute;
+  bottom: 28px; left: 24px;
+  z-index: 2;
+}
+
+.hero-label {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: $blue;
+  margin: 0 0 4px;
+}
+
+.hero-title {
+  font-size: 2.4rem;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -1.5px;
+  color: $white;
+  margin: 0;
+}
+
+.hero-accent {
+  background: linear-gradient(92deg, $blue 0%, $green 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// ===== FORM CARD =====
+.form-card {
+  margin: -20px 16px 32px;
+  background: $white;
+  border-radius: 24px;
+  padding: 28px 20px 24px;
+  box-shadow: 0 8px 40px rgba(21,66,92,.12);
+  border: 1px solid rgba(58,171,219,.1);
+  position: relative;
+  z-index: 10;
+}
+
+// ===== FIELD GROUP =====
+.field-group {
+  margin-bottom: 22px;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.field-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Outfit', sans-serif;
+  font-size: .85rem;
+  font-weight: 700;
+  color: $blue-dk;
+  margin-bottom: 8px;
+}
+
+.label-icon {
+  font-size: 1rem;
+  color: $blue;
+}
+
+.optional {
+  font-weight: 400;
+  color: $mid;
+  font-size: .78rem;
+}
+
+.add-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  font-family: 'Outfit', sans-serif;
+  font-size: .8rem;
+  font-weight: 700;
+  color: $green;
+  cursor: pointer;
+  padding: 0;
+  ion-icon { font-size: 1rem; }
+  &:active { opacity: .7; }
+}
+
+// ===== INPUTS =====
+.input-wrap {
+  background: $surf;
+  border: 1.5px solid rgba(58,171,219,.2);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: border-color .2s;
+  &:focus-within {
+    border-color: $blue;
+    box-shadow: 0 0 0 3px rgba(58,171,219,.12);
+  }
+}
+
+.custom-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .95rem;
+  color: $dark;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  &::placeholder { color: rgba(74,122,148,.5); }
+}
+
+.select-wrap {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.input-prefix-icon {
+  font-size: 1.1rem;
+  color: $mid;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.custom-select {
+  flex: 1;
+  --placeholder-color: rgba(74,122,148,.5);
+  --placeholder-opacity: 1;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .95rem;
+  color: $dark;
+  padding: 14px 0;
+  width: 100%;
+}
+
+.textarea-wrap {
+  padding: 0;
+}
+
+.custom-textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .95rem;
+  color: $dark;
+  padding: 14px 16px;
+  box-sizing: border-box;
+  resize: none;
+  line-height: 1.6;
+  &::placeholder { color: rgba(74,122,148,.5); }
+}
+
+// ===== TOGGLE =====
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: $surf;
+  border: 1.5px solid rgba(58,171,219,.15);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+}
+
+.toggle-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toggle-icon {
+  font-size: 1.5rem;
+  width: 42px; height: 42px;
+  background: rgba(255,193,7,.12);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.toggle-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: .9rem;
+  font-weight: 700;
+  color: $dark;
+  display: block;
+  line-height: 1.2;
+}
+
+.toggle-sub {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .75rem;
+  color: $mid;
+  display: block;
+  margin-top: 2px;
+}
+
+.custom-toggle {
+  --track-background: rgba(58,171,219,.2);
+  --track-background-checked: #{$green};
+  --handle-background: #{$white};
+  --handle-box-shadow: 0 2px 8px rgba(0,0,0,.15);
+}
+
+// ===== SEPARATOR =====
+.form-sep {
+  height: 1px;
+  background: rgba(58,171,219,.12);
+  margin: 0 0 22px;
+}
+
+// ===== SAVE BUTTON =====
+.save-btn {
+  position: relative;
+  width: 100%;
+  padding: 17px 24px;
+  background: linear-gradient(135deg, $blue-dk 0%, $blue-d 100%);
+  color: $white;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: .3px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+  box-shadow: 0 8px 28px rgba(21,66,92,.32);
+  transition: transform .2s, box-shadow .2s;
+
+  &:active { transform: scale(.98); box-shadow: 0 4px 14px rgba(21,66,92,.2); }
+
+  .save-icon { font-size: 1.3rem; }
+
+  .shimmer {
+    position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+    animation: shimmer 3.5s ease-in-out infinite 1s;
+  }
+}
+
+.save-btn--disabled {
+  background: rgba(74,122,148,.3);
+  box-shadow: none;
+  cursor: not-allowed;
+  .shimmer { display: none; }
+}
+
+@keyframes shimmer { 0% { left: -100%; } 50%,100% { left: 160%; } }
+
+.required-note {
+  font-family: 'DM Sans', sans-serif;
+  font-size: .72rem;
+  color: rgba(74,122,148,.6);
+  text-align: center;
+  margin: 12px 0 0;
+}
+
+// ===== ION-SELECT POPOVER personalizzato =====
+// Stili globali per il popover — devono essere in :root o in global.scss
+// Li aggiungiamo qui con :host-context e ::ng-deep per Ionic
+::ng-deep ion-popover.select-popover {
+  --background: rgba(9,28,42,.97);
+  --backdrop-opacity: 0.5;
+  --border-radius: 16px;
+  --box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+
+  ion-list { background: transparent; }
+
+  ion-item {
+    --background: transparent;
+    --background-hover: rgba(58,171,219,.12);
+    --color: rgba(255,255,255,.85);
+    --border-color: rgba(58,171,219,.12);
+    font-family: 'Outfit', sans-serif;
+    font-size: .95rem;
+    border-radius: 8px;
+    margin: 2px 6px;
+    transition: background .15s;
+  }
+
+  ion-item.item-radio-checked {
+    --background: rgba(58,171,219,.18);
+    --color: #3AABDB;
+    ion-label { color: #3AABDB !important; font-weight: 700; }
+  }
+
+  ion-radio {
+    --color: rgba(255,255,255,.3);
+    --color-checked: #3AABDB;
+  }
+
+  // Barra colorata in cima al popover
+  &::before {
+    content: '';
+    display: block;
+    height: 3px;
+    background: linear-gradient(90deg, #3AABDB, #7DC740);
+    border-radius: 16px 16px 0 0;
+  }
+}
+
+// Action sheet e alert dark
+::ng-deep ion-action-sheet {
+  --background: rgba(9,28,42,.97);
+  --color: rgba(255,255,255,.85);
+  .action-sheet-button { color: rgba(255,255,255,.85) !important; }
+  .action-sheet-button.action-sheet-destructive { color: #f87171 !important; }
+}

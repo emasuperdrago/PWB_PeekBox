@@ -1,101 +1,190 @@
-<ion-content [fullscreen]="true" class="login-content">
+<ion-content [fullscreen]="true" class="reg-content" [scrollY]="false">
 
-  <!-- TOP BAR -->
-  <header class="topbar">
-    <div class="topbar-logo" routerLink="/benvenuto" style="cursor:pointer;">
-      <img src="assets/icon/logoTitolo1.png" alt="PeekBox" class="topbar-logo-img" />
-      <span class="logo-txt">
-        <span class="pk">Peek</span><span class="bx">Box</span>
-      </span>
-    </div>
-    <button class="btn-nav" routerLink="/login">
-      Accedi
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-        <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
-      </svg>
-    </button>
-  </header>
+  <div class="reg-wrapper">
 
-  <!-- CARD REGISTRAZIONE -->
-  <div class="login-wrapper">
-    <div class="login-card">
+    <!-- ============ PANNELLO SINISTRO (marketing) ============ -->
+    <aside class="reg-left">
 
-      <div class="badge">
-        <span class="badge-dot"></span>
-        Inizia gratuitamente
-      </div>
+      <!-- Sfondo sfumato azzurrino — niente slideshow -->
+      <div class="reg-left-bg"></div>
 
-      <h1 class="login-title">
-        Crea il tuo nuovo<br>
-        <span class="title-accent">account.</span>
-      </h1>
-      <p class="login-sub">Scegli come vuoi usare PeekBox.</p>
+      <!-- Contenuto marketing -->
+      <div class="reg-left-content">
 
-      <!-- SELEZIONE TIPO PROFILO -->
-      <div class="profilo-selector">
-        <div class="profilo-card" [class.selected]="tipoProfilo === 'personal'" (click)="selezionaProfilo('personal')">
-          <div class="profilo-icon">🏠</div>
-          <div class="profilo-info">
-            <span class="profilo-nome">Uso Personale</span>
-            <span class="profilo-desc">Casa, garage, traslochi</span>
-          </div>
-          <div class="profilo-check" [class.visible]="tipoProfilo === 'personal'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
+        <!-- Logo in alto come nella Benvenuto -->
+        <header class="reg-left-topbar">
+          <img src="assets/icon/logoTitolo1.png" alt="PeekBox" class="reg-logo-img" />
+          <span class="reg-logo-txt"><span class="pk">Peek</span><span class="bx">Box</span></span>
+        </header>
+
+        <!-- Titolo centrale -->
+        <div class="reg-left-body reg-left-body--aligned">
+          <h2 class="reg-left-title">
+            Unisciti alla rivoluzione<br>
+            <span class="reg-left-accent">dell'ordine.</span>
+          </h2>
+
+          <ul class="reg-benefits">
+            <li>
+              <div class="benefit-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                </svg>
+              </div>
+              <div>
+                <strong>Sempre con te, ovunque tu vada</strong>
+                <span>Apri PeekBox da telefono, tablet o PC: la tua dashboard è sincronizzata e pronta all'istante</span>
+              </div>
+            </li>
+            <li>
+              <div class="benefit-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                  <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                </svg>
+              </div>
+              <div>
+                <strong>Scansiona. Apri. Hai già trovato.</strong>
+                <span>Ogni box ha un QR Code univoco: inquadra con la fotocamera e vedi subito cosa c'è dentro, senza aprirla</span>
+              </div>
+            </li>
+            <li>
+              <div class="benefit-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+              </div>
+              <div>
+                <strong>I tuoi dati appartengono solo a te</strong>
+                <span>Zero profilazione, zero condivisioni. Le tue informazioni restano private, punto</span>
+              </div>
+            </li>
+            <li>
+              <div class="benefit-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </div>
+              <div>
+                <strong>Trova qualsiasi oggetto in 3 secondi</strong>
+                <span>Digita il nome, PeekBox ti dice scaffale, stanza e box. Niente più "dove l'ho messo?"</span>
+              </div>
+            </li>
+          </ul>
         </div>
 
-        <div class="profilo-card" [class.selected]="tipoProfilo === 'business'" (click)="selezionaProfilo('business')">
-          <div class="profilo-icon">🏢</div>
-          <div class="profilo-info">
-            <span class="profilo-nome">Business & Logistica</span>
-            <span class="profilo-desc">Aziende, artigiani, flotte</span>
-          </div>
-          <div class="profilo-check" [class.visible]="tipoProfilo === 'business'">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
+      </div>
+    </aside>
+
+    <!-- ============ PANNELLO DESTRO (form) ============ -->
+    <main class="reg-right">
+
+      <div class="reg-form-card">
+
+        <!-- Header card -->
+        <div class="reg-form-header">
+          <div class="reg-form-badge">Registrazione gratuita</div>
+          <h1 class="reg-form-title">Crea il tuo Account</h1>
+          <p class="reg-form-sub">Compila i campi e inizia a organizzare in pochi secondi.</p>
         </div>
-      </div>
 
-      <!-- BADGE BUSINESS FEATURES -->
-      <div class="business-features" *ngIf="tipoProfilo === 'business'">
-        <span class="feat-tag">📍 Tracking GPS</span>
-        <span class="feat-tag">🗺️ Mappa Asset</span>
-        <span class="feat-tag">📊 Dashboard</span>
-      </div>
+        <!-- Selettore tipo profilo -->
+        <div class="reg-profile-toggle">
+          <button class="profile-btn"
+                  [class.active]="tipoProfilo === 'personal'"
+                  (click)="selezionaProfilo('personal')">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            Personale
+          </button>
+          <button class="profile-btn"
+                  [class.active]="tipoProfilo === 'business'"
+                  (click)="selezionaProfilo('business')">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2"/>
+              <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+            </svg>
+            Business
+          </button>
+        </div>
 
-      <!-- FORM -->
-      <div class="field-group">
-        <label class="field-label">Nome Profilo</label>
-        <ion-input type="text" [(ngModel)]="nomeProfilo" fill="outline" placeholder="Es. MarcoRossi" class="custom-input"></ion-input>
-      </div>
+        <!-- Campi form -->
+        <div class="reg-fields">
 
-      <div class="field-group">
-        <label class="field-label">Email</label>
-        <ion-input type="email" [(ngModel)]="email" fill="outline" placeholder="nome@esempio.it" class="custom-input"></ion-input>
-      </div>
+          <div class="field-group">
+            <label class="field-label">Nome profilo</label>
+            <div class="field-wrap">
+              <span class="field-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>
+              </span>
+              <ion-input class="reg-input"
+                         type="text"
+                         placeholder="Come vuoi chiamarti?"
+                         [(ngModel)]="nomeProfilo">
+              </ion-input>
+            </div>
+          </div>
 
-      <div class="field-group">
-        <label class="field-label">Password</label>
-        <ion-input type="password" [(ngModel)]="password" fill="outline" placeholder="Scegli una password" class="custom-input">
-          <ion-input-password-toggle slot="end"></ion-input-password-toggle>
-        </ion-input>
-      </div>
+          <div class="field-group">
+            <label class="field-label">Indirizzo email</label>
+            <div class="field-wrap">
+              <span class="field-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                  <polyline points="22,6 12,13 2,6"/>
+                </svg>
+              </span>
+              <ion-input class="reg-input"
+                         type="email"
+                         placeholder="tua@email.com"
+                         [(ngModel)]="email">
+              </ion-input>
+            </div>
+          </div>
 
-      <div class="cta-row">
-        <button
-          class="btn-primary"
-          [disabled]="!nomeProfilo || !email || !email.includes('@') || !password"
-          (click)="registrati()">
-          <span>Crea Account {{ tipoProfilo === 'business' ? 'Business' : 'Personale' }}</span>
-          <div class="shimmer"></div>
+          <div class="field-group">
+            <label class="field-label">Password</label>
+            <div class="field-wrap">
+              <span class="field-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+              </span>
+              <ion-input class="reg-input"
+                         type="password"
+                         placeholder="Minimo 8 caratteri"
+                         [(ngModel)]="password">
+                <ion-input-password-toggle slot="end"></ion-input-password-toggle>
+              </ion-input>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- CTA -->
+        <button class="btn-registrati" (click)="registrati()">
+          <span>Crea Account</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+          <div class="btn-shimmer"></div>
         </button>
-      </div>
 
-    </div>
+        <!-- Link login -->
+        <p class="reg-login-link">
+          Hai già un account?
+          <a routerLink="/login" class="reg-login-anchor">Accedi</a>
+        </p>
+
+      </div>
+    </main>
+
   </div>
 
 </ion-content>

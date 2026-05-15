@@ -1,0 +1,121 @@
+<!-- ===== SFONDO FISSO ===== -->
+<div class="fixed-bg">
+  <div class="fixed-bg-glow-top"></div>
+  <div class="fixed-bg-glow-mid"></div>
+  <div class="fixed-bg-dots"></div>
+</div>
+
+<!-- ===== LOGO FISSO ===== -->
+<div class="fixed-logo-wrapper">
+  <button class="topbar-back-btn" (click)="vaiProfilo()" aria-label="Indietro">
+    <ion-icon name="arrow-back-outline"></ion-icon>
+  </button>
+  <div class="topbar-logo-left">
+    <img src="assets/icon/logoTitolo1.png" alt="PeekBox" class="topbar-logo-img" />
+    <span class="logo-txt">
+      <span class="pk">Peek</span><span class="bx">Box</span>
+    </span>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<ion-content class="admin-content">
+
+  <!-- Header sezione -->
+  <div class="admin-header">
+    <div class="admin-header-icon-wrap">
+      <ion-icon name="shield-checkmark-outline" class="admin-header-icon"></ion-icon>
+    </div>
+    <div class="admin-header-info">
+      <h1 class="admin-header-titolo">Pannello Admin</h1>
+      <p class="admin-header-sub">Gestione utenti registrati</p>
+    </div>
+    <div class="admin-badge">ADMIN</div>
+  </div>
+
+  <!-- Contatore utenti -->
+  <div class="admin-stats-bar" *ngIf="!isLoading && utenti.length > 0">
+    <ion-icon name="people-outline"></ion-icon>
+    <span>{{ utenti.length }} utent{{ utenti.length === 1 ? 'e' : 'i' }} registrat{{ utenti.length === 1 ? 'o' : 'i' }}</span>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="loading-spinner"></div>
+    <p class="loading-testo">Caricamento utenti...</p>
+  </div>
+
+  <!-- Errore -->
+  <div *ngIf="!isLoading && errore" class="errore-state">
+    <ion-icon name="alert-circle-outline" class="errore-icon"></ion-icon>
+    <p class="errore-testo">{{ errore }}</p>
+    <button class="retry-btn" (click)="caricaUtenti()">Riprova</button>
+  </div>
+
+  <!-- Lista utenti -->
+  <div *ngIf="!isLoading && !errore" class="utenti-list">
+
+    <div *ngFor="let utente of utenti" class="utente-card">
+
+      <!-- Header card -->
+      <div class="utente-card-header">
+        <div class="utente-avatar" [class.utente-avatar--admin]="utente.is_admin">
+          <span class="utente-avatar-letter">{{ iniziale(utente.username) }}</span>
+        </div>
+        <div class="utente-info">
+          <div class="utente-nome-row">
+            <span class="utente-nome">{{ utente.username }}</span>
+            <span *ngIf="utente.is_admin" class="badge-admin">Admin</span>
+            <span class="badge-profilo" [class.badge-profilo--business]="utente.tipo_profilo === 'business'">
+              {{ utente.tipo_profilo }}
+            </span>
+          </div>
+          <span class="utente-email">{{ utente.email }}</span>
+        </div>
+
+        <!-- Tasto elimina (non mostrare per admin o se stesso) -->
+        <button
+          *ngIf="!utente.is_admin"
+          class="btn-elimina"
+          (click)="confermaEliminazione(utente)"
+          title="Elimina account"
+        >
+          <ion-icon name="trash-outline"></ion-icon>
+        </button>
+      </div>
+
+      <!-- Statistiche utente -->
+      <div class="utente-stats">
+        <div class="utente-stat">
+          <ion-icon name="archive-outline" class="ustat-icon ustat-icon--blue"></ion-icon>
+          <span class="ustat-value">{{ utente.num_armadi }}</span>
+          <span class="ustat-label">Armad{{ utente.num_armadi === 1 ? 'io' : 'i' }}</span>
+        </div>
+        <div class="ustat-divider"></div>
+        <div class="utente-stat">
+          <ion-icon name="cube-outline" class="ustat-icon ustat-icon--green"></ion-icon>
+          <span class="ustat-value">{{ utente.num_box }}</span>
+          <span class="ustat-label">Box</span>
+        </div>
+        <div class="ustat-divider"></div>
+        <div class="utente-stat">
+          <ion-icon name="person-circle-outline" class="ustat-icon ustat-icon--amber"></ion-icon>
+          <span class="ustat-value">{{ utente.num_oggetti }}</span>
+          <span class="ustat-label">Oggett{{ utente.num_oggetti === 1 ? 'o' : 'i' }}</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Empty state -->
+    <div *ngIf="utenti.length === 0" class="empty-state">
+      <ion-icon name="checkmark-circle-outline" class="empty-icon"></ion-icon>
+      <p class="empty-titolo">Nessun utente trovato</p>
+    </div>
+
+  </div>
+
+</ion-content>
+
+
+<!-- bottom bar rimossa: la pagina Admin usa solo il back button in topbar -->
